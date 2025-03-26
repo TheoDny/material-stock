@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- the server action files should be in the "services" folder
+- the server action files should be named "xxxxx.service.ts"
+- the service files are where the call to the prisma model are possible
+- they should never be called from a client component

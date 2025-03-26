@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+[package.json](mdc:package.json)
+
+main used tehnology:
+- NextJs 15
+- React 19
+- Shadcn
+- nodemailer
+- next-safe-action v7
+- lucide-react
+- date-fns
+- zod
+- prisma
+- tailwind 4
+- react-email
+
