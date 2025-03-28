@@ -26,7 +26,7 @@ export default async function MaterialHistoryPage({ params }: MaterialHistoryPag
     }
 
     return (
-        <div className="container py-6">
+        <div className="p-2">
             <div className="mb-6">
                 <Link href="/dashboard/materials">
                     <Button

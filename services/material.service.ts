@@ -53,6 +53,7 @@ export async function createMaterial(data: {
     name: string
     description: string
     tagIds: string[]
+    orderCharacteristics: string[]
     characteristicValues: CharacteristicValueInput[]
     entityId: string
 }) {
@@ -65,6 +66,10 @@ export async function createMaterial(data: {
                 Tags: {
                     connect: data.tagIds.map((id) => ({ id })),
                 },
+                Characteristics: {
+                    connect: data.orderCharacteristics.map((characteristicId) => ({ id: characteristicId })),
+                },
+                order_Material_Characteristic: data.orderCharacteristics,
                 entityId: data.entityId,
             },
         })
@@ -98,6 +103,7 @@ export async function updateMaterial(
     data: {
         description: string
         tagIds: string[]
+        orderCharacteristics: string[]
         characteristicValues: CharacteristicValueInput[]
     },
 ) {
@@ -124,6 +130,10 @@ export async function updateMaterial(
                 Tags: {
                     set: data.tagIds.map((id) => ({ id })), // Add new tags
                 },
+                Characteristics: {
+                    set: data.orderCharacteristics.map((characteristicId) => ({ id: characteristicId })), // Add new characteristics
+                },
+                order_Material_Characteristic: data.orderCharacteristics,
             },
         })
 

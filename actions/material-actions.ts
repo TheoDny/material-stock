@@ -15,6 +15,7 @@ const createMaterialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
     tagIds: z.array(z.string()).default([]),
+    orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
         .array(
             z.object({
@@ -31,6 +32,7 @@ const updateMaterialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
     tagIds: z.array(z.string()).default([]),
+    orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
         .array(
             z.object({
@@ -90,12 +92,13 @@ export const updateMaterialAction = actionClient.schema(updateMaterialSchema).ac
         // We need a custom permission code for materials, but for now we'll use tag_edit
         const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-        const { id, description, tagIds, characteristicValues } = parsedInput
+        const { id, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
 
         return await updateMaterial(id, session.user.entitySelectedId, {
             description: description || "",
             tagIds,
             characteristicValues,
+            orderCharacteristics,
         })
     } catch (error) {
         console.error("Failed to update material:", error)

@@ -33,3 +33,11 @@ export const getTypeColor = (type: CharacteristicType) => {
 
     return typeColors[type] || "bg-gray-100 text-gray-800"
 }
+
+/**
+ * check if an object is empty
+ * @param obj
+ */
+export function isEmpty(obj: Record<string, any>) {
+    return Object.keys(obj).length === 0
+}

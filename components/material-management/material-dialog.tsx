@@ -5,7 +5,7 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
-import { X, Check } from "lucide-react"
+import { X, Check, GripVertical } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -45,6 +45,7 @@ const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
     tagIds: z.array(z.string()).default([]),
+    orderCharacteristics: z.array(z.string()).default([]),
 })
 
 type MaterialFormValues = z.infer<typeof materialSchema>
@@ -62,6 +63,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
     const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
     const [characteristicValues, setCharacteristicValues] = useState<CharacteristicValue[]>([])
     const [activeTab, setActiveTab] = useState("general")
+    const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
 
     const isEditing = !!material
 
@@ -71,6 +73,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             name: material?.name || "",
             description: material?.description || "",
             tagIds: material?.Tags.map((tag) => tag.id) || [],
+            orderCharacteristics: material?.order_Material_Characteristic || [],
         },
     })
 
@@ -84,6 +87,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                     name: material.name,
                     description: material.description,
                     tagIds: material.Tags.map((tag) => tag.id),
+                    orderCharacteristics: material.order_Material_Characteristic || [],
                 })
 
                 loadMaterialCharacteristics(material.id)
@@ -92,11 +96,26 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                     name: "",
                     description: "",
                     tagIds: [],
+                    orderCharacteristics: [],
                 })
                 setCharacteristicValues([])
             }
         }
     }, [open, material, form])
+
+    // Update the order whenever characteristic values change
+    useEffect(() => {
+        const currentOrder = form.getValues("orderCharacteristics")
+        const characteristicIds = characteristicValues.map((cv) => cv.characteristicId)
+
+        // Add any new characteristic IDs to the order
+        const newIds = characteristicIds.filter((id) => !currentOrder.includes(id))
+
+        // Remove any IDs from the order that are no longer in the values
+        const updatedOrder = currentOrder.filter((id) => characteristicIds.includes(id)).concat(newIds)
+
+        form.setValue("orderCharacteristics", updatedOrder)
+    }, [characteristicValues])
 
     const loadTags = async () => {
         try {
@@ -143,6 +162,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                     name: values.name,
                     description: values.description || "",
                     tagIds: values.tagIds,
+                    orderCharacteristics: values.orderCharacteristics,
                     characteristicValues: characteristicValues.map((cv) => ({
                         characteristicId: cv.characteristicId,
                         value: cv.value || "",
@@ -166,6 +186,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                     name: values.name,
                     description: values.description || "",
                     tagIds: values.tagIds,
+                    orderCharacteristics: values.orderCharacteristics,
                     characteristicValues: characteristicValues.map((cv) => ({
                         characteristicId: cv.characteristicId,
                         value: cv.value || "",
@@ -226,11 +247,22 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                     value: null,
                 },
             ])
+
+            // Add to the order list
+            const currentOrder = form.getValues("orderCharacteristics")
+            form.setValue("orderCharacteristics", [...currentOrder, characteristicId])
         }
     }
 
     const handleRemoveCharacteristic = (characteristicId: string) => {
         setCharacteristicValues(characteristicValues.filter((cv) => cv.characteristicId !== characteristicId))
+
+        // Remove from the order list
+        const currentOrder = form.getValues("orderCharacteristics")
+        form.setValue(
+            "orderCharacteristics",
+            currentOrder.filter((id) => id !== characteristicId),
+        )
     }
 
     const handleCharacteristicValueChange = (characteristicId: string, value: string) => {
@@ -241,6 +273,59 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
 
     const getAvailableCharacteristics = () => {
         return characteristics.filter((c) => !characteristicValues.some((cv) => cv.characteristicId === c.id))
+    }
+
+    // Get ordered characteristic values based on the current order
+    const getOrderedCharacteristicValues = () => {
+        const order = form.getValues("orderCharacteristics")
+
+        // First, sort by the order array
+        const orderedValues = [...characteristicValues].sort((a, b) => {
+            const aIndex = order.indexOf(a.characteristicId)
+            const bIndex = order.indexOf(b.characteristicId)
+
+            // If not in order array, put at the end
+            if (aIndex === -1) return 1
+            if (bIndex === -1) return -1
+
+            return aIndex - bIndex
+        })
+
+        return orderedValues
+    }
+
+    // Drag and drop handlers
+    const handleDragStart = (index: number) => {
+        setDraggedItemIndex(index)
+    }
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        if (draggedItemIndex === null || draggedItemIndex === index) return
+
+        // Reorder the characteristics
+        const orderedValues = getOrderedCharacteristicValues()
+        const order = form.getValues("orderCharacteristics")
+
+        // Get the item being dragged and the target position
+        const draggedItem = orderedValues[draggedItemIndex]
+
+        // Create new order by moving the dragged item
+        const newOrder = [...order]
+        const fromIndex = newOrder.indexOf(draggedItem.characteristicId)
+        const toIndex = newOrder.indexOf(orderedValues[index].characteristicId)
+
+        if (fromIndex !== -1 && toIndex !== -1) {
+            newOrder.splice(fromIndex, 1)
+            newOrder.splice(toIndex, 0, draggedItem.characteristicId)
+            form.setValue("orderCharacteristics", newOrder)
+        }
+
+        setDraggedItemIndex(index)
+    }
+
+    const handleDragEnd = () => {
+        setDraggedItemIndex(null)
     }
 
     return (
@@ -412,20 +497,27 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                                             </Select>
                                         </div>
 
-                                        <div className="space-y-4">
+                                        <div className="space-y-4 mb-0.5">
                                             {characteristicValues.length === 0 ? (
                                                 <div className="text-center py-4 text-muted-foreground border rounded-md">
                                                     No characteristics added yet
                                                 </div>
                                             ) : (
-                                                characteristicValues.map((cv) => (
+                                                getOrderedCharacteristicValues().map((cv, index) => (
                                                     <div
                                                         key={cv.characteristicId}
                                                         className="border rounded-md p-4 space-y-2"
+                                                        draggable
+                                                        onDragStart={() => handleDragStart(index)}
+                                                        onDragOver={(e) => handleDragOver(e, index)}
+                                                        onDragEnd={handleDragEnd}
                                                     >
                                                         <div className="flex justify-between items-center">
-                                                            <div className="font-medium">
-                                                                {cv.Characteristic.name}
+                                                            <div className="flex items-center gap-2">
+                                                                <GripVertical className="h-4 w-4 cursor-move text-gray-400" />
+                                                                <div className="font-medium">
+                                                                    {cv.Characteristic.name}
+                                                                </div>
                                                             </div>
                                                             <Button
                                                                 variant="ghost"

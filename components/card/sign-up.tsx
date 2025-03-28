@@ -50,7 +50,6 @@ export function SignUp() {
                     setLoading(true)
                 },
                 onError: (ctx) => {
-                    console.log(ctx)
                     switch (ctx.error.code) {
                         case "PASSWORD_TOO_SHORT":
                             setError("Password must be at least 16 characters")

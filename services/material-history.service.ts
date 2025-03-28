@@ -36,6 +36,8 @@ export const createMaterialHistory = async (materialId: string) => {
             createdAt: new Date(),
         },
     })
+
+    return materialHistory
 }
 
 const buildTagsJson = (tags: Tag[]) => {
@@ -56,8 +58,8 @@ const buildCharacteristicsJson = (
     const characteristicsJson: {
         name: string
         type: $Enums.CharacteristicType
-        units: string | Prisma.NullTypes.JsonNull
-        value: JsonValue | Prisma.NullTypes.JsonNull
+        units: string | null
+        value: JsonValue | null
     }[] = []
     order.forEach((orderItem) => {
         const characteristic = characteristics.find((char) => char.id === orderItem)
@@ -69,8 +71,8 @@ const buildCharacteristicsJson = (
             characteristicsJson.push({
                 name: characteristic.name,
                 type: characteristic.type,
-                units: characteristic.units ? characteristic.units : Prisma.JsonNull,
-                value: characteristicValue?.value ? characteristicValue.value : Prisma.JsonNull,
+                units: characteristic.units ? characteristic.units : null,
+                value: characteristicValue?.value ? characteristicValue.value : null,
             })
         }
     })

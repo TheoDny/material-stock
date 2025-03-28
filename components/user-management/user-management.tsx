@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Plus, Pencil, Check, X } from "lucide-react"
 import { toast } from "sonner"
 
@@ -18,7 +17,6 @@ import { Role } from "@prisma/client"
 import { UserRolesAndEntities } from "@/types/user.type"
 
 export function UserManagement() {
-    const router = useRouter()
     const [users, setUsers] = useState<UserRolesAndEntities[]>([])
     const [roles, setRoles] = useState<Role[]>([])
     const [selectedUser, setSelectedUser] = useState<UserRolesAndEntities | null>(null)

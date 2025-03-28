@@ -14,10 +14,7 @@ const createCharacteristicSchema = z.object({
     type: z.nativeEnum(CharacteristicType, {
         errorMap: () => ({ message: "Invalid characteristic type" }),
     }),
-    options: z
-        .array(z.string())
-        .nullable()
-        .transform((val) => (val === null ? Prisma.JsonNull : val)),
+    options: z.array(z.string()).nullable(),
     units: z.string().nullable(),
 })
 
@@ -55,10 +52,7 @@ export const createCharacteristicAction = actionClient
             })
         } catch (error) {
             console.error("Failed to create characteristic:", error)
-            return {
-                success: false,
-                message: "Failed to create characteristic",
-            }
+            throw new Error("Failed to create characteristic")
         }
     })
 
@@ -73,9 +67,6 @@ export const updateCharacteristicAction = actionClient
             return await updateCharacteristic(id, session.user.entitySelectedId, description)
         } catch (error) {
             console.error("Failed to update characteristic:", error)
-            return {
-                success: false,
-                message: "Failed to update characteristic",
-            }
+            throw new Error("Failed to update characteristic")
         }
     })
