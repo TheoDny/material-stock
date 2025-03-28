@@ -66,3 +66,36 @@ const res : TypeResAction = await loginUser({
         res?.bindArgsValidationErrors;
         res?.serverError;
 ```
+
+
+to proctect an action or/and get the session:
+```typescript
+"use server";
+ 
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+ 
+export const protectedAction = async () => {
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    });
+
+    //the action logic
+};
+
+``` 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

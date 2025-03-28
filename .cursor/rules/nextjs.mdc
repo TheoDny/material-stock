@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- inside the /app folder there should be only page.tsx route.tsx middleware.tsx layout.tsx global.css favicon.ico   
+- other tsx file should be inside components folder

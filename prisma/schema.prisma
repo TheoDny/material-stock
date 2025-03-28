@@ -223,6 +223,7 @@ model Material {
     updatedAt       DateTime         @default(now()) @updatedAt
     Tags            Tag[]
     Characteristics Characteristic[]
+    order_Material_Characteristic String[]
 
     Entity                   Entity                    @relation(fields: [entityId], references: [id])
     entityId                 String
