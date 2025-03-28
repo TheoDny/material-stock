@@ -30,7 +30,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { createMaterial, updateMaterialAction, getMaterialCharacteristicsAction } from "@/actions/material-actions"
+import {
+    createMaterialAction,
+    updateMaterialAction,
+    getMaterialCharacteristicsAction,
+} from "@/actions/material-actions"
 import { getTagsAction } from "@/actions/tag-actions"
 import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicValueForm } from "./characteristic-value-form"
@@ -158,7 +162,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                 toast.success("Material updated successfully")
             } else {
                 // Create new material
-                const result = await createMaterial({
+                const result = await createMaterialAction({
                     name: values.name,
                     description: values.description || "",
                     tagIds: values.tagIds,

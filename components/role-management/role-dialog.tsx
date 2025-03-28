@@ -18,7 +18,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { createRole, updateRole } from "@/actions/role-actions"
+import { createRoleAction, updateRoleAction } from "@/actions/role-actions"
 import { Role } from "@prisma/client"
 import { RolePermissions } from "@/types/role.type"
 
@@ -61,7 +61,7 @@ export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProp
 
             if (role) {
                 // Update existing role
-                const result = await updateRole({
+                const result = await updateRoleAction({
                     id: role.id,
                     name: values.name,
                     description: values.description || "",
@@ -69,7 +69,7 @@ export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProp
                 toast.success("Role updated successfully")
             } else {
                 // Create new role
-                result = await createRole({
+                result = await createRoleAction({
                     name: values.name,
                     description: values.description || "",
                 })

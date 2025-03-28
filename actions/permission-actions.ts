@@ -1,20 +1,18 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
+import { getPermissions } from "@/services/permission.service"
+import { checkAuth } from "@/lib/auth-guard"
 
 // Get all permissions
-export async function getPermissions() {
-  try {
-    const permissions = await prisma.permission.findMany({
-      orderBy: {
-        code: "asc",
-      },
-    })
+export async function getPermissionsAction() {
+    try {
+        // Basic auth check
+        await checkAuth()
 
-    return permissions
-  } catch (error) {
-    console.error("Failed to fetch permissions:", error)
-    throw new Error("Failed to fetch permissions")
-  }
+        return await getPermissions()
+    } catch (error) {
+        console.error("Failed to fetch permissions:", error)
+        throw new Error("Failed to fetch permissions")
+    }
 }
 

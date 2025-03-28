@@ -1,10 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
+import { getTags, createTag, updateTag } from "@/services/tag.service"
 
 // Schema for creating a tag
 const createTagSchema = z.object({
@@ -26,20 +25,7 @@ export async function getTagsAction() {
         // Auth check for basic session validation
         const session = await checkAuth()
 
-        const tags = await prisma.tag.findMany({
-            include: {
-                _count: {
-                    select: { Materials: true },
-                },
-            },
-            where: {
-                entityId: session.user.entitySelectedId,
-            },
-            orderBy: {
-                name: "asc",
-            },
-        })
-
+        const tags = await getTags(session.user.entitySelectedId)
         return tags
     } catch (error) {
         console.error("Failed to fetch tags:", error)
@@ -55,16 +41,13 @@ export const createTagAction = actionClient
             // Check for tag_create permission
             const session = await checkAuth({ requiredPermission: "tag_create" })
 
-            const tag = await prisma.tag.create({
-                data: {
-                    name,
-                    fontColor,
-                    color,
-                    entityId: session.user.entitySelectedId,
-                },
+            const tag = await createTag({
+                name,
+                fontColor,
+                color,
+                entityId: session.user.entitySelectedId,
             })
 
-            revalidatePath("/dashboard/tags")
             return {
                 success: true,
                 data: tag,
@@ -83,15 +66,8 @@ export const updateTagAction = actionClient
             // Check for tag_edit permission
             const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-            const tag = await prisma.tag.update({
-                where: { id, entityId: session.user.entitySelectedId },
-                data: {
-                    fontColor,
-                    color,
-                },
-            })
+            const tag = await updateTag(id, session.user.entitySelectedId, { fontColor, color })
 
-            revalidatePath("/configuration/tags")
             return {
                 success: true,
                 data: tag,

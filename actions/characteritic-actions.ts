@@ -1,12 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
 import { CharacteristicType } from "@prisma/client"
 import { Prisma } from "@prisma/client"
 import { checkAuth } from "@/lib/auth-guard"
+import { getCharacteristics, createCharacteristic, updateCharacteristic } from "@/services/characteristic.service"
 
 // Schema for creating a characteristic
 const createCharacteristicSchema = z.object({
@@ -34,21 +33,7 @@ export async function getCharacteristicsAction() {
         // Auth check for basic session validation
         const session = await checkAuth()
 
-        const characteristics = await prisma.characteristic.findMany({
-            where: {
-                entityId: session.user.entitySelectedId,
-            },
-            include: {
-                _count: {
-                    select: { Materials: true },
-                },
-            },
-            orderBy: {
-                name: "asc",
-            },
-        })
-
-        return characteristics
+        return await getCharacteristics(session.user.entitySelectedId)
     } catch (error) {
         console.error("Failed to fetch characteristics:", error)
         throw new Error("Failed to fetch characteristics")
@@ -58,27 +43,16 @@ export async function getCharacteristicsAction() {
 // Create a new characteristic
 export const createCharacteristicAction = actionClient
     .schema(createCharacteristicSchema)
-    .action(async ({ parsedInput: { name, description, type, options, units } }) => {
+    .action(async ({ parsedInput }) => {
         try {
             // Check for charac_create permission
             const session = await checkAuth({ requiredPermission: "charac_create" })
 
-            const characteristic = await prisma.characteristic.create({
-                data: {
-                    name,
-                    description: description || "",
-                    type,
-                    options,
-                    units,
-                    entityId: session.user.entitySelectedId,
-                },
+            return await createCharacteristic({
+                ...parsedInput,
+                description: parsedInput.description || "",
+                entityId: session.user.entitySelectedId,
             })
-
-            revalidatePath("/configuration/characteristics")
-            return {
-                success: true,
-                data: characteristic,
-            }
         } catch (error) {
             console.error("Failed to create characteristic:", error)
             return {
@@ -96,21 +70,7 @@ export const updateCharacteristicAction = actionClient
             // Check for charac_edit permission
             const session = await checkAuth({ requiredPermission: "charac_edit" })
 
-            const characteristic = await prisma.characteristic.update({
-                where: {
-                    id,
-                    entityId: session.user.entitySelectedId,
-                },
-                data: {
-                    description,
-                },
-            })
-
-            revalidatePath("/configuration/characteristics")
-            return {
-                success: true,
-                data: characteristic,
-            }
+            return await updateCharacteristic(id, session.user.entitySelectedId, description)
         } catch (error) {
             console.error("Failed to update characteristic:", error)
             return {

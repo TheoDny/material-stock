@@ -18,7 +18,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { createUser, updateUser } from "@/actions/user-actions"
+import { createUserAction, updateUserAction } from "@/actions/user-actions"
 import { UserRolesAndEntities } from "@/types/user.type"
 
 const userSchema = z.object({
@@ -66,7 +66,7 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
 
             if (user) {
                 // Update existing user
-                result = await updateUser({
+                result = await updateUserAction({
                     id: user.id,
                     name: values.name,
                     email: values.email,
@@ -76,7 +76,7 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
                 toast.success("User updated successfully")
             } else {
                 // Create new user
-                result = await createUser({
+                result = await createUserAction({
                     name: values.name,
                     email: values.email,
                     active: values.active,

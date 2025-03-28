@@ -1,11 +1,14 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
-import { createMaterialHistory } from "@/services/material-history.service"
+import {
+    getMaterials,
+    getMaterialCharacteristics,
+    createMaterial,
+    updateMaterial,
+} from "@/services/material.service"
 
 // Schema for creating a material
 const createMaterialSchema = z.object({
@@ -44,19 +47,7 @@ export async function getMaterialsAction() {
         // Basic auth check
         const session = await checkAuth()
 
-        const materials = await prisma.material.findMany({
-            where: {
-                entityId: session.user.entitySelectedId,
-            },
-            include: {
-                Tags: true,
-            },
-            orderBy: {
-                updatedAt: "desc",
-            },
-        })
-
-        return materials
+        return await getMaterials(session.user.entitySelectedId)
     } catch (error) {
         console.error("Failed to fetch materials:", error)
         throw new Error("Failed to fetch materials")
@@ -69,16 +60,7 @@ export async function getMaterialCharacteristicsAction(materialId: string) {
         // Basic auth check
         await checkAuth()
 
-        const characteristicValues = await prisma.material_Characteristic.findMany({
-            where: {
-                materialId,
-            },
-            include: {
-                Characteristic: true,
-            },
-        })
-
-        return characteristicValues
+        return await getMaterialCharacteristics(materialId)
     } catch (error) {
         console.error("Failed to fetch material characteristics:", error)
         throw new Error("Failed to fetch material characteristics")
@@ -86,106 +68,37 @@ export async function getMaterialCharacteristicsAction(materialId: string) {
 }
 
 // Create a new material
-export const createMaterial = actionClient
-    .schema(createMaterialSchema)
-    .action(async ({ parsedInput: { name, description, tagIds, characteristicValues } }) => {
-        try {
-            // We need a custom permission code for materials, but for now we'll use tag_create
-            const session = await checkAuth({ requiredPermission: "tag_create" })
+export const createMaterialAction = actionClient.schema(createMaterialSchema).action(async ({ parsedInput }) => {
+    try {
+        // We need a custom permission code for materials, but for now we'll use tag_create
+        const session = await checkAuth({ requiredPermission: "tag_create" })
 
-            // Create the material
-            const material = await prisma.material.create({
-                data: {
-                    name,
-                    description: description || "",
-                    Tags: {
-                        connect: tagIds.map((id) => ({ id })),
-                    },
-                    entityId: session.user.entitySelectedId,
-                },
-            })
-
-            // Create material characteristics
-            if (characteristicValues.length > 0) {
-                await prisma.material_Characteristic.createMany({
-                    data: characteristicValues.map((cv) => ({
-                        materialId: material.id,
-                        characteristicId: cv.characteristicId,
-                        value: cv.value,
-                    })),
-                })
-            }
-
-            // Create material history entry
-            createMaterialHistory(material.id)
-
-            revalidatePath("/materials")
-            return material
-        } catch (error) {
-            console.error("Failed to create material:", error)
-            throw new Error("Failed to create material")
-        }
-    })
+        return await createMaterial({
+            ...parsedInput,
+            description: parsedInput.description || "",
+            entityId: session.user.entitySelectedId,
+        })
+    } catch (error) {
+        console.error("Failed to create material:", error)
+        throw new Error("Failed to create material")
+    }
+})
 
 // Update an existing material
-export const updateMaterialAction = actionClient
-    .schema(updateMaterialSchema)
-    .action(async ({ parsedInput: { id, description, tagIds, characteristicValues } }) => {
-        try {
-            // We need a custom permission code for materials, but for now we'll use tag_edit
-            const session = await checkAuth({ requiredPermission: "tag_edit" })
+export const updateMaterialAction = actionClient.schema(updateMaterialSchema).action(async ({ parsedInput }) => {
+    try {
+        // We need a custom permission code for materials, but for now we'll use tag_edit
+        const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-            // Get current material to determine if version should be incremented
-            const currentMaterial = await prisma.material.findUnique({
-                where: { id, entityId: session.user.entitySelectedId },
-                include: {
-                    Tags: true,
-                    Material_Characteristics: true,
-                },
-            })
+        const { id, description, tagIds, characteristicValues } = parsedInput
 
-            if (!currentMaterial) {
-                throw new Error("Material not found")
-            }
-
-            // Update the material
-            const material = await prisma.material.update({
-                where: { id },
-                data: {
-                    description: description || "",
-                    updatedAt: new Date(),
-                    Tags: {
-                        set: tagIds.map((id) => ({ id })), // Add new tags
-                    },
-                },
-            })
-
-            // Update material characteristics
-            // First, remove all existing characteristics
-            await prisma.material_Characteristic.deleteMany({
-                where: {
-                    materialId: id,
-                },
-            })
-
-            // Then, add the new characteristics
-            if (characteristicValues.length > 0) {
-                await prisma.material_Characteristic.createMany({
-                    data: characteristicValues.map((cv) => ({
-                        materialId: id,
-                        characteristicId: cv.characteristicId,
-                        value: cv.value,
-                    })),
-                })
-            }
-
-            // Create material history entry
-            createMaterialHistory(material.id)
-
-            revalidatePath("/materials")
-            return material
-        } catch (error) {
-            console.error("Failed to update material:", error)
-            throw new Error("Failed to update material")
-        }
-    })
+        return await updateMaterial(id, session.user.entitySelectedId, {
+            description: description || "",
+            tagIds,
+            characteristicValues,
+        })
+    } catch (error) {
+        console.error("Failed to update material:", error)
+        throw new Error("Failed to update material")
+    }
+})

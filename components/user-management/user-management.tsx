@@ -11,9 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { UserDialog } from "./user-dialog"
-import { getUsers } from "@/actions/user-actions"
-import { getRoles } from "@/actions/role-actions"
-import { assignRolesToUser } from "@/actions/user-actions"
+import { getUsersAction } from "@/actions/user-actions"
+import { getRolesAction } from "@/actions/role-actions"
+import { assignRolesToUserAction } from "@/actions/user-actions"
 import { Role } from "@prisma/client"
 import { UserRolesAndEntities } from "@/types/user.type"
 
@@ -30,10 +30,10 @@ export function UserManagement() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const usersData = await getUsers()
+                const usersData = await getUsersAction()
                 setUsers(usersData)
 
-                const rolesData = await getRoles()
+                const rolesData = await getRolesAction()
                 setRoles(rolesData)
             } catch (error) {
                 toast.error("Failed to load data")
@@ -75,7 +75,7 @@ export function UserManagement() {
             }
 
             // Refresh the users list
-            getUsers().then(setUsers)
+            getUsersAction().then(setUsers)
         }
     }
 
@@ -95,7 +95,7 @@ export function UserManagement() {
         setIsSubmitting(true)
 
         try {
-            await assignRolesToUser({
+            await assignRolesToUserAction({
                 userId: selectedUser.id,
                 roleIds: selectedRoles,
             })
@@ -103,7 +103,7 @@ export function UserManagement() {
             toast.success("Roles updated successfully")
 
             // Refresh the users list
-            const updatedUsers = await getUsers()
+            const updatedUsers = await getUsersAction()
             setUsers(updatedUsers)
 
             // Update the selected user with the new roles

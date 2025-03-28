@@ -11,9 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { RoleDialog } from "./role-dialog"
-import { getRoles } from "@/actions/role-actions"
-import { getPermissions } from "@/actions/permission-actions"
-import { assignPermissionsToRole } from "@/actions/role-actions"
+import { getRolesAction } from "@/actions/role-actions"
+import { getPermissionsAction } from "@/actions/permission-actions"
+import { assignPermissionsToRoleAction } from "@/actions/role-actions"
 import { RolePermissions } from "@/types/role.type"
 import { Role, Permission } from "@prisma/client"
 
@@ -30,10 +30,10 @@ export function RoleManagement() {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const rolesData = await getRoles()
+                const rolesData = await getRolesAction()
                 setRoles(rolesData)
 
-                const permissionsData = await getPermissions()
+                const permissionsData = await getPermissionsAction()
                 setPermissions(permissionsData)
             } catch (error) {
                 toast.error("Failed to load data")
@@ -75,7 +75,7 @@ export function RoleManagement() {
             }
 
             // Refresh the roles list
-            getRoles().then(setRoles)
+            getRolesAction().then(setRoles)
         }
     }
 
@@ -95,7 +95,7 @@ export function RoleManagement() {
         setIsSubmitting(true)
 
         try {
-            await assignPermissionsToRole({
+            await assignPermissionsToRoleAction({
                 roleId: selectedRole.id,
                 permissionCodes: selectedPermissions,
             })
@@ -103,7 +103,7 @@ export function RoleManagement() {
             toast.success("Permissions updated successfully")
 
             // Refresh the roles list
-            const updatedRoles = await getRoles()
+            const updatedRoles = await getRolesAction()
             setRoles(updatedRoles)
 
             // Update the selected role with the new permissions

@@ -1,10 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
+import { getUsers, createUser, updateUser, assignRolesToUser } from "@/services/user.service"
 
 // Schema for creating a user
 const createUserSchema = z.object({
@@ -30,22 +29,12 @@ const assignRolesSchema = z.object({
 })
 
 // Get all users with their roles
-export async function getUsers() {
+export async function getUsersAction() {
     try {
         // Auth check without permission requirement for read operations
         await checkAuth()
 
-        const users = await prisma.user.findMany({
-            include: {
-                Roles: true,
-                Entities: true,
-            },
-            orderBy: {
-                name: "asc",
-            },
-        })
-
-        return users
+        return await getUsers()
     } catch (error) {
         console.error("Failed to fetch users:", error)
         throw new Error("Failed to fetch users")
@@ -53,91 +42,41 @@ export async function getUsers() {
 }
 
 // Create a new user
-export const createUser = actionClient
-    .schema(createUserSchema)
-    .action(async ({ parsedInput: { name, email, active, entities } }) => {
-        try {
-            // Check for user_create permission
-            const session = await checkAuth({ requiredPermission: "user_create" })
+export const createUserAction = actionClient.schema(createUserSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for user_create permission
+        await checkAuth({ requiredPermission: "user_create" })
 
-            const user = await prisma.user.create({
-                data: {
-                    name,
-                    email,
-                    active,
-                    entitySelectedId: entities[0], // Set the first entity as selected
-                    Entities: {
-                        connect: entities.map((entityId) => ({ id: entityId })),
-                    },
-                },
-                include: {
-                    Roles: true,
-                    Entities: true,
-                },
-            })
-
-            revalidatePath("/administration/users")
-            return user
-        } catch (error) {
-            console.error("Failed to create user:", error)
-            throw new Error("Failed to create user")
-        }
-    })
+        return await createUser(parsedInput)
+    } catch (error) {
+        console.error("Failed to create user:", error)
+        throw new Error("Failed to create user")
+    }
+})
 
 // Update an existing user
-export const updateUser = actionClient
-    .schema(updateUserSchema)
-    .action(async ({ parsedInput: { id, name, email, active, entities } }) => {
-        try {
-            // Check for user_edit permission
-            const session = await checkAuth({ requiredPermission: "user_edit" })
+export const updateUserAction = actionClient.schema(updateUserSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for user_edit permission
+        await checkAuth({ requiredPermission: "user_edit" })
 
-            const user = await prisma.user.update({
-                where: { id },
-                data: {
-                    name,
-                    email,
-                    active,
-                    Entities: {
-                        set: entities.map((entityId) => ({ id: entityId })),
-                    },
-                },
-                include: {
-                    Roles: true,
-                    Entities: true,
-                },
-            })
-
-            revalidatePath("/administration/users")
-            return user
-        } catch (error) {
-            console.error("Failed to update user:", error)
-            throw new Error("Failed to update user")
-        }
-    })
+        const { id, ...data } = parsedInput
+        return await updateUser(id, data)
+    } catch (error) {
+        console.error("Failed to update user:", error)
+        throw new Error("Failed to update user")
+    }
+})
 
 // Assign roles to a user
-export const assignRolesToUser = actionClient
+export const assignRolesToUserAction = actionClient
     .schema(assignRolesSchema)
     .action(async ({ parsedInput: { userId, roleIds } }) => {
         try {
             // Check for user_edit permission
-            const session = await checkAuth({ requiredPermission: "user_edit" })
+            await checkAuth({ requiredPermission: "user_edit" })
 
-            const user = await prisma.user.update({
-                where: { id: userId },
-                data: {
-                    Roles: {
-                        set: roleIds.map((id) => ({ id })),
-                    },
-                },
-                include: {
-                    Roles: true,
-                },
-            })
-
-            revalidatePath("/administration/users")
-            return user
+            return await assignRolesToUser(userId, roleIds)
         } catch (error) {
             console.error("Failed to assign roles:", error)
             throw new Error("Failed to assign roles")

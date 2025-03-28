@@ -1,10 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
+import { getRoles, createRole, updateRole, assignPermissionsToRole } from "@/services/role.service"
 
 // Schema for creating a role
 const createRoleSchema = z.object({
@@ -26,21 +25,12 @@ const assignPermissionsSchema = z.object({
 })
 
 // Get all roles with their permissions
-export async function getRoles() {
+export async function getRolesAction() {
     try {
         // Auth check without permission requirement for read operations
         await checkAuth()
 
-        const roles = await prisma.role.findMany({
-            include: {
-                Permissions: true,
-            },
-            orderBy: {
-                name: "asc",
-            },
-        })
-
-        return roles
+        return await getRoles()
     } catch (error) {
         console.error("Failed to fetch roles:", error)
         throw new Error("Failed to fetch roles")
@@ -48,25 +38,14 @@ export async function getRoles() {
 }
 
 // Create a new role
-export const createRole = actionClient
+export const createRoleAction = actionClient
     .schema(createRoleSchema)
     .action(async ({ parsedInput: { name, description } }) => {
         try {
             // Check for role_create permission
-            const session = await checkAuth({ requiredPermission: "role_create" })
+            await checkAuth({ requiredPermission: "role_create" })
 
-            const role = await prisma.role.create({
-                data: {
-                    name,
-                    description: description || "",
-                },
-                include: {
-                    Permissions: true,
-                },
-            })
-
-            revalidatePath("/administration/roles")
-            return role
+            return await createRole({ name, description: description || "" })
         } catch (error) {
             console.error("Failed to create role:", error)
             throw new Error("Failed to create role")
@@ -74,26 +53,14 @@ export const createRole = actionClient
     })
 
 // Update an existing role
-export const updateRole = actionClient
+export const updateRoleAction = actionClient
     .schema(updateRoleSchema)
     .action(async ({ parsedInput: { id, name, description } }) => {
         try {
             // Check for role_edit permission
-            const session = await checkAuth({ requiredPermission: "role_edit" })
+            await checkAuth({ requiredPermission: "role_edit" })
 
-            const role = await prisma.role.update({
-                where: { id },
-                data: {
-                    name,
-                    description: description || "",
-                },
-                include: {
-                    Permissions: true,
-                },
-            })
-
-            revalidatePath("/administration/roles")
-            return role
+            return await updateRole(id, { name, description: description || "" })
         } catch (error) {
             console.error("Failed to update role:", error)
             throw new Error("Failed to update role")
@@ -101,28 +68,14 @@ export const updateRole = actionClient
     })
 
 // Assign permissions to a role
-export const assignPermissionsToRole = actionClient
+export const assignPermissionsToRoleAction = actionClient
     .schema(assignPermissionsSchema)
     .action(async ({ parsedInput: { roleId, permissionCodes } }) => {
         try {
             // Check for role_edit permission
-            const session = await checkAuth({ requiredPermission: "role_edit" })
+            await checkAuth({ requiredPermission: "role_edit" })
 
-            const role = await prisma.role.update({
-                where: { id: roleId },
-                data: {
-                    Permissions: {
-                        set: permissionCodes.map((code) => ({ code })),
-                    },
-                    updatedAt: new Date(),
-                },
-                include: {
-                    Permissions: true,
-                },
-            })
-
-            revalidatePath("/administration/roles")
-            return role
+            return await assignPermissionsToRole(roleId, permissionCodes)
         } catch (error) {
             console.error("Failed to assign permissions:", error)
             throw new Error("Failed to assign permissions")
