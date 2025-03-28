@@ -4,10 +4,9 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
 import { CharacteristicType } from "@prisma/client"
 import { Prisma } from "@prisma/client"
+import { checkAuth } from "@/lib/auth-guard"
 
 // Schema for creating a characteristic
 const createCharacteristicSchema = z.object({
@@ -32,12 +31,8 @@ const updateCharacteristicSchema = z.object({
 // Get all characteristics with material count
 export async function getCharacteristicsAction() {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-        if (!session) {
-            throw new Error("Unauthorized")
-        }
+        // Auth check for basic session validation
+        const session = await checkAuth()
 
         const characteristics = await prisma.characteristic.findMany({
             where: {
@@ -65,12 +60,8 @@ export const createCharacteristicAction = actionClient
     .schema(createCharacteristicSchema)
     .action(async ({ parsedInput: { name, description, type, options, units } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // Check for charac_create permission
+            const session = await checkAuth({ requiredPermission: "charac_create" })
 
             const characteristic = await prisma.characteristic.create({
                 data: {
@@ -102,12 +93,8 @@ export const updateCharacteristicAction = actionClient
     .schema(updateCharacteristicSchema)
     .action(async ({ parsedInput: { id, description } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // Check for charac_edit permission
+            const session = await checkAuth({ requiredPermission: "charac_edit" })
 
             const characteristic = await prisma.characteristic.update({
                 where: {

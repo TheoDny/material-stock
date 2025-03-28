@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
+import { checkAuth } from "@/lib/auth-guard"
 
 // Schema for creating a user
 const createUserSchema = z.object({
@@ -31,6 +32,9 @@ const assignRolesSchema = z.object({
 // Get all users with their roles
 export async function getUsers() {
     try {
+        // Auth check without permission requirement for read operations
+        await checkAuth()
+
         const users = await prisma.user.findMany({
             include: {
                 Roles: true,
@@ -53,6 +57,9 @@ export const createUser = actionClient
     .schema(createUserSchema)
     .action(async ({ parsedInput: { name, email, active, entities } }) => {
         try {
+            // Check for user_create permission
+            const session = await checkAuth({ requiredPermission: "user_create" })
+
             const user = await prisma.user.create({
                 data: {
                     name,
@@ -82,6 +89,9 @@ export const updateUser = actionClient
     .schema(updateUserSchema)
     .action(async ({ parsedInput: { id, name, email, active, entities } }) => {
         try {
+            // Check for user_edit permission
+            const session = await checkAuth({ requiredPermission: "user_edit" })
+
             const user = await prisma.user.update({
                 where: { id },
                 data: {
@@ -111,6 +121,9 @@ export const assignRolesToUser = actionClient
     .schema(assignRolesSchema)
     .action(async ({ parsedInput: { userId, roleIds } }) => {
         try {
+            // Check for user_edit permission
+            const session = await checkAuth({ requiredPermission: "user_edit" })
+
             const user = await prisma.user.update({
                 where: { id: userId },
                 data: {

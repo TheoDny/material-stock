@@ -14,21 +14,21 @@ datasource db {
 }
 
 model User {
-    id            String    @id @default(cuid())
-    email         String    @unique
-    name          String?
-    emailVerified Boolean @default(false)
-    image         String?
-    createdAt     DateTime @default(now())
-    updatedAt     DateTime @updatedAt @default(now())
-    sessions      Session[]
-    accounts      Account[]
-    active        Boolean @default(true)
-    Roles         Role[]
-    Entities      Entity[]
+    id               String    @id @default(cuid())
+    email            String    @unique
+    name             String?
+    emailVerified    Boolean   @default(false)
+    image            String?
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime  @default(now()) @updatedAt
+    sessions         Session[]
+    accounts         Account[]
+    active           Boolean   @default(true)
+    Roles            Role[]
+    Entities         Entity[]
     entitySelectedId String
-    EntitySelected Entity @relation("entitySelected",fields: [entitySelectedId], references: [id])
-    Logs          Log[]
+    EntitySelected   Entity    @relation("entitySelected", fields: [entitySelectedId], references: [id])
+    Logs             Log[]
 
     @@map("user")
 }
@@ -79,11 +79,11 @@ model Verification {
 }
 
 model TokenCreateAccount {
-    id         String    @id @default(cuid())
-    email      String
-    token      String
-    expiresAt  DateTime
-    createdAt  DateTime @default(now())
+    id        String   @id @default(cuid())
+    email     String
+    token     String
+    expiresAt DateTime
+    createdAt DateTime @default(now())
 
     @@map("token_create_account")
 }
@@ -110,18 +110,18 @@ model Role {
 }
 
 model Entity {
-    id              String           @id @default(cuid())
-    name            String
-    createdAt       DateTime         @default(now())
-    updatedAt       DateTime         @default(now()) @updatedAt
-    deletedAt       DateTime?
-    Roles           Role[]
-    Users           User[]
-    UserWithSelected User[] @relation("entitySelected")
-    logs            Log[]
-    Characteristics Characteristic[]
-    Materials       Material[]
-    Tags            Tag[]
+    id               String           @id @default(cuid())
+    name             String
+    createdAt        DateTime         @default(now())
+    updatedAt        DateTime         @default(now()) @updatedAt
+    deletedAt        DateTime?
+    Roles            Role[]
+    Users            User[]
+    UserWithSelected User[]           @relation("entitySelected")
+    logs             Log[]
+    Characteristics  Characteristic[]
+    Materials        Material[]
+    Tags             Tag[]
 
     @@map("entity")
 }
@@ -220,13 +220,13 @@ model Characteristic {
 }
 
 model Material {
-    id              String           @id @default(cuid())
-    name            String
-    description     String
-    createdAt       DateTime         @default(now())
-    updatedAt       DateTime         @default(now()) @updatedAt
-    Tags            Tag[]
-    Characteristics Characteristic[]
+    id                            String           @id @default(cuid())
+    name                          String
+    description                   String
+    createdAt                     DateTime         @default(now())
+    updatedAt                     DateTime         @default(now()) @updatedAt
+    Tags                          Tag[]
+    Characteristics               Characteristic[]
     order_Material_Characteristic String[]
 
     Entity                   Entity                    @relation(fields: [entityId], references: [id])
@@ -249,14 +249,14 @@ model Material_Characteristic {
 }
 
 model Material_History {
-    id              String @id @default(cuid())
+    id              String   @id @default(cuid())
     materialId      String
     name            String
     description     String
     Material        Material @relation(fields: [materialId], references: [id])
-    Characteristics Json @default("[]") //{name: string, description: string, type: string, value?: object, units?: string}[]
-    Tags            Json @default("[]") //{name: string, color: string, fontColor: string}[]
+    Characteristics Json     @default("[]") //{name: string, description: string, type: string, value?: object, units?: string}[]
+    Tags            Json     @default("[]") //{name: string, color: string, fontColor: string}[]
     createdAt       DateTime @default(now())
-    
+
     @@map("material_history")
 }

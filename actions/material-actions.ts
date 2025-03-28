@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
-import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { checkAuth } from "@/lib/auth-guard"
 import { createMaterialHistory } from "@/services/material-history.service"
 
 // Schema for creating a material
@@ -42,13 +41,8 @@ const updateMaterialSchema = z.object({
 // Get all materials with their tags and characteristic count
 export async function getMaterialsAction() {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-
-        if (!session) {
-            throw new Error("Unauthorized")
-        }
+        // Basic auth check
+        const session = await checkAuth()
 
         const materials = await prisma.material.findMany({
             where: {
@@ -72,6 +66,9 @@ export async function getMaterialsAction() {
 // Get material characteristics
 export async function getMaterialCharacteristicsAction(materialId: string) {
     try {
+        // Basic auth check
+        await checkAuth()
+
         const characteristicValues = await prisma.material_Characteristic.findMany({
             where: {
                 materialId,
@@ -93,12 +90,9 @@ export const createMaterial = actionClient
     .schema(createMaterialSchema)
     .action(async ({ parsedInput: { name, description, tagIds, characteristicValues } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // We need a custom permission code for materials, but for now we'll use tag_create
+            const session = await checkAuth({ requiredPermission: "tag_create" })
+
             // Create the material
             const material = await prisma.material.create({
                 data: {
@@ -138,12 +132,9 @@ export const updateMaterialAction = actionClient
     .schema(updateMaterialSchema)
     .action(async ({ parsedInput: { id, description, tagIds, characteristicValues } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // We need a custom permission code for materials, but for now we'll use tag_edit
+            const session = await checkAuth({ requiredPermission: "tag_edit" })
+
             // Get current material to determine if version should be incremented
             const currentMaterial = await prisma.material.findUnique({
                 where: { id, entityId: session.user.entitySelectedId },

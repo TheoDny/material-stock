@@ -4,8 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { actionClient } from "@/lib/safe-action"
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
+import { checkAuth } from "@/lib/auth-guard"
 
 // Schema for creating a tag
 const createTagSchema = z.object({
@@ -24,12 +23,9 @@ const updateTagSchema = z.object({
 // Get all tags with material count
 export async function getTagsAction() {
     try {
-        const session = await auth.api.getSession({
-            headers: await headers(),
-        })
-        if (!session) {
-            throw new Error("Unauthorized")
-        }
+        // Auth check for basic session validation
+        const session = await checkAuth()
+
         const tags = await prisma.tag.findMany({
             include: {
                 _count: {
@@ -56,12 +52,9 @@ export const createTagAction = actionClient
     .schema(createTagSchema)
     .action(async ({ parsedInput: { name, fontColor, color } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // Check for tag_create permission
+            const session = await checkAuth({ requiredPermission: "tag_create" })
+
             const tag = await prisma.tag.create({
                 data: {
                     name,
@@ -87,12 +80,9 @@ export const updateTagAction = actionClient
     .schema(updateTagSchema)
     .action(async ({ parsedInput: { id, fontColor, color } }) => {
         try {
-            const session = await auth.api.getSession({
-                headers: await headers(),
-            })
-            if (!session) {
-                throw new Error("Unauthorized")
-            }
+            // Check for tag_edit permission
+            const session = await checkAuth({ requiredPermission: "tag_edit" })
+
             const tag = await prisma.tag.update({
                 where: { id, entityId: session.user.entitySelectedId },
                 data: {
