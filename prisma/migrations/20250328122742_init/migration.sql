@@ -9,10 +9,12 @@ CREATE TABLE "user" (
     "id" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT,
-    "emailVerified" BOOLEAN NOT NULL,
+    "emailVerified" BOOLEAN NOT NULL DEFAULT false,
     "image" TEXT,
-    "createdAt" TIMESTAMP(3) NOT NULL,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "entitySelectedId" TEXT NOT NULL,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -151,6 +153,7 @@ CREATE TABLE "material" (
     "description" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "order_Material_Characteristic" TEXT[],
     "entityId" TEXT NOT NULL,
 
     CONSTRAINT "material_pkey" PRIMARY KEY ("id")
@@ -250,6 +253,9 @@ CREATE INDEX "_CharacteristicToMaterial_B_index" ON "_CharacteristicToMaterial"(
 
 -- CreateIndex
 CREATE INDEX "_MaterialToTag_B_index" ON "_MaterialToTag"("B");
+
+-- AddForeignKey
+ALTER TABLE "user" ADD CONSTRAINT "user_entitySelectedId_fkey" FOREIGN KEY ("entitySelectedId") REFERENCES "entity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -3,7 +3,7 @@
 import { Label } from "@radix-ui/react-label"
 import { error } from "console"
 import { Loader2 } from "lucide-react"
-import { Button } from "react-day-picker"
+import { Button } from "@/components/ui/button"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"

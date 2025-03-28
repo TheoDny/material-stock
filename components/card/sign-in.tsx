@@ -5,24 +5,39 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import { Loader2, Key, CircleAlert } from "lucide-react"
+import { Loader2, CircleAlert } from "lucide-react"
 import { signIn } from "@/lib/auth-client"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
-export default function SignIn() {
+export function SignIn() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const router = useRouter()
 
     const handleSignIn = async () => {
         setLoading(true)
         setError("")
-        const res = await signIn.email({ email, password })
-        if (res.error) {
-            setError(res.error.message || res.error.statusText)
-        }
-        setLoading(false)
+        const res = await signIn.email({
+            email,
+            password,
+            fetchOptions: {
+                onResponse: () => {
+                    setLoading(false)
+                },
+                onRequest: () => {
+                    setLoading(true)
+                },
+                onError: (ctx) => {
+                    setError(ctx.error.message || ctx.error.statusText)
+                },
+                onSuccess: async () => {
+                    router.push("/configuration/tags")
+                },
+            },
+        })
     }
 
     return (
@@ -53,7 +68,7 @@ export default function SignIn() {
                         <div className="flex items-center">
                             <Label htmlFor="password">Password</Label>
                             <Link
-                                href="#"
+                                href="/forgot-password"
                                 className="ml-auto inline-block text-sm underline"
                             >
                                 Forgot your password?
@@ -85,12 +100,12 @@ export default function SignIn() {
                             "Login"
                         )}
                     </Button>
-                    <div className="padding-2 bg-red-400 w-full rounded-md flex flex-col gap-2">
+                    <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
                         {error && (
-                          <>
-                            <CircleAlert className="text-destructive"/>
-                            <p className="text-destructive text-xs">{error}</p>
-                          </>
+                            <>
+                                <CircleAlert className="text-destructive" />
+                                <p className="text-destructive text-xs">{error}</p>
+                            </>
                         )}
                     </div>
                 </div>

@@ -50,10 +50,17 @@ export function SignUp() {
                     setLoading(true)
                 },
                 onError: (ctx) => {
-                    setError(ctx.error.message)
+                    console.log(ctx)
+                    switch (ctx.error.code) {
+                        case "PASSWORD_TOO_SHORT":
+                            setError("Password must be at least 16 characters")
+                            break
+                        default:
+                            setError(ctx.error.message)
+                    }
                 },
                 onSuccess: async () => {
-                    router.push("/dashboard")
+                    router.push("/configuration/tags")
                 },
             },
         })
@@ -178,7 +185,7 @@ export function SignUp() {
                             "Create an account"
                         )}
                     </Button>
-                    <div className="padding-2 bg-red-400 w-full rounded-md flex flex-col gap-2">
+                    <div className="p-2 items-center  w-full rounded-md flex flex-row gap-2">
                         {error && (
                             <>
                                 <CircleAlert className="text-destructive" />
