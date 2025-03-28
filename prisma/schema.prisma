@@ -244,8 +244,6 @@ model Material_Characteristic {
     characteristicId String
     Characteristic   Characteristic @relation(fields: [characteristicId], references: [id])
     value            Json
-    createdAt        DateTime       @default(now())
-    updatedAt        DateTime       @default(now()) @updatedAt
 
     @@map("material_characteristic")
 }
@@ -253,8 +251,10 @@ model Material_Characteristic {
 model Material_History {
     id              String @id @default(cuid())
     materialId      String
+    name            String
+    description     String
     Material        Material @relation(fields: [materialId], references: [id])
-    Characteristics Json @default("[]") //{name: string, description: string, type: string, value: object, units?: string}[]
+    Characteristics Json @default("[]") //{name: string, description: string, type: string, value?: object, units?: string}[]
     Tags            Json @default("[]") //{name: string, color: string, fontColor: string}[]
     createdAt       DateTime @default(now())
     

@@ -29,12 +29,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createCharacteristicAction, updateCharacteristicAction } from "@/actions/characteritic-actions"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
+import { CharacteristicType } from "@prisma/client"
+import { getTypeColor } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
-const characteristicTypes = [
+const characteristicTypes: CharacteristicType[] = [
     "checkbox",
     "select",
     "radio",
-    "multiselect",
+    "multiSelect",
     "text",
     "textarea",
     "number",
@@ -50,7 +53,7 @@ const characteristicTypes = [
 const createCharacteristicSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
-    type: z.enum(characteristicTypes),
+    type: z.nativeEnum(CharacteristicType),
     options: z.string().optional(),
     units: z.string().optional(),
 })
@@ -156,7 +159,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     }
 
     const selectedType = createForm.watch("type")
-    const needsOptions = ["select", "radio", "multiselect", "checkbox"].includes(selectedType)
+    const needsOptions = ["select", "radio", "multiSelect", "checkbox"].includes(selectedType)
     const needsUnits = ["number", "float"].includes(selectedType)
 
     return (
@@ -302,7 +305,9 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
                                     <div className="font-medium">Type:</div>
-                                    <div>{characteristic?.type}</div>
+                                    <Badge className={getTypeColor(characteristic.type)}>
+                                        {characteristic.type}
+                                    </Badge>
                                 </div>
 
                                 {characteristic?.options && (

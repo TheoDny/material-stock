@@ -30,7 +30,7 @@ const updateCharacteristicSchema = z.object({
 })
 
 // Get all characteristics with material count
-export async function getCharacteristics() {
+export async function getCharacteristicsAction() {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),

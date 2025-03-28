@@ -22,7 +22,7 @@ const updateTagSchema = z.object({
 })
 
 // Get all tags with material count
-export async function getTags() {
+export async function getTagsAction() {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
@@ -78,10 +78,7 @@ export const createTagAction = actionClient
             }
         } catch (error) {
             console.error("Failed to create tag:", error)
-            return {
-                success: false,
-                message: "Failed to create tag",
-            }
+            throw new Error("Failed to create tag")
         }
     })
 
@@ -111,9 +108,6 @@ export const updateTagAction = actionClient
             }
         } catch (error) {
             console.error("Failed to update tag:", error)
-            return {
-                success: false,
-                message: "Failed to update tag",
-            }
+            throw new Error("Failed to update tag")
         }
     })

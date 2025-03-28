@@ -17,6 +17,7 @@ import { ModeToggle } from "@/components/select/select-theme"
 import * as React from "react"
 import Link from "next/link"
 import { signOut } from "@/lib/auth-client"
+import { Button } from "@/components/ui/button"
 
 export function NavUser({
     user,
@@ -96,8 +97,21 @@ export function NavUser({
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={() => signOut()}>
-                            <LogOut />
-                            D&eacute;connexion
+                            <form className="flex flex-row align-middle gap-2 cursor-pointer">
+                                <Button
+                                    className="cursor-pointer"
+                                    variant="none"
+                                    size="none"
+                                    type="submit"
+                                    formAction={async () => {
+                                        await signOut()
+                                        window.location.href = "/"
+                                    }}
+                                >
+                                    <LogOut />
+                                    D&eacute;connexion
+                                </Button>
+                            </form>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

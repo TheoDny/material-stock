@@ -8,14 +8,12 @@ import { useState } from "react"
 import { Loader2, CircleAlert } from "lucide-react"
 import { signIn } from "@/lib/auth-client"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
 export function SignIn() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const router = useRouter()
 
     const handleSignIn = async () => {
         setLoading(true)
@@ -34,7 +32,7 @@ export function SignIn() {
                     setError(ctx.error.message || ctx.error.statusText)
                 },
                 onSuccess: async () => {
-                    router.push("/configuration/tags")
+                    window.location.href = "/"
                 },
             },
         })

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Users, Boxes, IdCard, ListTree, Logs, Tags } from "lucide-react"
+import { Users, Boxes, IdCard, ListTree, Logs, Tags, SquareChartGantt } from "lucide-react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import "./globals.css"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -17,6 +17,18 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     const session = await auth.api.getSession({
         headers: await headers(),
     })
+    if (!session) {
+        return (
+            <html suppressHydrationWarning>
+                <head>
+                    <title>Material Stock</title>
+                </head>
+                <body>
+                    <main>{children}</main>
+                </body>
+            </html>
+        )
+    }
 
     const buildNavigation = async (session: any): Promise<NavigationType> => {
         const navigation: NavigationType = {
@@ -34,7 +46,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
         if (permissions.has("user_read") || permissions.has("role_read") || permissions.has("log_read")) {
             const adminGroup: NavigationGroupType = {
-                title: "administration",
+                title: "Administration",
                 items: [],
             }
             if (permissions.has("role_read")) {
@@ -63,7 +75,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
         if (permissions.has("charac_read") || permissions.has("tag_read")) {
             const ConfigGroup: NavigationGroupType = {
-                title: "configuration",
+                title: "Configuration",
                 items: [],
             }
             if (permissions.has("charac_read")) {
@@ -78,6 +90,21 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     title: "Tag",
                     url: "/configuration/tags",
                     icon: <Tags />,
+                })
+            }
+            navigation.groups.push(ConfigGroup)
+        }
+
+        if (permissions.has("charac_read") || permissions.has("tag_read")) {
+            const ConfigGroup: NavigationGroupType = {
+                title: "Material",
+                items: [],
+            }
+            if (permissions.has("charac_read")) {
+                ConfigGroup.items.push({
+                    title: "Material",
+                    url: "/materials",
+                    icon: <SquareChartGantt />,
                 })
             }
             navigation.groups.push(ConfigGroup)

@@ -165,8 +165,6 @@ CREATE TABLE "material_characteristic" (
     "materialId" TEXT NOT NULL,
     "characteristicId" TEXT NOT NULL,
     "value" JSONB NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "material_characteristic_pkey" PRIMARY KEY ("id")
 );
@@ -175,6 +173,8 @@ CREATE TABLE "material_characteristic" (
 CREATE TABLE "material_history" (
     "id" TEXT NOT NULL,
     "materialId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "Characteristics" JSONB NOT NULL DEFAULT '[]',
     "Tags" JSONB NOT NULL DEFAULT '[]',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { CharacteristicDialog } from "./characteristic-dialog"
-import { getCharacteristics } from "@/actions/characteritic-actions"
+import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
+import { CharacteristicType } from "@prisma/client"
+import { getTypeColor } from "@/lib/utils"
 
 type SortField = "name" | "type" | "materialsCount"
 type SortDirection = "asc" | "desc"
@@ -34,7 +36,7 @@ export function CharacteristicManagement() {
 
     const loadCharacteristics = async () => {
         try {
-            const characteristicsData = await getCharacteristics()
+            const characteristicsData = await getCharacteristicsAction()
             setCharacteristics(characteristicsData)
         } catch (error) {
             toast.error("Failed to load characteristics")
@@ -104,27 +106,6 @@ export function CharacteristicManagement() {
         if (sortField !== field) return null
 
         return <ArrowUpDown className={`ml-2 h-4 w-4 ${sortDirection === "desc" ? "transform rotate-180" : ""}`} />
-    }
-
-    const getTypeColor = (type: string) => {
-        const typeColors: Record<string, string> = {
-            checkbox: "bg-blue-100 text-blue-800",
-            select: "bg-green-100 text-green-800",
-            radio: "bg-purple-100 text-purple-800",
-            multiselect: "bg-indigo-100 text-indigo-800",
-            text: "bg-gray-100 text-gray-800",
-            textarea: "bg-gray-100 text-gray-800",
-            number: "bg-amber-100 text-amber-800",
-            float: "bg-amber-100 text-amber-800",
-            email: "bg-pink-100 text-pink-800",
-            date: "bg-red-100 text-red-800",
-            dateHour: "bg-red-100 text-red-800",
-            dateRange: "bg-orange-100 text-orange-800",
-            dateHourRange: "bg-orange-100 text-orange-800",
-            link: "bg-cyan-100 text-cyan-800",
-        }
-
-        return typeColors[type] || "bg-gray-100 text-gray-800"
     }
 
     return (

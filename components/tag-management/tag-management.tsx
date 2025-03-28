@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { TagDialog } from "./tag-dialog"
-import { getTags } from "@/actions/tag-actions"
+import { getTagsAction } from "@/actions/tag-actions"
 import { TagAndCountMaterial } from "@/types/tag.type"
 
 type SortField = "name" | "colorText" | "materialsCount"
@@ -34,7 +34,7 @@ export function TagManagement() {
 
     const loadTags = async () => {
         try {
-            const tagsData = await getTags()
+            const tagsData = await getTagsAction()
             setTags(tagsData)
         } catch (error) {
             toast.error("Failed to load tags")

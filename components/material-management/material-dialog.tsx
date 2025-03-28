@@ -1,0 +1,478 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { z } from "zod"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { toast } from "sonner"
+import { X, Check } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    FormDescription,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createMaterial, updateMaterialAction, getMaterialCharacteristicsAction } from "@/actions/material-actions"
+import { getTagsAction } from "@/actions/tag-actions"
+import { getCharacteristicsAction } from "@/actions/characteritic-actions"
+import { CharacteristicValueForm } from "./characteristic-value-form"
+import { Tag, Characteristic } from "@prisma/client"
+import { CharacteristicValue, MaterialWithTag } from "@/types/material.type"
+
+const materialSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    description: z.string().optional(),
+    tagIds: z.array(z.string()).default([]),
+})
+
+type MaterialFormValues = z.infer<typeof materialSchema>
+
+interface MaterialDialogProps {
+    open: boolean
+    onOpenChange: (open: boolean) => void
+    material: MaterialWithTag | null
+    onClose: (success: boolean) => void
+}
+
+export function MaterialDialog({ open, onOpenChange, material, onClose }: MaterialDialogProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [tags, setTags] = useState<Tag[]>([])
+    const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
+    const [characteristicValues, setCharacteristicValues] = useState<CharacteristicValue[]>([])
+    const [activeTab, setActiveTab] = useState("general")
+
+    const isEditing = !!material
+
+    const form = useForm<MaterialFormValues>({
+        resolver: zodResolver(materialSchema),
+        defaultValues: {
+            name: material?.name || "",
+            description: material?.description || "",
+            tagIds: material?.Tags.map((tag) => tag.id) || [],
+        },
+    })
+
+    useEffect(() => {
+        if (open) {
+            loadTags()
+            loadCharacteristics()
+
+            if (material) {
+                form.reset({
+                    name: material.name,
+                    description: material.description,
+                    tagIds: material.Tags.map((tag) => tag.id),
+                })
+
+                loadMaterialCharacteristics(material.id)
+            } else {
+                form.reset({
+                    name: "",
+                    description: "",
+                    tagIds: [],
+                })
+                setCharacteristicValues([])
+            }
+        }
+    }, [open, material, form])
+
+    const loadTags = async () => {
+        try {
+            const tagsData = await getTagsAction()
+            setTags(tagsData)
+        } catch (error) {
+            toast.error("Failed to load tags")
+        }
+    }
+
+    const loadCharacteristics = async () => {
+        try {
+            const characteristicsData = await getCharacteristicsAction()
+            setCharacteristics(characteristicsData)
+        } catch (error) {
+            toast.error("Failed to load characteristics")
+        }
+    }
+
+    const loadMaterialCharacteristics = async (materialId: string) => {
+        try {
+            const values = await getMaterialCharacteristicsAction(materialId)
+            setCharacteristicValues(values)
+        } catch (error) {
+            toast.error("Failed to load material characteristics")
+        }
+    }
+
+    const handleClose = () => {
+        form.reset()
+        setActiveTab("general")
+        onOpenChange(false)
+        onClose(false)
+    }
+
+    const onSubmit = async (values: MaterialFormValues) => {
+        setIsSubmitting(true)
+
+        try {
+            if (isEditing && material) {
+                // Update existing material
+                const result = await updateMaterialAction({
+                    id: material.id,
+                    name: values.name,
+                    description: values.description || "",
+                    tagIds: values.tagIds,
+                    characteristicValues: characteristicValues.map((cv) => ({
+                        characteristicId: cv.characteristicId,
+                        value: cv.value || "",
+                    })),
+                })
+
+                if (result?.bindArgsValidationErrors) {
+                    return toast.error("Failed to update role")
+                } else if (result?.serverError) {
+                    return toast.error("Failed to update role")
+                } else if (result?.validationErrors) {
+                    return toast.error("Failed to update role")
+                } else if (!result?.data) {
+                    return toast.error("Failed to update role")
+                }
+
+                toast.success("Material updated successfully")
+            } else {
+                // Create new material
+                const result = await createMaterial({
+                    name: values.name,
+                    description: values.description || "",
+                    tagIds: values.tagIds,
+                    characteristicValues: characteristicValues.map((cv) => ({
+                        characteristicId: cv.characteristicId,
+                        value: cv.value || "",
+                    })),
+                })
+
+                if (result?.bindArgsValidationErrors) {
+                    return toast.error("Failed to update role")
+                } else if (result?.serverError) {
+                    return toast.error("Failed to update role")
+                } else if (result?.validationErrors) {
+                    return toast.error("Failed to update role")
+                } else if (!result?.data) {
+                    return toast.error("Failed to update role")
+                }
+
+                toast.success("Material created successfully")
+            }
+
+            form.reset()
+            setActiveTab("general")
+            onOpenChange(false)
+            onClose(true)
+        } catch (error) {
+            toast.error(isEditing ? "Failed to update material" : "Failed to create material")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    const handleTagToggle = (tagId: string) => {
+        const currentTagIds = form.getValues("tagIds")
+
+        if (currentTagIds.includes(tagId)) {
+            form.setValue(
+                "tagIds",
+                currentTagIds.filter((id) => id !== tagId),
+            )
+        } else {
+            form.setValue("tagIds", [...currentTagIds, tagId])
+        }
+    }
+
+    const handleAddCharacteristic = (characteristicId: string) => {
+        // Check if already added
+        if (characteristicValues.some((cv) => cv.characteristicId === characteristicId)) {
+            return
+        }
+
+        const characteristic = characteristics.find((c) => c.id === characteristicId)
+
+        if (characteristic) {
+            setCharacteristicValues([
+                ...characteristicValues,
+                {
+                    Characteristic: characteristic,
+                    characteristicId,
+                    value: null,
+                },
+            ])
+        }
+    }
+
+    const handleRemoveCharacteristic = (characteristicId: string) => {
+        setCharacteristicValues(characteristicValues.filter((cv) => cv.characteristicId !== characteristicId))
+    }
+
+    const handleCharacteristicValueChange = (characteristicId: string, value: string) => {
+        setCharacteristicValues(
+            characteristicValues.map((cv) => (cv.characteristicId === characteristicId ? { ...cv, value } : cv)),
+        )
+    }
+
+    const getAvailableCharacteristics = () => {
+        return characteristics.filter((c) => !characteristicValues.some((cv) => cv.characteristicId === c.id))
+    }
+
+    return (
+        <Dialog
+            open={open}
+            onOpenChange={onOpenChange}
+        >
+            <DialogContent
+                className="sm:max-w-[700px] max-h-[80vh] flex flex-col top-[10%] translate-y-0"
+                style={{ position: "fixed", margin: "0 auto", transformOrigin: "top" }}
+            >
+                <DialogHeader>
+                    <DialogTitle>{isEditing ? "Edit Material" : "Create Material"}</DialogTitle>
+                    <DialogDescription>
+                        {isEditing
+                            ? "Update the material details below."
+                            : "Fill in the details to create a new material."}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex flex-col flex-1 overflow-hidden"
+                >
+                    <TabsList className="grid grid-cols-3 w-full">
+                        <TabsTrigger value="general">General</TabsTrigger>
+                        <TabsTrigger value="tags">Tags</TabsTrigger>
+                        <TabsTrigger value="characteristics">Characteristics</TabsTrigger>
+                    </TabsList>
+
+                    <Form {...form}>
+                        <form
+                            onSubmit={form.handleSubmit(onSubmit)}
+                            className="space-y-4 mt-4 flex flex-col overflow-hidden"
+                        >
+                            <div
+                                className="overflow-y-auto pr-2"
+                                style={{ maxHeight: "calc(70vh - 180px)" }}
+                            >
+                                <TabsContent
+                                    value="general"
+                                    className="space-y-4"
+                                >
+                                    <FormField
+                                        control={form.control}
+                                        name="name"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Name</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        placeholder="Material name"
+                                                        {...field}
+                                                        disabled={isEditing}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                                {isEditing && (
+                                                    <FormDescription>
+                                                        Name cannot be changed after creation
+                                                    </FormDescription>
+                                                )}
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="description"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Description</FormLabel>
+                                                <FormControl>
+                                                    <Textarea
+                                                        placeholder="Material description"
+                                                        className="resize-none"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent
+                                    value="tags"
+                                    className="space-y-4"
+                                >
+                                    <FormField
+                                        control={form.control}
+                                        name="tagIds"
+                                        render={() => (
+                                            <FormItem>
+                                                <FormLabel>Tags</FormLabel>
+                                                <FormControl>
+                                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                                        {tags.map((tag) => (
+                                                            <div
+                                                                key={tag.id}
+                                                                className="flex items-center space-x-2 p-2 rounded-md border hover:bg-muted cursor-pointer"
+                                                                onClick={() => handleTagToggle(tag.id)}
+                                                            >
+                                                                <div className="flex-1 flex items-center space-x-2">
+                                                                    <Badge
+                                                                        style={{
+                                                                            backgroundColor: tag.color,
+                                                                            color: tag.fontColor,
+                                                                        }}
+                                                                    >
+                                                                        {tag.name}
+                                                                    </Badge>
+                                                                    <span className="text-sm">
+                                                                        {form
+                                                                            .getValues("tagIds")
+                                                                            .includes(tag.id) ? (
+                                                                            <Check className="h-4 w-4 text-green-500" />
+                                                                        ) : null}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                        {tags.length === 0 && (
+                                                            <div className="col-span-2 text-center py-4 text-muted-foreground">
+                                                                No tags available. Create tags first.
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </TabsContent>
+
+                                <TabsContent
+                                    value="characteristics"
+                                    className="space-y-4"
+                                >
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <FormLabel>Characteristics</FormLabel>
+                                            <Select
+                                                onValueChange={handleAddCharacteristic}
+                                                value=""
+                                            >
+                                                <SelectTrigger className="w-[250px]">
+                                                    <SelectValue placeholder="Add characteristic" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {getAvailableCharacteristics().map((characteristic) => (
+                                                        <SelectItem
+                                                            key={characteristic.id}
+                                                            value={characteristic.id}
+                                                        >
+                                                            {characteristic.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {getAvailableCharacteristics().length === 0 && (
+                                                        <SelectItem
+                                                            value="none"
+                                                            disabled
+                                                        >
+                                                            No characteristics available
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {characteristicValues.length === 0 ? (
+                                                <div className="text-center py-4 text-muted-foreground border rounded-md">
+                                                    No characteristics added yet
+                                                </div>
+                                            ) : (
+                                                characteristicValues.map((cv) => (
+                                                    <div
+                                                        key={cv.characteristicId}
+                                                        className="border rounded-md p-4 space-y-2"
+                                                    >
+                                                        <div className="flex justify-between items-center">
+                                                            <div className="font-medium">
+                                                                {cv.Characteristic.name}
+                                                            </div>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() =>
+                                                                    handleRemoveCharacteristic(cv.characteristicId)
+                                                                }
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            {cv.Characteristic.description}
+                                                        </div>
+                                                        <CharacteristicValueForm
+                                                            characteristic={cv.Characteristic}
+                                                            value={cv.value || ""}
+                                                            onChange={(value) =>
+                                                                handleCharacteristicValueChange(
+                                                                    cv.characteristicId,
+                                                                    value,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                </TabsContent>
+                            </div>
+
+                            <DialogFooter className="pt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                </Tabs>
+            </DialogContent>
+        </Dialog>
+    )
+}
