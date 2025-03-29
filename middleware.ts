@@ -17,5 +17,5 @@ export async function middleware(request: NextRequest) {
 export const config = {
     runtime: "nodejs",
     // Match all routes except auth pages and API routes
-    matcher: ["/((?!sign-in|sign-up|forgot-password|api/auth).*)"],
+    matcher: ["/((?!sign-in|sign-up|forgot-password|api/auth|_next).*)"],
 }
