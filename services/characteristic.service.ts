@@ -64,7 +64,7 @@ export async function createCharacteristic(data: CharacteristicCreateData) {
 }
 
 // Update an existing characteristic
-export async function updateCharacteristic(id: string, entityId: string, description: string) {
+export async function updateCharacteristic(id: string, entityId: string, param: { description: string }) {
     try {
         const characteristic = await prisma.characteristic.update({
             where: {
@@ -72,7 +72,7 @@ export async function updateCharacteristic(id: string, entityId: string, descrip
                 entityId,
             },
             data: {
-                description,
+                description: param.description,
             },
         })
 

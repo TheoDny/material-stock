@@ -7,15 +7,15 @@ import { getRoles, createRole, updateRole, assignPermissionsToRole } from "@/ser
 
 // Schema for creating a role
 const createRoleSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    description: z.string().optional(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
+    description: z.string().trim(),
 })
 
 // Schema for updating a role
 const updateRoleSchema = z.object({
-    id: z.string(),
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    description: z.string().optional(),
+    id: z.string().trim(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
+    description: z.string().trim(),
 })
 
 // Schema for assigning permissions to a role
@@ -38,34 +38,35 @@ export async function getRolesAction() {
 }
 
 // Create a new role
-export const createRoleAction = actionClient
-    .schema(createRoleSchema)
-    .action(async ({ parsedInput: { name, description } }) => {
-        try {
-            // Check for role_create permission
-            await checkAuth({ requiredPermission: "role_create" })
+export const createRoleAction = actionClient.schema(createRoleSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for role_create permission
+        await checkAuth({ requiredPermission: "role_create" })
 
-            return await createRole({ name, description: description || "" })
-        } catch (error) {
-            console.error("Failed to create role:", error)
-            throw new Error("Failed to create role")
-        }
-    })
+        return await createRole({
+            ...parsedInput,
+        })
+    } catch (error) {
+        console.error("Failed to create role:", error)
+        throw new Error("Failed to create role")
+    }
+})
 
 // Update an existing role
-export const updateRoleAction = actionClient
-    .schema(updateRoleSchema)
-    .action(async ({ parsedInput: { id, name, description } }) => {
-        try {
-            // Check for role_edit permission
-            await checkAuth({ requiredPermission: "role_edit" })
+export const updateRoleAction = actionClient.schema(updateRoleSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for role_edit permission
+        await checkAuth({ requiredPermission: "role_edit" })
 
-            return await updateRole(id, { name, description: description || "" })
-        } catch (error) {
-            console.error("Failed to update role:", error)
-            throw new Error("Failed to update role")
-        }
-    })
+        return await updateRole(parsedInput.id, {
+            name: parsedInput.name,
+            description: parsedInput.description,
+        })
+    } catch (error) {
+        console.error("Failed to update role:", error)
+        throw new Error("Failed to update role")
+    }
+})
 
 // Assign permissions to a role
 export const assignPermissionsToRoleAction = actionClient

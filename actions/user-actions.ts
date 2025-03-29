@@ -7,7 +7,7 @@ import { getUsers, createUser, updateUser, assignRolesToUser } from "@/services/
 
 // Schema for creating a user
 const createUserSchema = z.object({
-    name: z.string().min(2, "First name must be at least 2 characters"),
+    name: z.string().min(2, "First name must be at least 2 characters").trim(),
     email: z.string().email("Invalid email address"),
     active: z.boolean().default(true),
     entities: z.array(z.string()).min(1, "At least one entity must be selected"),
@@ -16,7 +16,7 @@ const createUserSchema = z.object({
 // Schema for updating a user
 const updateUserSchema = z.object({
     id: z.string(),
-    name: z.string().min(2, "First name must be at least 2 characters"),
+    name: z.string().trim().min(2, "First name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     active: z.boolean(),
     entities: z.array(z.string()).default([]),
@@ -26,6 +26,12 @@ const updateUserSchema = z.object({
 const assignRolesSchema = z.object({
     userId: z.string(),
     roleIds: z.array(z.string()),
+})
+
+// Schema for updating user roles
+const updateUserRolesSchema = z.object({
+    userId: z.string().trim(),
+    roleIds: z.array(z.string()).default([]),
 })
 
 // Get all users with their roles

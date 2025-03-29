@@ -1,7 +1,8 @@
 "use server"
 
-import { getPermissions } from "@/services/permission.service"
+import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
+import { getPermissions } from "@/services/permission.service"
 
 // Get all permissions
 export async function getPermissionsAction() {

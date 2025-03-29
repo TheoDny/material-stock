@@ -2,6 +2,8 @@
 
 import { getMaterialById, getMaterialHistory } from "@/services/material-history-details.service"
 import { checkAuth } from "@/lib/auth-guard"
+import { z } from "zod"
+import { actionClient } from "@/lib/safe-action"
 
 // Get material by ID
 export async function getMaterialByIdAction(id: string) {
@@ -28,3 +30,5 @@ export async function getMaterialHistoryAction(materialId: string) {
         throw new Error("Failed to fetch material history")
     }
 }
+
+// Add more actions for material history as needed

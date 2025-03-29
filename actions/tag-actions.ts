@@ -7,16 +7,17 @@ import { getTags, createTag, updateTag } from "@/services/tag.service"
 
 // Schema for creating a tag
 const createTagSchema = z.object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    fontColor: z.string().min(4, "Color text must be a valid color"),
-    color: z.string().min(4, "Color must be a valid color"),
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
+    color: z.string().trim(),
+    fontColor: z.string().trim(),
 })
 
 // Schema for updating a tag
 const updateTagSchema = z.object({
-    id: z.string(),
-    fontColor: z.string().min(4, "Color text must be a valid color"),
-    color: z.string().min(4, "Color must be a valid color"),
+    id: z.string().trim(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters"),
+    color: z.string().trim(),
+    fontColor: z.string().trim(),
 })
 
 // Get all tags with material count
@@ -34,46 +35,37 @@ export async function getTagsAction() {
 }
 
 // Create a new tag
-export const createTagAction = actionClient
-    .schema(createTagSchema)
-    .action(async ({ parsedInput: { name, fontColor, color } }) => {
-        try {
-            // Check for tag_create permission
-            const session = await checkAuth({ requiredPermission: "tag_create" })
+export const createTagAction = actionClient.schema(createTagSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for tag_create permission
+        const session = await checkAuth({ requiredPermission: "tag_create" })
 
-            const tag = await createTag({
-                name,
-                fontColor,
-                color,
-                entityId: session.user.entitySelectedId,
-            })
-
-            return {
-                success: true,
-                data: tag,
-            }
-        } catch (error) {
-            console.error("Failed to create tag:", error)
-            throw new Error("Failed to create tag")
-        }
-    })
+        return await createTag({
+            ...parsedInput,
+            entityId: session.user.entitySelectedId,
+        })
+    } catch (error) {
+        console.error("Failed to create tag:", error)
+        throw new Error("Failed to create tag")
+    }
+})
 
 // Update an existing tag
-export const updateTagAction = actionClient
-    .schema(updateTagSchema)
-    .action(async ({ parsedInput: { id, fontColor, color } }) => {
-        try {
-            // Check for tag_edit permission
-            const session = await checkAuth({ requiredPermission: "tag_edit" })
+export const updateTagAction = actionClient.schema(updateTagSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for tag_edit permission
+        const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-            const tag = await updateTag(id, session.user.entitySelectedId, { fontColor, color })
+        const { id, name, color, fontColor } = parsedInput
 
-            return {
-                success: true,
-                data: tag,
-            }
-        } catch (error) {
-            console.error("Failed to update tag:", error)
-            throw new Error("Failed to update tag")
-        }
-    })
+        const tag = await updateTag(id, session.user.entitySelectedId, {
+            color,
+            fontColor,
+        })
+
+        return tag
+    } catch (error) {
+        console.error("Failed to update tag:", error)
+        throw new Error("Failed to update tag")
+    }
+})
