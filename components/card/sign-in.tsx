@@ -8,12 +8,14 @@ import { useState } from "react"
 import { Loader2, CircleAlert } from "lucide-react"
 import { signIn } from "@/lib/auth-client"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 export function SignIn() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const tSignIn = useTranslations("SignIn")
 
     const handleSignIn = async () => {
         setLoading(true)
@@ -39,17 +41,15 @@ export function SignIn() {
     }
 
     return (
-        <Card className="max-w-md">
+        <Card className="w-xs md:w-md">
             <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Sign In</CardTitle>
-                <CardDescription className="text-xs md:text-sm">
-                    Enter your email below to login to your account
-                </CardDescription>
+                <CardTitle className="text-lg md:text-xl">{tSignIn("title")}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">{tSignIn("description")}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4">
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{tSignIn("email")}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -64,12 +64,12 @@ export function SignIn() {
 
                     <div className="grid gap-2">
                         <div className="flex items-center">
-                            <Label htmlFor="password">Password</Label>
+                            <Label htmlFor="password">{tSignIn("password")}</Label>
                             <Link
                                 href="/forgot-password"
                                 className="ml-auto inline-block text-sm underline"
                             >
-                                Forgot your password?
+                                {tSignIn("forgotPassword")}
                             </Link>
                         </div>
 
@@ -95,7 +95,7 @@ export function SignIn() {
                                 className="animate-spin"
                             />
                         ) : (
-                            "Login"
+                            tSignIn("login")
                         )}
                     </Button>
                     <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
@@ -111,14 +111,7 @@ export function SignIn() {
             <CardFooter>
                 <div className="flex justify-center w-full border-t py-4">
                     <p className="text-center text-xs text-neutral-500">
-                        Powered by{" "}
-                        <Link
-                            href="https://better-auth.com"
-                            className="underline"
-                            target="_blank"
-                        >
-                            <span className="dark:text-orange-200/90">better-auth.</span>
-                        </Link>
+                        Powered by <span className="underline dark:text-orange-200/90">better-auth.</span>
                     </p>
                 </div>
             </CardFooter>

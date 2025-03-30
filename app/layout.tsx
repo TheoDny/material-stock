@@ -8,6 +8,8 @@ import { NavigationType, NavigationGroupType } from "@/types/navigation.type"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { Permission } from "@prisma/client"
+import { getLocale } from "next-intl/server"
+import { NextIntlClientProvider } from "next-intl"
 
 interface RootLayoutProps {
     children: ReactNode
@@ -17,14 +19,22 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     const session = await auth.api.getSession({
         headers: await headers(),
     })
+
+    const locale = await getLocale()
+
     if (!session) {
         return (
-            <html suppressHydrationWarning>
+            <html
+                lang={locale}
+                suppressHydrationWarning
+            >
                 <head>
                     <title>Material Stock</title>
                 </head>
                 <body>
-                    <main>{children}</main>
+                    <NextIntlClientProvider>
+                        <main>{children}</main>
+                    </NextIntlClientProvider>
                 </body>
             </html>
         )
@@ -116,7 +126,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     const navigation = await buildNavigation(session)
 
     return (
-        <html suppressHydrationWarning>
+        <html
+            lang={locale}
+            suppressHydrationWarning
+        >
             <head>
                 <title>Material Stock</title>
             </head>
@@ -127,10 +140,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <SidebarProvider>
-                        <AppSidebar data={navigation} />
-                        <SidebarInset className={"p-1.5"}>{children}</SidebarInset>
-                    </SidebarProvider>
+                    <NextIntlClientProvider>
+                        <SidebarProvider>
+                            <AppSidebar data={navigation} />
+                            <SidebarInset className={"p-1.5"}>{children}</SidebarInset>
+                        </SidebarProvider>
+                    </NextIntlClientProvider>
                 </NextThemesProvider>
             </body>
         </html>

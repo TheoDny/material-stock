@@ -1,0 +1,10 @@
+{
+    "HomePage": {
+        "title": "Connexion",
+        "description": "Connexion à l'application",
+        "email": "Email",
+        "password": "Mot de passe",
+        "login": "S'authentifier",
+        "forgotPassword": "Mot de passe oublié?"
+    }
+}

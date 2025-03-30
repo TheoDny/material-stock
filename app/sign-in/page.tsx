@@ -13,5 +13,9 @@ export default async function SignInPage() {
         redirect("/configuration/tags")
     }
 
-    return <SignIn />
+    return (
+        <div className="flex items-center justify-center h-screen">
+            <SignIn />
+        </div>
+    )
 }

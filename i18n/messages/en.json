@@ -1,0 +1,10 @@
+{
+    "SignIn": {
+        "title": "Connexion",
+        "description": "Connexion to the application",
+        "email": "Email",
+        "password": "Password",
+        "login": "Login",
+        "forgotPassword": "Forgot password?"
+    }
+}
