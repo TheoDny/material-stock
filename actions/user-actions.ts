@@ -3,7 +3,17 @@
 import { z } from "zod"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
-import { getUsers, createUser, updateUser, assignRolesToUser } from "@/services/user.service"
+import {
+    getUsers,
+    createUser,
+    updateUser,
+    assignRolesToUser,
+    updateUserEmail,
+    updateUserProfile,
+} from "@/services/user.service"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
+import { revalidatePath } from "next/cache"
 
 // Schema for creating a user
 const createUserSchema = z.object({
@@ -28,10 +38,40 @@ const assignRolesSchema = z.object({
     roleIds: z.array(z.string()),
 })
 
-// Schema for updating user roles
-const updateUserRolesSchema = z.object({
-    userId: z.string().trim(),
-    roleIds: z.array(z.string()).default([]),
+// Schema for profile update
+const updateProfileSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    image: z.string().optional(),
+})
+
+// Server action for updating user profile
+export const updateProfileAction = actionClient.schema(updateProfileSchema).action(async ({ parsedInput }) => {
+    try {
+        // Get current session
+        const session = await auth.api.getSession({
+            headers: await headers(),
+        })
+
+        if (!session) {
+            throw new Error("You must be logged in to update your profile")
+        }
+
+        // Update the user profile
+        const updatedUser = await updateUserProfile(session.user.id, {
+            name: parsedInput.name,
+            email: parsedInput.email,
+            image: parsedInput.image,
+        })
+
+        // Revalidate the account page
+        revalidatePath("/account")
+
+        return updatedUser
+    } catch (error) {
+        console.error("Failed to update profile:", error)
+        throw new Error("Failed to update profile")
+    }
 })
 
 // Get all users with their roles

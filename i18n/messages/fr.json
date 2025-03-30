@@ -6,5 +6,90 @@
         "password": "Mot de passe",
         "login": "S'authentifier",
         "forgotPassword": "Mot de passe oublié?"
+    },
+    "Account": {
+        "title": "Compte",
+        "description": "Visualisation du compte courant",
+        "loginRequired": "Veuillez vous connecter pour voir votre compte",
+        "profile": {
+            "title": "Profil Utilisateur",
+            "description": "Vos informations de compte et paramètres",
+            "userAlt": "Utilisateur",
+            "statusActive": "Actif",
+            "statusInactive": "Inactif",
+            "selectedEntity": "Entité Sélectionnée",
+            "availableEntities": "Entités Disponibles",
+            "noEntity": "Aucune",
+            "language": "Langue",
+            "changeLanguage": "Changer de Langue"
+        },
+        "emailUpdate": {
+            "title": "Changer l'Adresse Email",
+            "description": "Mettez à jour l'adresse email de votre compte",
+            "emailLabel": "Adresse Email",
+            "editButton": "Modifier l'email",
+            "success": "Votre email a été mis à jour avec succès",
+            "error": "Un problème est survenu lors de la mise à jour de votre email"
+        },
+        "profileUpdate": {
+            "title": "Modifier le Profil",
+            "description": "Mettez à jour vos informations de profil",
+            "nameLabel": "Nom",
+            "emailLabel": "Adresse Email",
+            "uploadImage": "Télécharger une Photo de Profil",
+            "imageTypeError": "Veuillez télécharger un fichier image",
+            "editButton": "Modifier le Profil",
+            "success": "Votre profil a été mis à jour avec succès",
+            "error": "Un problème est survenu lors de la mise à jour de votre profil"
+        },
+        "permissions": {
+            "title": "Rôles & Permissions",
+            "description": "Vos rôles et permissions assignés",
+            "assignedRoles": "Rôles Assignés",
+            "permissionsList": "Permissions",
+            "noDescription": "Pas de description disponible"
+        },
+        "roles": {
+            "admin": "Administrateur",
+            "user": "Utilisateur",
+            "manager": "Gestionnaire",
+            "editor": "Éditeur",
+            "viewer": "Lecteur"
+        },
+        "roleDescriptions": {
+            "admin": "Accès complet à toutes les fonctionnalités et paramètres du système",
+            "user": "Utilisateur standard avec des permissions de base",
+            "manager": "Peut gérer les utilisateurs et le contenu dans les entités assignées",
+            "editor": "Peut créer et modifier du contenu mais pas le supprimer",
+            "viewer": "Accès en lecture seule au contenu"
+        }
+    },
+    "Permissions": {
+        "user_read": "Accès à la page de gestion des utilisateurs",
+        "user_create": "Envoyer un email permettant de créer un nouveau compte",
+        "user_edit": "Modifier les informations et le rôle d'un utilisateur",
+        "role_read": "Accès à la page de gestion des rôles",
+        "role_create": "Créer un nouveau rôle",
+        "role_edit": "Modifier les informations d'un rôle et les permissions associées",
+        "tag_read": "Accès à la page de configuration des tags",
+        "tag_create": "Créer un nouveau tag",
+        "tag_edit": "Modifier les informations d'un tag",
+        "charac_read": "Accès à la page de configuration des caractéristiques",
+        "charac_create": "Créer une nouvelle caractéristique",
+        "charac_edit": "Modifier les informations d'une caractéristique"
+    },
+    "Common": {
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "add": "Ajouter",
+        "create": "Créer",
+        "view": "Voir",
+        "search": "Rechercher",
+        "loading": "Chargement...",
+        "language": "Langue",
+        "changeLanguage": "Changer de Langue",
+        "saving": "Enregistrement..."
     }
 }

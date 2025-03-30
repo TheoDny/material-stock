@@ -105,3 +105,82 @@ export async function assignRolesToUser(userId: string, roleIds: string[]) {
         throw new Error("Failed to assign roles")
     }
 }
+
+/**
+ * Updates a user's email address
+ * @param userId The ID of the user to update
+ * @param newEmail The new email address
+ * @returns The updated user object
+ */
+export async function updateUserEmail(userId: string, newEmail: string) {
+    // Check if the email is already in use by a different user
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            email: newEmail,
+            id: {
+                not: userId
+            }
+        }
+    });
+
+    if (existingUser) {
+        throw new Error("Email is already in use by another account");
+    }
+
+    // Update the user's email
+    const updatedUser = await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            email: newEmail
+        }
+    });
+
+    return updatedUser;
+}
+
+/**
+ * Updates a user's profile information (name, email, and image)
+ * @param userId The ID of the user to update
+ * @param profileData Object containing the profile data to update
+ * @returns The updated user object
+ */
+export async function updateUserProfile(
+    userId: string, 
+    profileData: { 
+        name: string; 
+        email: string; 
+        image?: string;
+    }
+) {
+    // Check if the email is already in use by a different user
+    if (profileData.email) {
+        const existingUser = await prisma.user.findFirst({
+            where: {
+                email: profileData.email,
+                id: {
+                    not: userId
+                }
+            }
+        });
+
+        if (existingUser) {
+            throw new Error("Email is already in use by another account");
+        }
+    }
+
+    // Update the user's profile
+    const updatedUser = await prisma.user.update({
+        where: {
+            id: userId
+        },
+        data: {
+            name: profileData.name,
+            email: profileData.email,
+            image: profileData.image
+        }
+    });
+
+    return updatedUser;
+}
