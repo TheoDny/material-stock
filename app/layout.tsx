@@ -8,7 +8,7 @@ import { NavigationType, NavigationGroupType } from "@/types/navigation.type"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 import { Permission } from "@prisma/client"
-import { getLocale } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 
 interface RootLayoutProps {
@@ -21,6 +21,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     })
 
     const locale = await getLocale()
+    const tSidebar = await getTranslations("Sidebar")
 
     if (!session) {
         return (
@@ -61,21 +62,21 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             }
             if (permissions.has("role_read")) {
                 adminGroup.items.push({
-                    title: "Roles management",
+                    title: tSidebar("roles"),
                     url: "/administration/roles",
                     icon: <IdCard />,
                 })
             }
             if (permissions.has("user_read")) {
                 adminGroup.items.push({
-                    title: "Users management",
+                    title: tSidebar("users"),
                     url: "/administration/users",
                     icon: <Users />,
                 })
             }
             if (permissions.has("log_read")) {
                 adminGroup.items.push({
-                    title: "log",
+                    title: tSidebar("logs"),
                     url: "/admin/log",
                     icon: <Logs />,
                 })
@@ -85,19 +86,19 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
         if (permissions.has("charac_read") || permissions.has("tag_read")) {
             const ConfigGroup: NavigationGroupType = {
-                title: "Configuration",
+                title: tSidebar("configuration"),
                 items: [],
             }
             if (permissions.has("charac_read")) {
                 ConfigGroup.items.push({
-                    title: "Characteristic",
+                    title: tSidebar("characteristics"),
                     url: "/configuration/characteristics",
                     icon: <ListTree />,
                 })
             }
             if (permissions.has("tag_read")) {
                 ConfigGroup.items.push({
-                    title: "Tag",
+                    title: tSidebar("tags"),
                     url: "/configuration/tags",
                     icon: <Tags />,
                 })
@@ -107,12 +108,12 @@ export default async function RootLayout({ children }: RootLayoutProps) {
 
         if (permissions.has("charac_read") || permissions.has("tag_read")) {
             const ConfigGroup: NavigationGroupType = {
-                title: "Material",
+                title: tSidebar("materials"),
                 items: [],
             }
             if (permissions.has("charac_read")) {
                 ConfigGroup.items.push({
-                    title: "Material",
+                    title: tSidebar("materials"),
                     url: "/materials",
                     icon: <SquareChartGantt />,
                 })

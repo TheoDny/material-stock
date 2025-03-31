@@ -1,4 +1,13 @@
 {
+    "Sidebar": {
+        "materials": "Materials",
+        "characteristics": "Characteristics",
+        "tags": "Tags",
+        "configuration": "Configuration",
+        "administration": "Administration",
+        "users": "Users",
+        "roles": "Roles"
+    },
     "Navigation": {
         "dashboard": "Dashboard",
         "materials": "Materials",

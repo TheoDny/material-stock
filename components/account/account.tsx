@@ -27,10 +27,6 @@ export function Account({ session }: { session: Session }) {
     // Cast user to SessionUser to access the custom fields
     const user = session.user as unknown as SessionUser
 
-    const isServer = typeof window === "undefined"
-
-    console.log(isServer ? "Rendering on Server" : "Rendering on Client")
-
     // Get translations
     const tAccount = useTranslations("Account")
     const tPermissions = useTranslations("Permissions")
