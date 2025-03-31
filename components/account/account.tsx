@@ -57,7 +57,6 @@ export function Account({ session }: { session: Session }) {
                             <h3 className="text-xl font-semibold">{user.name}</h3>
                             <p className="text-muted-foreground">{user.email}</p>
                             <EditProfile
-                                userId={user.id}
                                 currentName={user.name}
                                 currentEmail={user.email}
                                 currentImage={user.image}
