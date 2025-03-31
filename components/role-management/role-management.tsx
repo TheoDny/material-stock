@@ -28,6 +28,7 @@ export function RoleManagement() {
     const [editingRole, setEditingRole] = useState<Role | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const t = useTranslations("RoleManagement")
+    const tPermissions = useTranslations("Permissions")
 
     useEffect(() => {
         const loadData = async () => {
@@ -245,8 +246,7 @@ export function RoleManagement() {
                                                     {permission.code}
                                                 </label>
                                                 <div className="text-sm text-muted-foreground">
-                                                    {/* TODO i18n conversion of permission.code */}
-                                                    permission.description
+                                                    {tPermissions(permission.code)}
                                                 </div>
                                             </div>
                                         </div>

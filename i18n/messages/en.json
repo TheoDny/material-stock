@@ -5,8 +5,8 @@
         "tags": "Tags",
         "configuration": "Configuration",
         "administration": "Administration",
-        "users": "Users",
-        "roles": "Roles"
+        "users": "Users management",
+        "roles": "Roles management"
     },
     "Navigation": {
         "dashboard": "Dashboard",
@@ -214,7 +214,6 @@
             "email": "Email",
             "roles": "Roles",
             "entities": "Entities",
-            "status": "Status",
             "actions": "Actions"
         },
         "status": {
@@ -238,21 +237,30 @@
         "description": "Create, edit and manage roles",
         "newRole": "New Role",
         "search": "Search roles...",
-        "noRoles": "No roles found",
+        "noRolesFound": "No roles found",
+        "roles": "Roles",
+        "permissions": "Permissions",
+        "cancel": "Cancel",
+        "save": "Save",
+        "assignPermissionsTo": "Assign permissions to:",
+        "noPermissionsFound": "No permissions found",
+        "selectRoleToManagePermissions": "Select a role to manage permissions",
+        "dialog": {
+            "create": "Create Role",
+            "edit": "Edit Role",
+            "createDescription": "Fill in the details to create a new role.",
+            "editDescription": "Update the role details below.",
+            "name": "Name",
+            "namePlaceholder": "Role name",
+            "description": "Description",
+            "descriptionPlaceholder": "Role description"
+        },
         "columns": {
             "name": "Name",
             "description": "Description",
             "usersCount": "Users Count",
             "permissions": "Permissions",
             "actions": "Actions"
-        },
-        "dialog": {
-            "create": "Create Role",
-            "edit": "Edit Role",
-            "name": "Role Name",
-            "description": "Description",
-            "permissions": "Permissions",
-            "selectPermissions": "Select Permissions"
         }
     },
     "Permissions": {
@@ -270,6 +278,7 @@
         "charac_edit": "Edit the information of a characteristic"
     },
     "Common": {
+        "update": "Update",
         "save": "Save",
         "cancel": "Cancel",
         "edit": "Edit",

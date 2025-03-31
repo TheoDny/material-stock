@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -36,8 +37,10 @@ interface RoleDialogProps {
     onClose: (role?: RolePermissions) => void
 }
 
-export function RoleDialog({ open, onOpenChange, role, onClose, translations }: RoleDialogProps) {
+export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const t = useTranslations("RoleManagement.dialog")
+    const tCommon = useTranslations("Common")
 
     const form = useForm<RoleFormValues>({
         resolver: zodResolver(roleSchema),
@@ -103,10 +106,8 @@ export function RoleDialog({ open, onOpenChange, role, onClose, translations }: 
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{role ? "Edit Role" : "Create Role"}</DialogTitle>
-                    <DialogDescription>
-                        {role ? "Update the role details below." : "Fill in the details to create a new role."}
-                    </DialogDescription>
+                    <DialogTitle>{role ? t("edit") : t("create")}</DialogTitle>
+                    <DialogDescription>{role ? t("editDescription") : t("createDescription")}</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form
@@ -118,10 +119,10 @@ export function RoleDialog({ open, onOpenChange, role, onClose, translations }: 
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Name</FormLabel>
+                                    <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Role name"
+                                            placeholder={t("namePlaceholder")}
                                             {...field}
                                         />
                                     </FormControl>
@@ -134,10 +135,10 @@ export function RoleDialog({ open, onOpenChange, role, onClose, translations }: 
                             name="description"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel>{t("description")}</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Role description"
+                                            placeholder={t("descriptionPlaceholder")}
                                             className="resize-none"
                                             {...field}
                                         />
@@ -152,13 +153,13 @@ export function RoleDialog({ open, onOpenChange, role, onClose, translations }: 
                                 variant="outline"
                                 onClick={handleClose}
                             >
-                                Cancel
+                                {tCommon("cancel")}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Saving..." : role ? "Update" : "Create"}
+                                {isSubmitting ? tCommon("saving") : role ? tCommon("update") : tCommon("create")}
                             </Button>
                         </DialogFooter>
                     </form>

@@ -242,21 +242,30 @@
         "description": "Créer, modifier et gérer les rôles",
         "newRole": "Nouveau Rôle",
         "search": "Rechercher des rôles...",
-        "noRoles": "Aucun rôle trouvé",
+        "noRolesFound": "Aucun rôle trouvé",
+        "roles": "Rôles",
+        "permissions": "Permissions",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "assignPermissionsTo": "Assigner des permissions à :",
+        "noPermissionsFound": "Aucune permission trouvée",
+        "selectRoleToManagePermissions": "Sélectionnez un rôle pour gérer les permissions",
+        "dialog": {
+            "create": "Créer un Rôle",
+            "edit": "Modifier un Rôle",
+            "createDescription": "Remplissez les détails pour créer un nouveau rôle.",
+            "editDescription": "Mettez à jour les détails du rôle ci-dessous.",
+            "name": "Nom",
+            "namePlaceholder": "Nom du rôle",
+            "description": "Description",
+            "descriptionPlaceholder": "Description du rôle"
+        },
         "columns": {
             "name": "Nom",
             "description": "Description",
             "usersCount": "Nombre d'Utilisateurs",
             "permissions": "Permissions",
             "actions": "Actions"
-        },
-        "dialog": {
-            "create": "Créer un Rôle",
-            "edit": "Modifier un Rôle",
-            "name": "Nom du Rôle",
-            "description": "Description",
-            "permissions": "Permissions",
-            "selectPermissions": "Sélectionner des Permissions"
         }
     },
     "Permissions": {
@@ -274,6 +283,7 @@
         "charac_edit": "Modifier les informations d'une caractéristique"
     },
     "Common": {
+        "update": "Mettre à jour",
         "save": "Enregistrer",
         "cancel": "Annuler",
         "edit": "Modifier",
