@@ -48,7 +48,7 @@ export const auth = betterAuth({
     },
     plugins: [
         customSession(async ({ user, session }) => {
-            const userInfer = user as typeof user & { entitySelectedId: string }
+            const userInfer = user as typeof user & { entitySelectedId: string; active: boolean }
             const rolesPermissionAndEntities = await getUserRolesPermissionsAndEntities(session.userId)
             return {
                 user: {

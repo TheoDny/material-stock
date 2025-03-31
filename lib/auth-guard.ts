@@ -16,7 +16,7 @@ export async function checkAuth(options: AuthGuardOptions = {}) {
     })
 
     // Check if session exists
-    if (!session) {
+    if (!session || !session.user.active) {
         throw new Error("Unauthorized: No active session")
     }
 

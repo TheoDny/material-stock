@@ -31,13 +31,12 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>
 
 interface EditProfileProps {
-    userId: string
     currentName: string
     currentEmail: string
     currentImage?: string | null
 }
 
-export function EditProfile({ userId, currentName, currentEmail, currentImage }: EditProfileProps) {
+export function EditProfile({ currentName, currentEmail, currentImage }: EditProfileProps) {
     const [open, setOpen] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const t = useTranslations("Account")
@@ -73,7 +72,7 @@ export function EditProfile({ userId, currentName, currentEmail, currentImage }:
                 // Calculate dimensions while maintaining aspect ratio
                 let width = img.width
                 let height = img.height
-                const maxSize = 512
+                const maxSize = 128
 
                 if (width > height) {
                     if (width > maxSize) {

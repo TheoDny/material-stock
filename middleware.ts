@@ -7,7 +7,8 @@ export async function middleware(request: NextRequest) {
         headers: await headers(),
     })
 
-    if (!session) {
+
+    if (!session || !session.user.active) {
         return NextResponse.redirect(new URL("/sign-in", request.url))
     }
 
