@@ -9,6 +9,7 @@ import Image from "next/image"
 import { CircleAlert, Loader2, X } from "lucide-react"
 import { signUp } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 export function SignUp() {
     const [firstName, setFirstName] = useState("")
@@ -21,6 +22,7 @@ export function SignUp() {
     const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const tSignUp = useTranslations("SignUp")
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
@@ -68,16 +70,14 @@ export function SignUp() {
     return (
         <Card className="z-50 rounded-md rounded-t-none max-w-md">
             <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Sign Up</CardTitle>
-                <CardDescription className="text-xs md:text-sm">
-                    Enter your information to create an account
-                </CardDescription>
+                <CardTitle className="text-lg md:text-xl">{tSignUp("title")}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">{tSignUp("description")}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="first-name">First name</Label>
+                            <Label htmlFor="first-name">{tSignUp("firstName")}</Label>
                             <Input
                                 id="first-name"
                                 placeholder="Max"
@@ -89,7 +89,7 @@ export function SignUp() {
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="last-name">Last name</Label>
+                            <Label htmlFor="last-name">{tSignUp("lastName")}</Label>
                             <Input
                                 id="last-name"
                                 placeholder="Robinson"
@@ -102,7 +102,7 @@ export function SignUp() {
                         </div>
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{tSignUp("email")}</Label>
                         <Input
                             id="email"
                             type="email"
@@ -115,7 +115,7 @@ export function SignUp() {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
+                        <Label htmlFor="password">{tSignUp("password")}</Label>
                         <Input
                             id="password"
                             type="password"
@@ -126,7 +126,7 @@ export function SignUp() {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Confirm Password</Label>
+                        <Label htmlFor="password">{tSignUp("confirmPassword")}</Label>
                         <Input
                             id="password_confirmation"
                             type="password"
@@ -137,7 +137,7 @@ export function SignUp() {
                         />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="image">Profile Image (optional)</Label>
+                        <Label htmlFor="image">{tSignUp("profileImage")}</Label>
                         <div className="flex items-end gap-4">
                             {imagePreview && (
                                 <div className="relative w-16 h-16 rounded-sm overflow-hidden">
@@ -181,7 +181,7 @@ export function SignUp() {
                                 className="animate-spin"
                             />
                         ) : (
-                            "Create an account"
+                            tSignUp("createAccount")
                         )}
                     </Button>
                     <div className="p-2 items-center  w-full rounded-md flex flex-row gap-2">

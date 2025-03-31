@@ -36,7 +36,7 @@ interface RoleDialogProps {
     onClose: (role?: RolePermissions) => void
 }
 
-export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProps) {
+export function RoleDialog({ open, onOpenChange, role, onClose, translations }: RoleDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const form = useForm<RoleFormValues>({

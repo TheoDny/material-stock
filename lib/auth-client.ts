@@ -8,11 +8,11 @@ export const authClient = createAuthClient({
             user: {
                 entitySelectedId: {
                     type: "string",
-                    required: true,
+                    required: false,
                 },
                 active: {
                     type: "boolean",
-                    required: true,
+                    required: false,
                 },
             },
         }),

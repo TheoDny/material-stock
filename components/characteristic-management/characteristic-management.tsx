@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus, Pencil, Search, ArrowUpDown } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +19,7 @@ type SortField = "name" | "type" | "materialsCount"
 type SortDirection = "asc" | "desc"
 
 export function CharacteristicManagement() {
+    const t = useTranslations("Configuration.characteristics")
     const [characteristics, setCharacteristics] = useState<CharacteristicAndCountMaterial[]>([])
     const [filteredCharacteristics, setFilteredCharacteristics] = useState<CharacteristicAndCountMaterial[]>([])
     const [searchQuery, setSearchQuery] = useState("")
@@ -114,7 +116,7 @@ export function CharacteristicManagement() {
                 <div className="relative w-[300px]">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search characteristics..."
+                        placeholder={t("search")}
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -122,7 +124,7 @@ export function CharacteristicManagement() {
                 </div>
                 <Button onClick={handleCreateCharacteristic}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Characteristic
+                    {t("newCharacteristic")}
                 </Button>
             </div>
 

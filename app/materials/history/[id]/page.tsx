@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { MaterialHistoryView } from "@/components/material-management/material-history-view"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getMaterialByIdAction } from "@/actions/material-history-actions"
+import { getTranslations } from "next-intl/server"
 
 interface MaterialHistoryPageProps {
     params: Promise<{
@@ -20,25 +21,27 @@ export default async function MaterialHistoryPage({ params }: MaterialHistoryPag
     const materialId = resolvedParams.id
 
     const material = await getMaterialByIdAction(materialId)
+    const t = await getTranslations("Materials.history")
+    const tCommon = await getTranslations("Common")
 
     if (!material) {
         notFound()
     }
 
     return (
-        <div className="p-2">
+        <div className="lg:p-2">
             <div className="mb-6">
-                <Link href="/dashboard/materials">
+                <Link href="/materials">
                     <Button
                         variant="ghost"
                         className="mb-4"
                     >
                         <ChevronLeft className="h-4 w-4 mr-2" />
-                        Back to Materials
+                        {tCommon("back")}
                     </Button>
                 </Link>
-                <h1 className="text-3xl font-bold tracking-tight">Material History</h1>
-                <p className="text-muted-foreground">View history for {material.name}</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                <p className="text-muted-foreground">{material.name}</p>
             </div>
             <Suspense fallback={<MaterialHistorySkeleton />}>
                 <MaterialHistoryView

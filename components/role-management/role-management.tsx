@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Plus, Pencil, Check, X } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,6 +27,7 @@ export function RoleManagement() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingRole, setEditingRole] = useState<Role | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const t = useTranslations("RoleManagement")
 
     useEffect(() => {
         const loadData = async () => {
@@ -141,13 +143,13 @@ export function RoleManagement() {
             {/* Roles Panel */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle>Roles</CardTitle>
+                    <CardTitle>{t("roles")}</CardTitle>
                     <Button
                         size="sm"
                         onClick={handleCreateRole}
                     >
                         <Plus className="h-4 w-4 mr-2" />
-                        Create Role
+                        {t("newRole")}
                     </Button>
                 </CardHeader>
                 <CardContent>
@@ -182,9 +184,7 @@ export function RoleManagement() {
                                 </div>
                             ))}
                             {roles.length === 0 && (
-                                <div className="text-center py-4 text-muted-foreground">
-                                    No roles found. Create your first role.
-                                </div>
+                                <div className="text-center py-4 text-muted-foreground">{t("noRolesFound")}</div>
                             )}
                         </div>
                     </ScrollArea>
@@ -194,7 +194,7 @@ export function RoleManagement() {
             {/* Permissions Panel */}
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle>Permissions</CardTitle>
+                    <CardTitle>{t("permissions")}</CardTitle>
                     {selectedRole && hasPermissionsChanged() && (
                         <div className="flex space-x-2">
                             <Button
@@ -204,7 +204,7 @@ export function RoleManagement() {
                                 disabled={isSubmitting}
                             >
                                 <X className="h-4 w-4 mr-2" />
-                                Cancel
+                                {t("cancel")}
                             </Button>
                             <Button
                                 size="sm"
@@ -212,7 +212,7 @@ export function RoleManagement() {
                                 disabled={isSubmitting}
                             >
                                 <Check className="h-4 w-4 mr-2" />
-                                Save
+                                {t("save")}
                             </Button>
                         </div>
                     )}
@@ -222,7 +222,8 @@ export function RoleManagement() {
                         <ScrollArea className="h-[400px] pr-4">
                             <div className="space-y-4">
                                 <div className="text-sm font-medium">
-                                    Assign permissions to: <span className="font-bold">{selectedRole.name}</span>
+                                    {t("assignPermissionsTo")}{" "}
+                                    <span className="font-bold">{selectedRole.name}</span>
                                 </div>
                                 <Separator />
                                 <div className="space-y-2">
@@ -252,7 +253,7 @@ export function RoleManagement() {
                                     ))}
                                     {permissions.length === 0 && (
                                         <div className="text-center py-4 text-muted-foreground">
-                                            No permissions found.
+                                            {t("noPermissionsFound")}
                                         </div>
                                     )}
                                 </div>
@@ -260,7 +261,7 @@ export function RoleManagement() {
                         </ScrollArea>
                     ) : (
                         <div className="flex items-center justify-center h-[400px] text-muted-foreground">
-                            Select a role to manage permissions
+                            {t("selectRoleToManagePermissions")}
                         </div>
                     )}
                 </CardContent>

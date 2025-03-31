@@ -152,7 +152,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
         <div className="space-y-4">
             <div className="border rounded-md">
                 {history.map((record, index) => (
-                    <React.Fragment key={record.id || index}>
+                    <React.Fragment key={index}>
                         {index > 0 && <Separator />}
                         <Accordion
                             type="single"
@@ -199,6 +199,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                                         backgroundColor: tag.color,
                                                                         color: tag.fontColor,
                                                                     }}
+                                                                    key={idx}
                                                                 >
                                                                     {tag.name}
                                                                 </Badge>
@@ -215,7 +216,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                     <div className="grid grid-cols-2 gap-2 mt-2">
                                                         {parseCharacteristics(record.Characteristics).map(
                                                             (char, idx) => (
-                                                                <React.Fragment key={char.id || idx}>
+                                                                <React.Fragment key={idx}>
                                                                     {idx > 0 && (
                                                                         <Separator className="w-2/3 col-span-2 my-2" />
                                                                     )}
@@ -267,6 +268,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                                     backgroundColor: tag.color,
                                                                     color: tag.fontColor,
                                                                 }}
+                                                                key={idx}
                                                             >
                                                                 {tag.name}
                                                             </Badge>
@@ -285,7 +287,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {parseCharacteristics(record.Characteristics).map(
                                                         (char, idx) => (
-                                                            <React.Fragment key={char.id || idx}>
+                                                            <React.Fragment key={idx}>
                                                                 {idx > 0 && (
                                                                     <Separator className="!w-29/30 justify-self-center col-span-2 my-2" />
                                                                 )}

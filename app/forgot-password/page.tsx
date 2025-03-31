@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 type ForgotPasswordProps = {
     token: string
@@ -15,42 +16,45 @@ type ForgotPasswordProps = {
 
 export default function ForgotPasswordPage({ token }: ForgotPasswordProps) {
     const [loading, setLoading] = useState(false)
+    const t = useTranslations("ForgotPassword")
+
     return (
         <Card className="z-50 rounded-md rounded-t-none max-w-md">
             <CardHeader>
-                <CardTitle className="text-lg md:text-xl">Sign Up</CardTitle>
-                <CardDescription className="text-xs md:text-sm">
-                    Enter your information to create an account
-                </CardDescription>
+                <CardTitle className="text-lg md:text-xl">{t("title")}</CardTitle>
+                <CardDescription className="text-xs md:text-sm">{t("description")}</CardDescription>
             </CardHeader>
             <CardContent>
                 <form
                     action={async (formData) => {
                         const email = formData.get("email")
 
-                        await authClient.forgetPassword({
-                            email: email as string,
-                            redirectTo: "/sign-in",
-                        },{
-                            onSuccess: () => {
-                                toast.success("Email sent")
+                        await authClient.forgetPassword(
+                            {
+                                email: email as string,
+                                redirectTo: "/sign-in",
                             },
-                            onError: (ctx) => {
-                                console.error(ctx)
-                                toast.error(ctx.error.message)
+                            {
+                                onSuccess: () => {
+                                    toast.success("Email sent")
+                                },
+                                onError: (ctx) => {
+                                    console.error(ctx)
+                                    toast.error(ctx.error.message)
+                                },
+                                onResponse: () => {
+                                    setLoading(false)
+                                },
+                                onRequest: () => {
+                                    setLoading(true)
+                                },
                             },
-                            onResponse: () => {
-                                setLoading(false)
-                            },
-                            onRequest: () => {
-                                setLoading(true)
-                            },
-                        })
+                        )
                     }}
                 >
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                            <Label htmlFor="email">{t("email")}</Label>
                             <Input
                                 id="email"
                                 type="email"
@@ -70,7 +74,7 @@ export default function ForgotPasswordPage({ token }: ForgotPasswordProps) {
                                     className="animate-spin"
                                 />
                             ) : (
-                                "Envoi du mail de réinitialisation"
+                                t("sendLink")
                             )}
                         </Button>
                     </div>

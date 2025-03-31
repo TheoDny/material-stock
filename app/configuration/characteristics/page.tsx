@@ -1,13 +1,16 @@
 import { Suspense } from "react"
 import { CharacteristicManagement } from "@/components/characteristic-management/characteristic-management"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getTranslations } from "next-intl/server"
 
-export default function CharacteristicsPage() {
+export default async function CharacteristicsPage() {
+    const t = await getTranslations("Configuration.characteristics")
+
     return (
         <div className="p-2">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Characteristic Management</h1>
-                <p className="text-muted-foreground">Create and manage characteristics for materials</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
             </div>
             <Suspense fallback={<CharacteristicManagementSkeleton />}>
                 <CharacteristicManagement />

@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronsUpDown, LogOut, SquareUserRound } from "lucide-react"
-
+import { useTranslations } from "next-intl"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
     DropdownMenu,
@@ -28,6 +28,8 @@ export function NavUser({
     }
 }) {
     const { isMobile, open } = useSidebar()
+    const t = useTranslations("Navigation")
+
     return (
         <SidebarMenu>
             <SidebarMenuItem className={"flex gap-2 " + (open ? "flex-row" : "flex-col-reverse")}>
@@ -91,7 +93,7 @@ export function NavUser({
                                     className="flex flex-row align-middle gap-2 "
                                 >
                                     <SquareUserRound className={"self-center"} />
-                                    Account
+                                    {t("account")}
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
@@ -109,7 +111,7 @@ export function NavUser({
                                     }}
                                 >
                                     <LogOut />
-                                    D&eacute;connexion
+                                    {t("logout")}
                                 </Button>
                             </form>
                         </DropdownMenuItem>

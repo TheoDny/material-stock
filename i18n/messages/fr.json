@@ -1,4 +1,14 @@
 {
+    "Navigation": {
+        "dashboard": "Tableau de bord",
+        "materials": "Matériels",
+        "configuration": "Configuration",
+        "users": "Utilisateurs",
+        "roles": "Rôles",
+        "account": "Compte",
+        "logout": "Déconnexion",
+        "search": "Rechercher..."
+    },
     "HomePage": {
         "title": "Connexion",
         "description": "Connexion à l'application",
@@ -6,6 +16,35 @@
         "password": "Mot de passe",
         "login": "S'authentifier",
         "forgotPassword": "Mot de passe oublié?"
+    },
+    "SignIn": {
+        "title": "Connexion",
+        "description": "Connexion à votre compte",
+        "email": "Email",
+        "password": "Mot de passe",
+        "login": "Connexion",
+        "forgotPassword": "Mot de passe oublié?",
+        "rememberMe": "Se souvenir de moi",
+        "noAccount": "Vous n'avez pas de compte?",
+        "signUp": "S'inscrire"
+    },
+    "SignUp": {
+        "title": "Inscription",
+        "description": "Créer un nouveau compte",
+        "name": "Nom",
+        "email": "Email",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "createAccount": "Créer un compte",
+        "alreadyHaveAccount": "Vous avez déjà un compte?",
+        "signIn": "Se connecter"
+    },
+    "ForgotPassword": {
+        "title": "Mot de passe oublié",
+        "description": "Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe",
+        "email": "Email",
+        "sendLink": "Envoyer le lien",
+        "backToLogin": "Retour à la connexion"
     },
     "Account": {
         "title": "Compte",
@@ -64,6 +103,153 @@
             "viewer": "Accès en lecture seule au contenu"
         }
     },
+    "Materials": {
+        "title": "Gestion des Matériels",
+        "description": "Créer, modifier et gérer des matériels",
+        "newMaterial": "Nouveau Matériel",
+        "search": "Rechercher des matériels...",
+        "filter": "Filtrer",
+        "noMaterials": "Aucun matériel trouvé",
+        "columns": {
+            "name": "Nom",
+            "tags": "Tags",
+            "createdBy": "Créé par",
+            "updatedAt": "Mis à jour le",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "dialog": {
+            "create": "Créer un Matériel",
+            "edit": "Modifier un Matériel",
+            "name": "Nom du Matériel",
+            "description": "Description",
+            "tags": "Tags",
+            "characteristics": "Caractéristiques",
+            "addValue": "Ajouter une Valeur",
+            "selectUnit": "Sélectionner une Unité",
+            "selectTags": "Sélectionner des Tags",
+            "history": "Historique",
+            "noValues": "Aucune valeur définie"
+        },
+        "history": {
+            "title": "Historique du Matériel",
+            "changes": "Modifications",
+            "date": "Date",
+            "user": "Utilisateur",
+            "noHistory": "Aucun historique disponible"
+        }
+    },
+    "Configuration": {
+        "tags": {
+            "title": "Gestion des Tags",
+            "description": "Créer, modifier et gérer des tags pour les matériels",
+            "newTag": "Nouveau Tag",
+            "search": "Rechercher des tags...",
+            "noTags": "Aucun tag trouvé",
+            "columns": {
+                "name": "Nom",
+                "description": "Description",
+                "materialsCount": "Nombre de Matériels",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "create": "Créer un Tag",
+                "edit": "Modifier un Tag",
+                "name": "Nom du Tag",
+                "description": "Description",
+                "color": "Couleur"
+            }
+        },
+        "characteristics": {
+            "title": "Gestion des Caractéristiques",
+            "description": "Créer et gérer des caractéristiques pour les Matériels",
+            "newCharacteristic": "Nouvelle Caractéristique",
+            "search": "Rechercher des caractéristiques...",
+            "noCharacteristics": "Aucune caractéristique trouvée",
+            "columns": {
+                "name": "Nom",
+                "description": "Description",
+                "type": "Type",
+                "unit": "Unité",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "create": "Créer une Caractéristique",
+                "edit": "Modifier une Caractéristique",
+                "name": "Nom de la Caractéristique",
+                "description": "Description",
+                "type": "Type",
+                "unit": "Unité",
+                "isRequired": "Est Obligatoire",
+                "defaultValue": "Valeur par Défaut",
+                "options": "Options",
+                "addOption": "Ajouter une Option",
+                "min": "Valeur Minimale",
+                "max": "Valeur Maximale",
+                "step": "Pas",
+                "selectUnit": "Sélectionner une Unité"
+            },
+            "types": {
+                "text": "Texte",
+                "number": "Nombre",
+                "boolean": "Booléen",
+                "date": "Date",
+                "select": "Sélection"
+            }
+        }
+    },
+    "UserManagement": {
+        "title": "Gestion des Utilisateurs",
+        "description": "Créer, modifier et gérer les utilisateurs",
+        "newUser": "Nouvel Utilisateur",
+        "search": "Rechercher des utilisateurs...",
+        "noUsers": "Aucun utilisateur trouvé",
+        "columns": {
+            "name": "Nom",
+            "email": "Email",
+            "roles": "Rôles",
+            "entities": "Entités",
+            "status": "Statut",
+            "actions": "Actions"
+        },
+        "status": {
+            "active": "Actif",
+            "inactive": "Inactif"
+        },
+        "dialog": {
+            "create": "Créer un Utilisateur",
+            "edit": "Modifier un Utilisateur",
+            "name": "Nom de l'Utilisateur",
+            "email": "Email",
+            "roles": "Rôles",
+            "entities": "Entités",
+            "status": "Statut",
+            "selectRoles": "Sélectionner des Rôles",
+            "selectEntities": "Sélectionner des Entités"
+        }
+    },
+    "RoleManagement": {
+        "title": "Gestion des Rôles",
+        "description": "Créer, modifier et gérer les rôles",
+        "newRole": "Nouveau Rôle",
+        "search": "Rechercher des rôles...",
+        "noRoles": "Aucun rôle trouvé",
+        "columns": {
+            "name": "Nom",
+            "description": "Description",
+            "usersCount": "Nombre d'Utilisateurs",
+            "permissions": "Permissions",
+            "actions": "Actions"
+        },
+        "dialog": {
+            "create": "Créer un Rôle",
+            "edit": "Modifier un Rôle",
+            "name": "Nom du Rôle",
+            "description": "Description",
+            "permissions": "Permissions",
+            "selectPermissions": "Sélectionner des Permissions"
+        }
+    },
     "Permissions": {
         "user_read": "Accès à la page de gestion des utilisateurs",
         "user_create": "Envoyer un email permettant de créer un nouveau compte",
@@ -90,6 +276,19 @@
         "loading": "Chargement...",
         "language": "Langue",
         "changeLanguage": "Changer de Langue",
-        "saving": "Enregistrement..."
+        "saving": "Enregistrement...",
+        "confirm": "Confirmer",
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer cet élément?",
+        "success": "Succès!",
+        "error": "Erreur",
+        "required": "Obligatoire",
+        "optional": "Optionnel",
+        "yes": "Oui",
+        "no": "Non",
+        "actions": "Actions",
+        "apply": "Appliquer",
+        "reset": "Réinitialiser",
+        "close": "Fermer",
+        "back": "Retour"
     }
 }

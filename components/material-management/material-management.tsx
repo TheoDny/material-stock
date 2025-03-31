@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Plus, Search, ArrowUpDown, Eye, History, FileEdit } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,7 @@ export function MaterialManagement() {
     const [editingMaterial, setEditingMaterial] = useState<MaterialWithTag | null>(null)
     const [sortField, setSortField] = useState<SortField>("updatedAt")
     const [sortDirection, setSortDirection] = useState<SortDirection>("desc")
+    const t = useTranslations("Materials")
 
     useEffect(() => {
         loadMaterials()
@@ -122,7 +124,7 @@ export function MaterialManagement() {
                 <div className="relative w-[300px]">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search materials..."
+                        placeholder={t("search")}
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -130,7 +132,7 @@ export function MaterialManagement() {
                 </div>
                 <Button onClick={handleCreateMaterial}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Material
+                    {t("newMaterial")}
                 </Button>
             </div>
 

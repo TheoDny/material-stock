@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Plus, Pencil, Search, ArrowUpDown } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +17,7 @@ type SortField = "name" | "colorText" | "materialsCount"
 type SortDirection = "asc" | "desc"
 
 export function TagManagement() {
+    const t = useTranslations("Configuration.tags")
     const [tags, setTags] = useState<TagAndCountMaterial[]>([])
     const [filteredTags, setFilteredTags] = useState<TagAndCountMaterial[]>([])
     const [searchQuery, setSearchQuery] = useState("")
@@ -109,7 +111,7 @@ export function TagManagement() {
                 <div className="relative w-[300px]">
                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                        placeholder="Search tags..."
+                        placeholder={t("search")}
                         className="pl-8"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -117,7 +119,7 @@ export function TagManagement() {
                 </div>
                 <Button onClick={handleCreateTag}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Tag
+                    {t("newTag")}
                 </Button>
             </div>
 

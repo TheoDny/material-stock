@@ -1,13 +1,16 @@
 import { Suspense } from "react"
 import { MaterialManagement } from "@/components/material-management/material-management"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getTranslations } from "next-intl/server"
 
-export default function MaterialsPage() {
+export default async function MaterialsPage() {
+    const t = await getTranslations("Materials")
+
     return (
         <div className="p-2">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Material Management</h1>
-                <p className="text-muted-foreground">Create, edit and manage materials with versioning</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
             </div>
             <Suspense fallback={<MaterialManagementSkeleton />}>
                 <MaterialManagement />

@@ -1,13 +1,16 @@
 import { Suspense } from "react"
 import { TagManagement } from "@/components/tag-management/tag-management"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getTranslations } from "next-intl/server"
 
-export default function TagsPage() {
+export default async function TagsPage() {
+    const t = await getTranslations("Configuration.tags")
+
     return (
         <div className="p-2">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">Tag Management</h1>
-                <p className="text-muted-foreground">Create, edit and manage tags for materials</p>
+                <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+                <p className="text-muted-foreground">{t("description")}</p>
             </div>
             <Suspense fallback={<TagManagementSkeleton />}>
                 <TagManagement />

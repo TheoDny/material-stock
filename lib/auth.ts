@@ -22,14 +22,14 @@ export const auth = betterAuth({
             // },
             active: {
                 type: "boolean",
-                required: true,
+                required: false,
                 defaultValue: true,
                 input: true,
                 returned: true,
             },
             entitySelectedId: {
                 type: "string",
-                required: true,
+                required: false,
                 defaultValue: "cm8skzpbi0001e58ge65z1rkz", // admin entity
                 input: true,
             },
