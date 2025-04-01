@@ -231,12 +231,14 @@ export function RoleManagement() {
                                     {permissions.map((permission) => (
                                         <div
                                             key={permission.code}
-                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted"
+                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+                                            onClick={() => handlePermissionToggle(permission.code)}
                                         >
                                             <Checkbox
                                                 id={`permission-${permission.code}`}
                                                 checked={selectedPermissions.includes(permission.code)}
                                                 onCheckedChange={() => handlePermissionToggle(permission.code)}
+                                                className="cursor-pointer"
                                             />
                                             <div className="flex-1">
                                                 <label
