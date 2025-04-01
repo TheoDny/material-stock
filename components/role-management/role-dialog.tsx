@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -50,6 +50,20 @@ export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProp
         },
     })
 
+    useEffect(() => {
+        if (role) {
+            form.reset({
+                name: role.name,
+                description: role.description || "",
+            })
+        } else {
+            form.reset({
+                name: "",
+                description: "",
+            })
+        }
+    }, [open, role, form])
+
     const handleClose = () => {
         form.reset()
         onOpenChange(false)
@@ -64,7 +78,7 @@ export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProp
 
             if (role) {
                 // Update existing role
-                const result = await updateRoleAction({
+                result = await updateRoleAction({
                     id: role.id,
                     name: values.name,
                     description: values.description || "",
