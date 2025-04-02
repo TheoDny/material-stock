@@ -193,7 +193,7 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                                                 {isToAdd && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="bg-green-800 cursor-pointer flex items-center gap-1"
+                                                        className="bg-green-800 cursor-pointer"
                                                         onClick={() => {
                                                             setEntitiesToAdd((prev) =>
                                                                 prev.filter((e) => e.id !== entity.id),
@@ -206,7 +206,7 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                                                 {isToRemove && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="bg-red-800 cursor-pointer flex items-center gap-1"
+                                                        className="bg-red-800 cursor-pointer"
                                                         onClick={() => {
                                                             setEntitiesToRemove((prev) =>
                                                                 prev.filter((e) => e.id !== entity.id),
@@ -219,7 +219,7 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                                                 {isNeutral && !isToAdd && !isToRemove && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="bg-gray-100 text-gray-800 border-gray-300 cursor-pointer flex items-center gap-1"
+                                                        className="cursor-pointer flex"
                                                         onClick={() => {
                                                             setEntitiesToAdd((prev) => [...prev, entity])
                                                         }}
