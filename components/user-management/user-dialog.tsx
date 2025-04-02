@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { createUserAction, updateUserAction } from "@/actions/user-actions"
 import { UserRolesAndEntities } from "@/types/user.type"
 import { Entity } from "@prisma/client"
+import { X, CirclePlus } from "lucide-react"
 
 const userSchema = z.object({
     name: z.string().min(2, "First name must be at least 2 characters"),
@@ -178,46 +179,69 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                         <FormItem>
                             <FormLabel>Entities</FormLabel>
                             <FormControl>
-                                <ScrollArea className="max-h-[150px]">
-                                    {entitiesCanUse.map((entity) => (
-                                        <div
-                                            key={entity.id}
-                                            className="flex items-center space-x-2 py-1"
-                                        >
-                                            <Checkbox
-                                                key={entity.id}
-                                                checked={
-                                                    (user?.Entities.some((e) => e.id === entity.id) &&
-                                                        !entitiesToRemove.some((e) => e.id === entity.id)) ||
-                                                    entitiesToAdd.some((e) => e.id === entity.id)
-                                                }
-                                                onClick={(checkboxClick) => {
-                                                    //@ts-ignore
-                                                    const checked = checkboxClick.target?.ariaChecked === "true"
+                                <div className="max-h-[150px] flex flex-wrap gap-2">
+                                    {entitiesCanUse.map((entity) => {
+                                        const isToAdd = entitiesToAdd.some((e) => e.id === entity.id)
+                                        const isToRemove = entitiesToRemove.some((e) => e.id === entity.id)
+                                        const isSelected =
+                                            (user?.Entities.some((e) => e.id === entity.id) && !isToRemove) ||
+                                            isToAdd
+                                        const isNeutral = !isSelected && !isToRemove
 
-                                                    if (checked) {
-                                                        if (entitiesToAdd.some((e) => e.id === entity.id)) {
+                                        return (
+                                            <div key={entity.id}>
+                                                {isToAdd && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-green-800 cursor-pointer flex items-center gap-1"
+                                                        onClick={() => {
                                                             setEntitiesToAdd((prev) =>
                                                                 prev.filter((e) => e.id !== entity.id),
                                                             )
-                                                        } else {
-                                                            setEntitiesToRemove((prev) => [...prev, entity])
-                                                        }
-                                                    } else {
-                                                        if (entitiesToRemove.some((e) => e.id === entity.id)) {
+                                                        }}
+                                                    >
+                                                        <X /> {entity.name}
+                                                    </Badge>
+                                                )}
+                                                {isToRemove && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-red-800 cursor-pointer flex items-center gap-1"
+                                                        onClick={() => {
                                                             setEntitiesToRemove((prev) =>
                                                                 prev.filter((e) => e.id !== entity.id),
                                                             )
-                                                        } else {
+                                                        }}
+                                                    >
+                                                        <X /> {entity.name}
+                                                    </Badge>
+                                                )}
+                                                {isNeutral && !isToAdd && !isToRemove && (
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="bg-gray-100 text-gray-800 border-gray-300 cursor-pointer flex items-center gap-1"
+                                                        onClick={() => {
                                                             setEntitiesToAdd((prev) => [...prev, entity])
-                                                        }
-                                                    }
-                                                }}
-                                            />
-                                            <FormLabel>{entity.name}</FormLabel>
-                                        </div>
-                                    ))}
-                                </ScrollArea>
+                                                        }}
+                                                    >
+                                                        <CirclePlus /> {entity.name}
+                                                    </Badge>
+                                                )}
+                                                {isSelected && !isToAdd && !isToRemove && (
+                                                    <Badge
+                                                        variant="default"
+                                                        className="cursor-pointer"
+                                                        onClick={() => {
+                                                            setEntitiesToRemove((prev) => [...prev, entity])
+                                                        }}
+                                                    >
+                                                        <X /> {entity.name}
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        )
+                                    })}
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
