@@ -29,7 +29,8 @@ const updateUserSchema = z.object({
     name: z.string().trim().min(2, "First name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     active: z.boolean(),
-    entities: z.array(z.string()).default([]),
+    entitiesToAdd: z.array(z.string()),
+    entitiesToRemove: z.array(z.string()),
 })
 
 // Schema for assigning roles to a user
@@ -104,7 +105,11 @@ export const createUserAction = actionClient.schema(createUserSchema).action(asy
 export const updateUserAction = actionClient.schema(updateUserSchema).action(async ({ parsedInput }) => {
     try {
         // Check for user_edit permission
-        await checkAuth({ requiredPermission: "user_edit" })
+        const session = await checkAuth({ requiredPermission: "user_edit" })
+
+        if (session.user.id === parsedInput.id) {
+            throw new Error("You cannot create a user with the same ID as yourself")
+        }
 
         const { id, ...data } = parsedInput
         return await updateUser(id, data)

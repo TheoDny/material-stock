@@ -163,6 +163,7 @@ export function RoleManagement() {
                                         selectedRole?.id === role.id ? "bg-primary/10" : "hover:bg-muted"
                                     }`}
                                     onClick={() => handleRoleSelect(role)}
+                                    onDoubleClick={() => handleEditRole(role)}
                                 >
                                     <Checkbox
                                         checked={selectedRole?.id === role.id}

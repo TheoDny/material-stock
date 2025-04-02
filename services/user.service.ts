@@ -55,9 +55,23 @@ export async function updateUser(
         name: string
         email: string
         active: boolean
-        entities: string[]
+        entitiesToAdd: string[]
+        entitiesToRemove: string[]
     },
 ) {
+    const existingUser = await prisma.user.findFirst({
+        where: {
+            email: data.email,
+            id: {
+                not: id,
+            },
+        },
+    })
+
+    if (existingUser) {
+        throw new Error("Email is already in use by another account")
+    }
+
     try {
         const user = await prisma.user.update({
             where: { id },
@@ -66,7 +80,8 @@ export async function updateUser(
                 email: data.email,
                 active: data.active,
                 Entities: {
-                    set: data.entities.map((entityId) => ({ id: entityId })),
+                    connect: data.entitiesToAdd.map((entityId) => ({ id: entityId })),
+                    disconnect: data.entitiesToRemove.map((entityId) => ({ id: entityId })),
                 },
             },
             include: {

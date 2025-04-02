@@ -14,10 +14,12 @@ import { UserDialog } from "./user-dialog"
 import { getUsersAction } from "@/actions/user-actions"
 import { getRolesAction } from "@/actions/role-actions"
 import { assignRolesToUserAction } from "@/actions/user-actions"
-import { Role } from "@prisma/client"
+import { Entity, Role, User } from "@prisma/client"
 import { UserRolesAndEntities } from "@/types/user.type"
+import { Badge } from "@/components/ui/badge"
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"
 
-export function UserManagement() {
+export function UserManagement({ sessionUser }: { sessionUser: User & { Entities: Entity[] } }) {
     const t = useTranslations("UserManagement")
     const [users, setUsers] = useState<UserRolesAndEntities[]>([])
     const [roles, setRoles] = useState<Role[]>([])
@@ -160,6 +162,7 @@ export function UserManagement() {
                                         selectedUser?.id === user.id ? "bg-primary/10" : "hover:bg-muted"
                                     }`}
                                     onClick={() => handleUserSelect(user)}
+                                    onDoubleClick={() => handleEditUser(user)}
                                 >
                                     <Checkbox
                                         checked={selectedUser?.id === user.id}
@@ -175,6 +178,55 @@ export function UserManagement() {
                                                 <span className="text-red-500">Inactive</span>
                                             )}
                                         </div>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 flex-1">
+                                        {user.Entities.length <= 5 ? (
+                                            user.Entities.map((entity) => (
+                                                <Badge
+                                                    key={entity.id}
+                                                    variant="default"
+                                                    className="text-xs"
+                                                >
+                                                    {entity.name}
+                                                </Badge>
+                                            ))
+                                        ) : (
+                                            <HoverCard>
+                                                <HoverCardTrigger asChild>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {user.Entities.slice(0, 5).map((entity) => (
+                                                            <Badge
+                                                                key={entity.id}
+                                                                variant="secondary"
+                                                                className="text-xs"
+                                                            >
+                                                                {entity.name}
+                                                            </Badge>
+                                                        ))}
+
+                                                        <Badge
+                                                            variant="default"
+                                                            className="text-xs cursor-pointer"
+                                                        >
+                                                            +{user.Entities.length - 5}
+                                                        </Badge>
+                                                    </div>
+                                                </HoverCardTrigger>
+                                                <HoverCardContent className="w-auto p-2">
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {user.Entities.slice(5).map((entity) => (
+                                                            <Badge
+                                                                key={entity.id}
+                                                                variant="outline"
+                                                                className="text-xs"
+                                                            >
+                                                                {entity.name}
+                                                            </Badge>
+                                                        ))}
+                                                    </div>
+                                                </HoverCardContent>
+                                            </HoverCard>
+                                        )}
                                     </div>
                                     <Button
                                         variant="ghost"
@@ -236,7 +288,8 @@ export function UserManagement() {
                                     {roles.map((role) => (
                                         <div
                                             key={role.id}
-                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted"
+                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted cursor-pointer"
+                                            onClick={() => handleRoleToggle(role.id)}
                                         >
                                             <Checkbox
                                                 id={`role-${role.id}`}
@@ -277,6 +330,7 @@ export function UserManagement() {
                 onOpenChange={setIsDialogOpen}
                 user={editingUser}
                 onClose={handleUserDialogClose}
+                entitiesCanUse={sessionUser.Entities}
             />
         </div>
     )

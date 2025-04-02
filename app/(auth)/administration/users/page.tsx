@@ -2,9 +2,21 @@ import { Suspense } from "react"
 import { UserManagement } from "@/components/user-management/user-management"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getTranslations } from "next-intl/server"
+import { auth } from "@/lib/auth"
+import { headers } from "next/headers"
 
 export default async function UsersPage() {
     const t = await getTranslations("UserManagement")
+
+    const session = await auth.api.getSession({
+        headers: await headers(),
+    })
+
+    if (!session) {
+        return null
+    }
+
+    delete session.user.image
 
     return (
         <div className="p-2">
@@ -13,7 +25,10 @@ export default async function UsersPage() {
                 <p className="text-muted-foreground">{t("description")}</p>
             </div>
             <Suspense fallback={<UserManagementSkeleton />}>
-                <UserManagement />
+                <UserManagement
+                    // @ts-ignore because i removed image
+                    sessionUser={session.user}
+                />
             </Suspense>
         </div>
     )

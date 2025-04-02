@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -18,14 +18,17 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 import { createUserAction, updateUserAction } from "@/actions/user-actions"
 import { UserRolesAndEntities } from "@/types/user.type"
+import { Entity } from "@prisma/client"
 
 const userSchema = z.object({
     name: z.string().min(2, "First name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     active: z.boolean().default(true),
-    entities: z.array(z.string()).min(1, "At least one entity must be selected"),
 })
 
 type UserFormValues = z.infer<typeof userSchema>
@@ -34,11 +37,14 @@ interface UserDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     user: UserRolesAndEntities | null
+    entitiesCanUse: Entity[]
     onClose: (user?: UserRolesAndEntities) => void
 }
 
-export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProps) {
+export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }: UserDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [entitiesToAdd, setEntitiesToAdd] = useState<Entity[] | []>([])
+    const [entitiesToRemove, setEntitiesToRemove] = useState<Entity[] | []>([])
 
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
@@ -46,9 +52,24 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
             name: user?.name || "",
             email: user?.email || "",
             active: user?.active ?? true,
-            entities: user?.Entities.map((entity) => entity.id) || [],
         },
     })
+
+    useEffect(() => {
+        if (user) {
+            form.reset({
+                name: user.name ?? "",
+                email: user.email,
+                active: user.active,
+            })
+        } else {
+            form.reset({
+                name: "",
+                email: "",
+                active: true,
+            })
+        }
+    }, [open, user, form])
 
     const handleClose = () => {
         form.reset()
@@ -60,8 +81,6 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
         setIsSubmitting(true)
 
         try {
-            const entities = values.entities ? values.entities.map((entity) => entity.trim()) : []
-
             let result
 
             if (user) {
@@ -71,7 +90,8 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
                     name: values.name,
                     email: values.email,
                     active: values.active,
-                    entities,
+                    entitiesToAdd: entitiesToAdd.map((entity) => entity.id),
+                    entitiesToRemove: entitiesToRemove.map((entity) => entity.id),
                 })
                 toast.success("User updated successfully")
             } else {
@@ -80,7 +100,7 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
                     name: values.name,
                     email: values.email,
                     active: values.active,
-                    entities,
+                    entities: entitiesToAdd.map((entity) => entity.id),
                 })
                 toast.success("User created successfully")
             }
@@ -155,22 +175,53 @@ export function UserDialog({ open, onOpenChange, user, onClose }: UserDialogProp
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="entities"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Entities (comma separated)</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Entity1, Entity2, ..."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <FormItem>
+                            <FormLabel>Entities</FormLabel>
+                            <FormControl>
+                                <ScrollArea className="max-h-[150px]">
+                                    {entitiesCanUse.map((entity) => (
+                                        <div
+                                            key={entity.id}
+                                            className="flex items-center space-x-2 py-1"
+                                        >
+                                            <Checkbox
+                                                key={entity.id}
+                                                checked={
+                                                    (user?.Entities.some((e) => e.id === entity.id) &&
+                                                        !entitiesToRemove.some((e) => e.id === entity.id)) ||
+                                                    entitiesToAdd.some((e) => e.id === entity.id)
+                                                }
+                                                onClick={(checkboxClick) => {
+                                                    //@ts-ignore
+                                                    const checked = checkboxClick.target?.ariaChecked === "true"
+
+                                                    if (checked) {
+                                                        if (entitiesToAdd.some((e) => e.id === entity.id)) {
+                                                            setEntitiesToAdd((prev) =>
+                                                                prev.filter((e) => e.id !== entity.id),
+                                                            )
+                                                        } else {
+                                                            setEntitiesToRemove((prev) => [...prev, entity])
+                                                        }
+                                                    } else {
+                                                        if (entitiesToRemove.some((e) => e.id === entity.id)) {
+                                                            setEntitiesToRemove((prev) =>
+                                                                prev.filter((e) => e.id !== entity.id),
+                                                            )
+                                                        } else {
+                                                            setEntitiesToAdd((prev) => [...prev, entity])
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                            <FormLabel>{entity.name}</FormLabel>
+                                        </div>
+                                    ))}
+                                </ScrollArea>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+
                         <FormField
                             control={form.control}
                             name="active"
