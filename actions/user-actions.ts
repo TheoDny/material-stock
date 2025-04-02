@@ -10,6 +10,7 @@ import {
     assignRolesToUser,
     updateUserEmail,
     updateUserProfile,
+    changeEntitySelected,
 } from "@/services/user.service"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
@@ -44,6 +45,11 @@ const updateProfileSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email address"),
     image: z.string().optional(),
+})
+
+// Schema for change selected entity
+const changeEntitySelectedSchema = z.object({
+    entityId: z.string(),
 })
 
 // Server action for updating user profile
@@ -131,5 +137,28 @@ export const assignRolesToUserAction = actionClient
         } catch (error) {
             console.error("Failed to assign roles:", error)
             throw new Error("Failed to assign roles")
+        }
+    })
+
+export const changeEntitySelectedAction = actionClient
+    .schema(changeEntitySelectedSchema)
+    .action(async ({ parsedInput }) => {
+        try {
+            // Get current session
+            const session = await auth.api.getSession({
+                headers: await headers(),
+            })
+
+            if (!session) {
+                throw new Error("You must be logged in to change entity")
+            }
+
+            // Update the user profile
+            const updatedUser = await changeEntitySelected(session.user.id, parsedInput.entityId)
+
+            return updatedUser
+        } catch (error) {
+            console.error("Failed to change entity:", error)
+            throw new Error("Failed to change entity")
         }
     })

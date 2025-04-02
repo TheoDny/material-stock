@@ -28,7 +28,7 @@ export function ModeToggle(props: ModeToggleButtonProps) {
             <DropdownMenuTrigger asChild>
                 <Button
                     variant="outline"
-                    className="self-center"
+                    className="self-center cursor-pointer"
                     {...props}
                 >
                     <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

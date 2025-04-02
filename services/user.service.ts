@@ -133,26 +133,26 @@ export async function updateUserEmail(userId: string, newEmail: string) {
         where: {
             email: newEmail,
             id: {
-                not: userId
-            }
-        }
-    });
+                not: userId,
+            },
+        },
+    })
 
     if (existingUser) {
-        throw new Error("Email is already in use by another account");
+        throw new Error("Email is already in use by another account")
     }
 
     // Update the user's email
     const updatedUser = await prisma.user.update({
         where: {
-            id: userId
+            id: userId,
         },
         data: {
-            email: newEmail
-        }
-    });
+            email: newEmail,
+        },
+    })
 
-    return updatedUser;
+    return updatedUser
 }
 
 /**
@@ -162,12 +162,12 @@ export async function updateUserEmail(userId: string, newEmail: string) {
  * @returns The updated user object
  */
 export async function updateUserProfile(
-    userId: string, 
-    profileData: { 
-        name: string; 
-        email: string; 
-        image?: string;
-    }
+    userId: string,
+    profileData: {
+        name: string
+        email: string
+        image?: string
+    },
 ) {
     // Check if the email is already in use by a different user
     if (profileData.email) {
@@ -175,27 +175,59 @@ export async function updateUserProfile(
             where: {
                 email: profileData.email,
                 id: {
-                    not: userId
-                }
-            }
-        });
+                    not: userId,
+                },
+            },
+        })
 
         if (existingUser) {
-            throw new Error("Email is already in use by another account");
+            throw new Error("Email is already in use by another account")
         }
     }
 
     // Update the user's profile
     const updatedUser = await prisma.user.update({
         where: {
-            id: userId
+            id: userId,
         },
         data: {
             name: profileData.name,
             email: profileData.email,
-            image: profileData.image
-        }
-    });
+            image: profileData.image,
+        },
+    })
 
-    return updatedUser;
+    return updatedUser
+}
+
+export async function changeEntitySelected(userId: string, entityId: string) {
+    try {
+        //check if user has the new entity in their entities
+        let user = await prisma.user.findFirst({
+            where: {
+                id: userId,
+                Entities: {
+                    some: {
+                        id: entityId,
+                    },
+                },
+            },
+        })
+
+        if (!user) {
+            throw new Error("User does not have access to the selected entity")
+        }
+
+        user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                entitySelectedId: entityId,
+            },
+        })
+
+        return user
+    } catch (error) {
+        console.error("Failed to change entity selected:", error)
+        throw new Error("Failed to change entity selected")
+    }
 }

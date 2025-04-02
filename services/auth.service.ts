@@ -21,6 +21,12 @@ export const getUserRolesPermissionsAndEntities = async (userId: string) => {
                     name: true,
                 },
             },
+            EntitySelected: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
         },
     })
 
@@ -48,5 +54,6 @@ export const getUserRolesPermissionsAndEntities = async (userId: string) => {
         Permissions: Array.from(uniquePermissions).map((code) => ({
             code,
         })),
+        EntitySelected: user.EntitySelected,
     }
 }

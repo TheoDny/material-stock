@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronsUpDown, LogOut, SquareUserRound } from "lucide-react"
+import { ChevronsUpDown, LogOut, SquareUserRound, Building } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -18,6 +18,10 @@ import * as React from "react"
 import Link from "next/link"
 import { signOut } from "@/lib/auth-client"
 import { Button } from "@/components/ui/button"
+import { changeEntitySelectedAction } from "@/actions/user-actions"
+import { Badge } from "@/components/ui/badge"
+import { toast } from "sonner"
+import { Entity } from "@prisma/client"
 
 export function NavUser({
     user,
@@ -25,19 +29,82 @@ export function NavUser({
     user: {
         name: string
         avatar: string
+        Entities: Entity[]
+        EntitySelected: Entity
     }
 }) {
     const { isMobile, open } = useSidebar()
     const t = useTranslations("Navigation")
+    const tAccount = useTranslations("Account.profile")
+
+    const handleEntityChange = async (entityId: string) => {
+        try {
+            await changeEntitySelectedAction({ entityId })
+            // Reload the page to reflect the changes
+            window.location.reload()
+        } catch (error) {
+            toast.error("Failed to change entity")
+        }
+    }
 
     return (
         <SidebarMenu>
+            <SidebarMenuItem>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton className="cursor-pointer h-12">
+                            <Building className="h-4 w-4" />
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">
+                                    {user.EntitySelected ? user.EntitySelected.name : tAccount("noEntity")}
+                                </span>
+                            </div>
+                            <ChevronsUpDown className="ml-auto size-4" />
+                        </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        side={isMobile ? "bottom" : "right"}
+                        align="end"
+                        sideOffset={4}
+                    >
+                        <DropdownMenuLabel className="px-2 py-1.5">
+                            {tAccount("availableEntities")}
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                            {user.Entities.map((entity) => (
+                                <DropdownMenuItem
+                                    key={entity.id}
+                                    onClick={() => handleEntityChange(entity.id)}
+                                    className="cursor-pointer"
+                                >
+                                    <div className="flex items-center justify-between w-full">
+                                        <span>{entity.name}</span>
+                                        {user.EntitySelected.id === entity.id && (
+                                            <Badge
+                                                variant="secondary"
+                                                className="ml-2"
+                                            >
+                                                {tAccount("selectedEntity")}
+                                            </Badge>
+                                        )}
+                                    </div>
+                                </DropdownMenuItem>
+                            ))}
+                            {user.Entities.length === 0 && (
+                                <DropdownMenuItem disabled>{tAccount("noEntity")}</DropdownMenuItem>
+                            )}
+                        </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </SidebarMenuItem>
             <SidebarMenuItem className={"flex gap-2 " + (open ? "flex-row" : "flex-col-reverse")}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
                                 <AvatarImage
@@ -90,7 +157,7 @@ export function NavUser({
                                 <Link
                                     href={"/account"}
                                     prefetch={false}
-                                    className="flex flex-row align-middle gap-2 "
+                                    className="flex flex-row align-middle gap-2"
                                 >
                                     <SquareUserRound className={"self-center"} />
                                     {t("account")}

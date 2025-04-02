@@ -55,6 +55,7 @@ export const auth = betterAuth({
                     Roles: rolesPermissionAndEntities.Roles,
                     Permissions: rolesPermissionAndEntities.Permissions,
                     Entities: rolesPermissionAndEntities.Entities,
+                    EntitySelected: rolesPermissionAndEntities.EntitySelected,
                     ...userInfer,
                 },
                 session,

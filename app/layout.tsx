@@ -46,6 +46,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             user: {
                 name: session.user.name,
                 avatar: session.user.image ?? "",
+                Entities: session.user.Entities as { id: string; name: string }[],
+                EntitySelected: session.user.EntitySelected as { id: string; name: string },
             },
             header: {
                 name: "Material Stock",

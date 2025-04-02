@@ -26,6 +26,8 @@ export type NavigationType = {
 export type NavigationUserType = {
     name: string
     avatar: string
+    Entities: { id: string; name: string }[]
+    EntitySelected: { id: string; name: string }
 }
 
 export type NavigationHeaderType = {
