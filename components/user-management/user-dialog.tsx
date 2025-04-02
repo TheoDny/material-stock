@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -18,8 +19,6 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { createUserAction, updateUserAction } from "@/actions/user-actions"
 import { UserRolesAndEntities } from "@/types/user.type"
@@ -46,6 +45,8 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [entitiesToAdd, setEntitiesToAdd] = useState<Entity[] | []>([])
     const [entitiesToRemove, setEntitiesToRemove] = useState<Entity[] | []>([])
+    const t = useTranslations("UserManagement.dialog")
+    const tCommon = useTranslations("Common")
 
     const form = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
@@ -133,10 +134,8 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{user ? "Edit User" : "Create User"}</DialogTitle>
-                    <DialogDescription>
-                        {user ? "Update the user details below." : "Fill in the details to create a new user."}
-                    </DialogDescription>
+                    <DialogTitle>{user ? t("edit") : t("create")}</DialogTitle>
+                    <DialogDescription>{user ? t("edit") : t("create")}</DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form
@@ -148,10 +147,10 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Name</FormLabel>
+                                    <FormLabel>{t("name")}</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Name"
+                                            placeholder={t("name")}
                                             {...field}
                                         />
                                     </FormControl>
@@ -164,10 +163,10 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                    <FormLabel>{t("email")}</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Email address"
+                                            placeholder={t("email")}
                                             type="email"
                                             {...field}
                                         />
@@ -177,7 +176,7 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                             )}
                         />
                         <FormItem>
-                            <FormLabel>Entities</FormLabel>
+                            <FormLabel>{t("entities")}</FormLabel>
                             <FormControl>
                                 <div className="max-h-[150px] flex flex-wrap gap-2">
                                     {entitiesCanUse.map((entity) => {
@@ -252,10 +251,8 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                             render={({ field }) => (
                                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                                     <div className="space-y-0.5">
-                                        <FormLabel>Active</FormLabel>
-                                        <div className="text-sm text-muted-foreground">
-                                            User can login and access the system
-                                        </div>
+                                        <FormLabel>{t("status")}</FormLabel>
+                                        <div className="text-sm text-muted-foreground">{t("commentActive")}</div>
                                     </div>
                                     <FormControl>
                                         <Switch
@@ -272,13 +269,13 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
                                 variant="outline"
                                 onClick={handleClose}
                             >
-                                Cancel
+                                {tCommon("cancel")}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Saving..." : user ? "Update" : "Create"}
+                                {isSubmitting ? tCommon("saving") : user ? tCommon("update") : tCommon("create")}
                             </Button>
                         </DialogFooter>
                     </form>

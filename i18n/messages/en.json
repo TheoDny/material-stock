@@ -229,7 +229,9 @@
             "entities": "Entities",
             "status": "Status",
             "selectRoles": "Select Roles",
-            "selectEntities": "Select Entities"
+            "selectEntities": "Select Entities",
+            "active": "Active",
+            "commentActive": "User can login and access the system"
         }
     },
     "RoleManagement": {

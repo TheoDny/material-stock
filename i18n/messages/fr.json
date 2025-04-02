@@ -234,7 +234,8 @@
             "entities": "Entités",
             "status": "Statut",
             "selectRoles": "Sélectionner des Rôles",
-            "selectEntities": "Sélectionner des Entités"
+            "selectEntities": "Sélectionner des Entités",
+            "commentActive": "L'utilisateur peut se connecter"
         }
     },
     "RoleManagement": {
