@@ -22,6 +22,7 @@ import { changeEntitySelectedAction } from "@/actions/user-actions"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Entity } from "@prisma/client"
+import { Separator } from "../ui/separator"
 
 export function NavUser({
     user,
@@ -100,6 +101,7 @@ export function NavUser({
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
+            <Separator />
             <SidebarMenuItem className={"flex gap-2 " + (open ? "flex-row" : "flex-col-reverse")}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
