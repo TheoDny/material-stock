@@ -199,14 +199,6 @@ CREATE TABLE "_RoleToUser" (
 );
 
 -- CreateTable
-CREATE TABLE "_EntityToRole" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
-
-    CONSTRAINT "_EntityToRole_AB_pkey" PRIMARY KEY ("A","B")
-);
-
--- CreateTable
 CREATE TABLE "_EntityToUser" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -241,9 +233,6 @@ CREATE INDEX "_PermissionToRole_B_index" ON "_PermissionToRole"("B");
 
 -- CreateIndex
 CREATE INDEX "_RoleToUser_B_index" ON "_RoleToUser"("B");
-
--- CreateIndex
-CREATE INDEX "_EntityToRole_B_index" ON "_EntityToRole"("B");
 
 -- CreateIndex
 CREATE INDEX "_EntityToUser_B_index" ON "_EntityToUser"("B");
@@ -298,12 +287,6 @@ ALTER TABLE "_RoleToUser" ADD CONSTRAINT "_RoleToUser_A_fkey" FOREIGN KEY ("A") 
 
 -- AddForeignKey
 ALTER TABLE "_RoleToUser" ADD CONSTRAINT "_RoleToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_EntityToRole" ADD CONSTRAINT "_EntityToRole_A_fkey" FOREIGN KEY ("A") REFERENCES "entity"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_EntityToRole" ADD CONSTRAINT "_EntityToRole_B_fkey" FOREIGN KEY ("B") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_EntityToUser" ADD CONSTRAINT "_EntityToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "entity"("id") ON DELETE CASCADE ON UPDATE CASCADE;

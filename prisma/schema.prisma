@@ -104,7 +104,6 @@ model Role {
     deletedAt   DateTime?
     Permissions Permission[]
     Users       User[]
-    Entities    Entity[]
 
     @@map("role")
 }
@@ -115,7 +114,6 @@ model Entity {
     createdAt        DateTime         @default(now())
     updatedAt        DateTime         @default(now()) @updatedAt
     deletedAt        DateTime?
-    Roles            Role[]
     Users            User[]
     UserWithSelected User[]           @relation("entitySelected")
     logs             Log[]
