@@ -192,14 +192,39 @@
                 "min": "Minimum Value",
                 "max": "Maximum Value",
                 "step": "Step",
-                "selectUnit": "Select Unit"
+                "selectUnit": "Select Unit",
+                "createDescription": "Fill in the details to create a new characteristic.",
+                "editDescription": "Update the characteristic details below.",
+                "namePlaceholder": "Characteristic name",
+                "descriptionPlaceholder": "Characteristic description",
+                "selectType": "Select a type",
+                "optionsPlaceholder": "Option 1, Option 2, Option 3",
+                "unitPlaceholder": "e.g. kg, cm, etc.",
+                "nameCannotBeChanged": "Name cannot be changed after creation",
+                "typeCannotBeChanged": "Type cannot be changed after creation",
+                "optionsCannotBeChanged": "Options cannot be changed after creation",
+                "unitCannotBeChanged": "Units cannot be changed after creation",
+                "createSuccess": "Characteristic created successfully",
+                "updateSuccess": "Characteristic updated successfully",
+                "createError": "Failed to create characteristic",
+                "updateError": "Failed to update characteristic"
             },
             "types": {
                 "text": "Text",
                 "number": "Number",
                 "boolean": "Boolean",
                 "date": "Date",
-                "select": "Select"
+                "select": "Select",
+                "checkbox": "Checkbox",
+                "radio": "Radio",
+                "multiSelect": "Multiple Select",
+                "textarea": "Text Area",
+                "float": "Float",
+                "email": "Email",
+                "dateHour": "Date with Time",
+                "dateRange": "Date Range",
+                "dateHourRange": "Date with Time Range",
+                "link": "Link"
             }
         }
     },

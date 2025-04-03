@@ -196,14 +196,39 @@
                 "min": "Valeur Minimale",
                 "max": "Valeur Maximale",
                 "step": "Pas",
-                "selectUnit": "Sélectionner une Unité"
+                "selectUnit": "Sélectionner une Unité",
+                "createDescription": "Remplissez les détails pour créer une nouvelle caractéristique.",
+                "editDescription": "Mettez à jour les détails de la caractéristique ci-dessous.",
+                "namePlaceholder": "Nom de la caractéristique",
+                "descriptionPlaceholder": "Description de la caractéristique",
+                "selectType": "Sélectionner un type",
+                "optionsPlaceholder": "Option 1, Option 2, Option 3",
+                "unitPlaceholder": "ex: kg, cm, etc.",
+                "nameCannotBeChanged": "Le nom ne peut pas être modifié après la création",
+                "typeCannotBeChanged": "Le type ne peut pas être modifié après la création",
+                "optionsCannotBeChanged": "Les options ne peuvent pas être modifiées après la création",
+                "unitCannotBeChanged": "Les unités ne peuvent pas être modifiées après la création",
+                "createSuccess": "Caractéristique créée avec succès",
+                "updateSuccess": "Caractéristique mise à jour avec succès",
+                "createError": "Échec de la création de la caractéristique",
+                "updateError": "Échec de la mise à jour de la caractéristique"
             },
             "types": {
                 "text": "Texte",
                 "number": "Nombre",
                 "boolean": "Booléen",
                 "date": "Date",
-                "select": "Sélection"
+                "select": "Sélection",
+                "checkbox": "Case à cocher",
+                "radio": "Bouton radio",
+                "multiSelect": "Sélection multiple",
+                "textarea": "Zone de texte",
+                "float": "Décimal",
+                "email": "Email",
+                "dateHour": "Date avec heure",
+                "dateRange": "Plage de dates",
+                "dateHourRange": "Plage de dates avec heure",
+                "link": "Lien"
             }
         }
     },

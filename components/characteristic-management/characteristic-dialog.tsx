@@ -5,6 +5,7 @@ import { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -73,6 +74,10 @@ interface CharacteristicDialogProps {
 }
 
 export function CharacteristicDialog({ open, onOpenChange, characteristic, onClose }: CharacteristicDialogProps) {
+    const t = useTranslations("Configuration.characteristics.dialog")
+    const tCommon = useTranslations("Common")
+    const tTypes = useTranslations("Configuration.characteristics.types")
+
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const isEditing = !!characteristic
@@ -130,7 +135,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                     id: characteristic.id,
                     description: updateValues.description || "",
                 })
-                toast.success("Characteristic updated successfully")
+                toast.success(t("updateSuccess"))
             } else {
                 // Create new characteristic
                 const createValues = values as CreateCharacteristicFormValues
@@ -145,7 +150,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                     options,
                     units: createValues.units || null,
                 })
-                toast.success("Characteristic created successfully")
+                toast.success(t("createSuccess"))
             }
 
             form.reset()
@@ -153,7 +158,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
             onClose(true)
         } catch (error) {
             console.error(error)
-            toast.error(isEditing ? "Failed to update characteristic" : "Failed to create characteristic")
+            toast.error(isEditing ? t("updateError") : t("createError"))
         } finally {
             setIsSubmitting(false)
         }
@@ -170,35 +175,104 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
         >
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? "Edit Characteristic" : "Create Characteristic"}</DialogTitle>
+                    <DialogTitle>{isEditing ? t("edit") : t("create")}</DialogTitle>
                     <DialogDescription>
                         {isEditing
-                            ? "Update the characteristic details below."
-                            : "Fill in the details to create a new characteristic."}
+                            ? t("editDescription")
+                            : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
-                <Form {...form}>
-                    <form
-                        onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4"
-                    >
-                        {!isEditing && (
-                            <>
+                {isEditing ? (
+                    <Form {...updateForm}>
+                        <form
+                            onSubmit={updateForm.handleSubmit(onSubmit)}
+                            className="space-y-4"
+                        >
+                            <FormField
+                                control={updateForm.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("description")}</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder={t("descriptionPlaceholder")}
+                                                className="resize-none"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            {characteristic && (
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="font-medium">{t("type")}:</div>
+                                        <Badge className={getTypeColor(characteristic.type)}>
+                                            {tTypes[characteristic.type as keyof typeof tTypes] || characteristic.type}
+                                        </Badge>
+                                    </div>
+
+                                    {characteristic.options && (
+                                        <div className="flex items-center space-x-2">
+                                            <div className="font-medium">{t("options")}:</div>
+                                            <div>
+                                                {Array.isArray(characteristic.options)
+                                                    ? characteristic.options.join(", ")
+                                                    : characteristic.options.toString()}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {characteristic.units && (
+                                        <div className="flex items-center space-x-2">
+                                            <div className="font-medium">{t("unit")}:</div>
+                                            <div>{characteristic.units}</div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    {tCommon("cancel")}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? tCommon("saving") : tCommon("update")}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
+                ) : (
+                    <Form {...createForm}>
+                        <form
+                                onSubmit={createForm.handleSubmit(onSubmit)}
+                                className="space-y-4"
+                            >
                                 <FormField
                                     control={createForm.control}
                                     name="name"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Name</FormLabel>
+                                            <FormLabel>{t("name")}</FormLabel>
                                             <FormControl>
                                                 <Input
-                                                    placeholder="Characteristic name"
+                                                    placeholder={t("namePlaceholder")}
                                                     {...field}
                                                 />
                                             </FormControl>
                                             <FormMessage />
                                             <FormDescription>
-                                                Name cannot be changed after creation
+                                                {t("nameCannotBeChanged")}
                                             </FormDescription>
                                         </FormItem>
                                     )}
@@ -209,14 +283,14 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                     name="type"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Type</FormLabel>
+                                            <FormLabel>{t("type")}</FormLabel>
                                             <Select
                                                 onValueChange={field.onChange}
                                                 defaultValue={field.value}
                                             >
                                                 <FormControl>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="Select a type" />
+                                                        <SelectValue placeholder={t("selectType")} />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
@@ -225,14 +299,14 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                                             key={type}
                                                             value={type}
                                                         >
-                                                            {type}
-                                                        </SelectItem>
-                                                    ))}
+                                                        {tTypes[type as keyof typeof tTypes] || type}
+                                                    </SelectItem>
+                                                ))}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
                                             <FormDescription>
-                                                Type cannot be changed after creation
+                                                {t("typeCannotBeChanged")}
                                             </FormDescription>
                                         </FormItem>
                                     )}
@@ -244,16 +318,16 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                         name="options"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Options (comma separated)</FormLabel>
+                                                <FormLabel>{t("options")}</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="Option 1, Option 2, Option 3"
+                                                        placeholder={t("optionsPlaceholder")}
                                                         {...field}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
                                                 <FormDescription>
-                                                    Options cannot be changed after creation
+                                                    {t("optionsCannotBeChanged")}
                                                 </FormDescription>
                                             </FormItem>
                                         )}
@@ -266,84 +340,58 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                         name="units"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Units</FormLabel>
+                                                <FormLabel>{t("unit")}</FormLabel>
                                                 <FormControl>
                                                     <Input
-                                                        placeholder="e.g. kg, cm, etc."
+                                                        placeholder={t("unitPlaceholder")}
                                                         {...field}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
                                                 <FormDescription>
-                                                    Units cannot be changed after creation
+                                                    {t("unitCannotBeChanged")}
                                                 </FormDescription>
                                             </FormItem>
                                         )}
                                     />
                                 )}
-                            </>
-                        )}
 
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Characteristic description"
-                                            className="resize-none"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                                <FormField
+                                    control={createForm.control}
+                                    name="description"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>{t("description")}</FormLabel>
+                                            <FormControl>
+                                                <Textarea
+                                                    placeholder={t("descriptionPlaceholder")}
+                                                    className="resize-none"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                        {isEditing && (
-                            <div className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                    <div className="font-medium">Type:</div>
-                                    <Badge className={getTypeColor(characteristic.type)}>
-                                        {characteristic.type}
-                                    </Badge>
-                                </div>
-
-                                {characteristic?.options && (
-                                    <div className="flex items-center space-x-2">
-                                        <div className="font-medium">Options:</div>
-                                        <div>{characteristic.options.join(", ")}</div>
-                                    </div>
-                                )}
-
-                                {characteristic?.units && (
-                                    <div className="flex items-center space-x-2">
-                                        <div className="font-medium">Units:</div>
-                                        <div>{characteristic.units}</div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
+                                <DialogFooter>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleClose}
+                                    >
+                                        {tCommon("cancel")}
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? tCommon("saving") : tCommon("create")}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </Form>
+                )}
             </DialogContent>
         </Dialog>
     )
