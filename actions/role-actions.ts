@@ -7,15 +7,15 @@ import { getRoles, createRole, updateRole, assignPermissionsToRole } from "@/ser
 
 // Schema for creating a role
 const createRoleSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    description: z.string().trim().max(255, "Description must be at most 255 characters"),
 })
 
 // Schema for updating a role
 const updateRoleSchema = z.object({
     id: z.string().trim(),
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    description: z.string().trim().max(255, "Description must be at most 255 characters"),
 })
 
 // Schema for assigning permissions to a role

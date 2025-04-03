@@ -13,7 +13,7 @@ import {
 // Schema for creating a material
 const createMaterialSchema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().optional(),
+    description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
@@ -30,7 +30,7 @@ const createMaterialSchema = z.object({
 const updateMaterialSchema = z.object({
     id: z.string(),
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().optional(),
+    description: z.string().trim().max("255", "Description must be at most 255 characters").optional(),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z

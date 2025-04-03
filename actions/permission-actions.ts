@@ -1,6 +1,5 @@
 "use server"
 
-import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
 import { getPermissions } from "@/services/permission.service"
 

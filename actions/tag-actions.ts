@@ -7,16 +7,16 @@ import { getTags, createTag, updateTag } from "@/services/tag.service"
 
 // Schema for creating a tag
 const createTagSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    color: z.string().trim(),
-    fontColor: z.string().trim(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    color: z.string().trim().max(7, "Color must be a valid hex color code"),
+    fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
 })
 
 // Schema for updating a tag
 const updateTagSchema = z.object({
     id: z.string().trim(),
-    color: z.string().trim(),
-    fontColor: z.string().trim(),
+    color: z.string().trim().max(7, "Color must be a valid hex color code"),
+    fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
 })
 
 // Get all tags with material count

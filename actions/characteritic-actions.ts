@@ -8,8 +8,8 @@ import { getCharacteristics, createCharacteristic, updateCharacteristic } from "
 
 // Schema for creating a characteristic
 const createCharacteristicSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().optional(),
+    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
     type: z.nativeEnum(CharacteristicType, {
         errorMap: () => ({ message: "Invalid characteristic type" }),
     }),
@@ -20,7 +20,7 @@ const createCharacteristicSchema = z.object({
 // Schema for updating a characteristic
 const updateCharacteristicSchema = z.object({
     id: z.string().trim(),
-    description: z.string().trim(),
+    description: z.string().trim().max(255, "Description must be at most 255 characters"),
 })
 
 // Get all characteristics
