@@ -122,6 +122,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const tagsData = await getTagsAction()
             setTags(tagsData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load tags")
         }
     }
@@ -131,6 +132,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const characteristicsData = await getCharacteristicsAction()
             setCharacteristics(characteristicsData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load characteristics")
         }
     }
@@ -140,6 +142,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const values = await getMaterialCharacteristicsAction(materialId)
             setCharacteristicValues(values)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load material characteristics")
         }
     }
@@ -211,6 +214,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             onOpenChange(false)
             onClose(true)
         } catch (error) {
+            console.error(error);
             toast.error(isEditing ? "Failed to update material" : "Failed to create material")
         } finally {
             setIsSubmitting(false)

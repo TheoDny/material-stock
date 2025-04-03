@@ -7,6 +7,10 @@ export default async function AccountPage() {
     const session = await auth.api.getSession({
         headers: await headers(),
     })
+    if (!session) {
+        return null
+    }
+
     const tAccount = await getTranslations("Account")
 
     return (
@@ -15,7 +19,6 @@ export default async function AccountPage() {
                 <h1 className="text-3xl font-bold tracking-tight">{tAccount("title")}</h1>
                 <p className="text-muted-foreground">{tAccount("description")}</p>
             </div>
-            {/* @ts-ignore - TypeScript doesn't recognize our custom session extensions */}
             <Account session={session} />
         </div>
     )

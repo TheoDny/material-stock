@@ -39,6 +39,7 @@ export function TagManagement() {
             const tagsData = await getTagsAction()
             setTags(tagsData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load tags")
         }
     }

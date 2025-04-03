@@ -3,7 +3,6 @@
 import React from "react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
-import { format } from "date-fns"
 import { Material_History } from "@prisma/client"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -26,10 +25,12 @@ type Tag = {
 type Characteristic = {
     id: string
     name: string
-    value: any
+    value: ValueCharacteristic
     type: string
     units?: string
 }
+
+type ValueCharacteristic = any
 
 interface MaterialHistoryViewProps {
     materialId: string
@@ -77,12 +78,12 @@ const formatCharacteristicValue = (characteristic: Characteristic) => {
             return characteristic.value ? (
                 <>
                     <Check className="text-green-600" />
-                    "Yes"
+                    Yes
                 </>
             ) : (
                 <>
                     <X className="text-red-700" />
-                    "No"
+                        No
                 </>
             )
         case "number":
@@ -111,6 +112,7 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
             const historyData = await getMaterialHistoryAction(materialId)
             setHistory(historyData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load material history")
         } finally {
             setLoading(false)

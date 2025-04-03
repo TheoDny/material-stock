@@ -38,6 +38,7 @@ export function UserManagement({ sessionUser }: { sessionUser: User & { Entities
                 const rolesData = await getRolesAction()
                 setRoles(rolesData)
             } catch (error) {
+                console.error(error);
                 toast.error("Failed to load data")
             }
         }
@@ -114,6 +115,7 @@ export function UserManagement({ sessionUser }: { sessionUser: User & { Entities
                 setSelectedUser(updatedUser)
             }
         } catch (error) {
+            console.error(error);
             toast.error("Failed to update roles")
         } finally {
             setIsSubmitting(false)

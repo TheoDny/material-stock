@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
 import { Plus, Pencil, Check, X } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
@@ -19,7 +18,6 @@ import { RolePermissions } from "@/types/role.type"
 import { Role, Permission } from "@prisma/client"
 
 export function RoleManagement() {
-    const router = useRouter()
     const [roles, setRoles] = useState<RolePermissions[]>([])
     const [permissions, setPermissions] = useState<Permission[]>([])
     const [selectedRole, setSelectedRole] = useState<RolePermissions | null>(null)
@@ -39,6 +37,7 @@ export function RoleManagement() {
                 const permissionsData = await getPermissionsAction()
                 setPermissions(permissionsData)
             } catch (error) {
+                console.error(error);
                 toast.error("Failed to load data")
             }
         }
@@ -115,6 +114,7 @@ export function RoleManagement() {
                 setSelectedRole(updatedRole)
             }
         } catch (error) {
+            console.error(error);
             toast.error("Failed to update permissions")
         } finally {
             setIsSubmitting(false)

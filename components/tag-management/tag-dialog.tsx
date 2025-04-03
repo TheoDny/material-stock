@@ -122,6 +122,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
             onOpenChange(false)
             onClose(true)
         } catch (error) {
+            console.error(error);
             toast.error(isEditing ? "Failed to update tag" : "Failed to create tag")
         } finally {
             setIsSubmitting(false)

@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge"
 import { CharacteristicDialog } from "./characteristic-dialog"
 import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
-import { CharacteristicType } from "@prisma/client"
 import { getTypeColor } from "@/lib/utils"
 
 type SortField = "name" | "type" | "materialsCount"
@@ -41,6 +40,7 @@ export function CharacteristicManagement() {
             const characteristicsData = await getCharacteristicsAction()
             setCharacteristics(characteristicsData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load characteristics")
         }
     }

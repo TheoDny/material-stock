@@ -152,6 +152,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
             onOpenChange(false)
             onClose(true)
         } catch (error) {
+            console.error(error)
             toast.error(isEditing ? "Failed to update characteristic" : "Failed to create characteristic")
         } finally {
             setIsSubmitting(false)

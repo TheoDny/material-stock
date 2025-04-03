@@ -48,6 +48,7 @@ export function MaterialManagement() {
             const materialsData = await getMaterialsAction()
             setMaterials(materialsData)
         } catch (error) {
+            console.error(error);
             toast.error("Failed to load materials")
         }
     }

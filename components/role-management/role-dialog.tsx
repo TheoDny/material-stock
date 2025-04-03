@@ -107,6 +107,7 @@ export function RoleDialog({ open, onOpenChange, role, onClose }: RoleDialogProp
             onOpenChange(false)
             onClose(result.data)
         } catch (error) {
+            console.error(error);
             toast.error(role ? "Failed to update role" : "Failed to create role")
         } finally {
             setIsSubmitting(false)

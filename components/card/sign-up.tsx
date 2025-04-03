@@ -38,7 +38,7 @@ export function SignUp() {
 
     const handleSignUp = async () => {
         setError("")
-        const res = await signUp.email({
+        await signUp.email({
             email,
             password,
             name: `${firstName} ${lastName}`,

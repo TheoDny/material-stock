@@ -121,6 +121,7 @@ export function UserDialog({ open, onOpenChange, user, entitiesCanUse, onClose }
             onOpenChange(false)
             onClose(result.data)
         } catch (error) {
+            console.error(error);
             toast.error(user ? "Failed to update user" : "Failed to create user")
         } finally {
             setIsSubmitting(false)

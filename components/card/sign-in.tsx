@@ -20,7 +20,7 @@ export function SignIn() {
     const handleSignIn = async () => {
         setLoading(true)
         setError("")
-        const res = await signIn.email({
+        await signIn.email({
             email,
             password,
             fetchOptions: {

@@ -26,7 +26,7 @@ export default async function UsersPage() {
             </div>
             <Suspense fallback={<UserManagementSkeleton />}>
                 <UserManagement
-                    // @ts-ignore because i removed image
+                    // @ts-expect-error because i removed image
                     sessionUser={session.user}
                 />
             </Suspense>

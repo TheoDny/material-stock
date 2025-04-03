@@ -43,6 +43,7 @@ export function NavUser({
             // Reload the page to reflect the changes
             window.location.reload()
         } catch (error) {
+            console.error(error);
             toast.error("Failed to change entity")
         }
     }

@@ -10,7 +10,7 @@ import {
 import { Globe } from "lucide-react"
 import * as React from "react"
 import type { VariantProps } from "class-variance-authority"
-import { useLocale, useTranslations } from "next-intl"
+import { useLocale } from "next-intl"
 
 interface LanguageSelectorProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,
