@@ -1,5 +1,52 @@
 import { prisma } from "@/lib/prisma"
+import { TokenCreateUser } from "@prisma/client"
+import { isPast, addDays } from "date-fns"
 import { revalidatePath } from "next/cache"
+
+export async function checkToken(token: string, email: string): Promise<boolean> {
+    try {
+        // Check if the token is present in the model TokenCreateAccount
+        const tokenRecord = await prisma.tokenCreateUser.findFirst({
+            where: {
+                token: token,
+                email: email,
+            },
+        })
+
+        // If token doesn't exist, return false
+        if (!tokenRecord) {
+            return false
+        }
+
+        // Check if the token is expired
+        const isExpired = isPast(tokenRecord.expiresAt)
+
+        // If token is expired, return false
+        if (isExpired) {
+            return false
+        }
+
+        // Token exists and is not expired
+        return true
+    } catch (error) {
+        console.error(error)
+        return false
+    }
+}
+
+export async function createTokenUser(email: string, token: string): Promise<TokenCreateUser> {
+    const expiresAt = addDays(new Date(), 7)
+
+    const created = await prisma.tokenCreateUser.create({
+        data: {
+            token,
+            email,
+            expiresAt,
+        },
+    })
+
+    return created
+}
 
 // Get all users with their roles and entities
 export async function getUsers() {
@@ -23,6 +70,9 @@ export async function getUsers() {
 
 // Create a new user
 export async function createUser(data: { name: string; email: string; active: boolean; entities: string[] }) {
+    if (data.entities[0]) {
+        throw new Error("Please select at least one entity for the user")
+    }
     try {
         const user = await prisma.user.create({
             data: {

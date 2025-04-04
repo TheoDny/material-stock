@@ -5,66 +5,46 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import Image from "next/image"
 import { CircleAlert, Loader2, X } from "lucide-react"
-import { signUp } from "@/lib/auth-client"
-import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+import { signUpAction } from "@/actions/user-actions"
 
-export function SignUp() {
-    const [firstName, setFirstName] = useState("")
-    const [lastName, setLastName] = useState("")
+type SignUpProps = {
+    token: string
+}
+
+export function SignUp({ token }: SignUpProps) {
+    const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [passwordConfirmation, setPasswordConfirmation] = useState("")
-    const [image, setImage] = useState<File | null>(null)
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const router = useRouter()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const tSignUp = useTranslations("SignUp")
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            setImage(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string)
-            }
-            reader.readAsDataURL(file)
-        }
-    }
-
     const handleSignUp = async () => {
         setError("")
-        await signUp.email({
+        setLoading(true)
+        const result = await signUpAction({
+            name,
             email,
             password,
-            name: `${firstName} ${lastName}`,
-            image: image ? await convertImageToBase64(image) : "",
-            callbackURL: "/dashboard",
-            fetchOptions: {
-                onResponse: () => {
-                    setLoading(false)
-                },
-                onRequest: () => {
-                    setLoading(true)
-                },
-                onError: (ctx) => {
-                    switch (ctx.error.code) {
-                        case "PASSWORD_TOO_SHORT":
-                            setError("Password must be at least 16 characters")
-                            break
-                        default:
-                            setError(ctx.error.message)
-                    }
-                },
-                onSuccess: async () => {
-                    router.push("/configuration/tags")
-                },
-            },
+            passwordConfirmation,
+            token,
         })
+
+        if (result?.bindArgsValidationErrors) {
+            return setError("Failed to sign up role")
+        } else if (result?.serverError) {
+            return setError(result?.serverError)
+        } else if (result?.validationErrors) {
+            return setError("Failed to  sign up role")
+        } else if (!result?.data) {
+            return setError("Failed to  sign up role")
+        }
+
+        setLoading(false)
+        window.location.href = "/sign-in"
     }
 
     return (
@@ -77,27 +57,15 @@ export function SignUp() {
                 <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="first-name">{tSignUp("firstName")}</Label>
-                            <Input
-                                id="first-name"
-                                placeholder="Max"
-                                required
-                                onChange={(e) => {
-                                    setFirstName(e.target.value)
-                                }}
-                                value={firstName}
-                            />
-                        </div>
-                        <div className="grid gap-2">
                             <Label htmlFor="last-name">{tSignUp("lastName")}</Label>
                             <Input
                                 id="last-name"
                                 placeholder="Robinson"
                                 required
                                 onChange={(e) => {
-                                    setLastName(e.target.value)
+                                    setName(e.target.value)
                                 }}
-                                value={lastName}
+                                value={name}
                             />
                         </div>
                     </div>
@@ -136,39 +104,6 @@ export function SignUp() {
                             placeholder="Confirm Password"
                         />
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="image">{tSignUp("profileImage")}</Label>
-                        <div className="flex items-end gap-4">
-                            {imagePreview && (
-                                <div className="relative w-16 h-16 rounded-sm overflow-hidden">
-                                    <Image
-                                        src={imagePreview}
-                                        alt="Profile preview"
-                                        layout="fill"
-                                        objectFit="cover"
-                                    />
-                                </div>
-                            )}
-                            <div className="flex items-center gap-2 w-full">
-                                <Input
-                                    id="image"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageChange}
-                                    className="w-full"
-                                />
-                                {imagePreview && (
-                                    <X
-                                        className="cursor-pointer"
-                                        onClick={() => {
-                                            setImage(null)
-                                            setImagePreview(null)
-                                        }}
-                                    />
-                                )}
-                            </div>
-                        </div>
-                    </div>
                     <Button
                         type="submit"
                         className="w-full"
@@ -194,53 +129,6 @@ export function SignUp() {
                     </div>
                 </div>
             </CardContent>
-            <CardFooter>
-                <div className="flex justify-center w-full border-t py-4">
-                    <p className="text-center text-xs text-neutral-500">
-                        Secured by <span className="text-orange-400">better-auth.</span>
-                    </p>
-                </div>
-            </CardFooter>
         </Card>
     )
-}
-
-async function convertImageToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onload = async () => {
-            //@ts-ignore
-            const img = new Image()
-            img.onload = () => {
-                const maxSize = 720
-                let width = img.width
-                let height = img.height
-
-                // Resize while maintaining aspect ratio
-                if (width > maxSize || height > maxSize) {
-                    const scale = Math.min(maxSize / width, maxSize / height)
-                    width = Math.round(width * scale)
-                    height = Math.round(height * scale)
-                }
-
-                const canvas = document.createElement("canvas")
-                canvas.width = width
-                canvas.height = height
-                const ctx = canvas.getContext("2d")
-
-                if (ctx) {
-                    ctx.drawImage(img, 0, 0, width, height)
-                    resolve(canvas.toDataURL("image/jpeg")) // You can change format if needed
-                } else {
-                    reject(new Error("Could not get canvas context"))
-                }
-            }
-
-            img.onerror = reject
-            img.src = reader.result as string
-        }
-
-        reader.onerror = reject
-        reader.readAsDataURL(file)
-    })
 }

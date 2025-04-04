@@ -10,6 +10,7 @@ import {
     assignRolesToUser,
     updateUserProfile,
     changeEntitySelected,
+    checkToken,
 } from "@/services/user.service"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
@@ -17,7 +18,11 @@ import { revalidatePath } from "next/cache"
 
 // Schema for creating a user
 const createUserSchema = z.object({
-    name: z.string().trim().min(2, "First name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    name: z
+        .string()
+        .trim()
+        .min(2, "First name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     email: z.string().email("Invalid email address"),
     active: z.boolean().default(true),
     entities: z.array(z.string()).min(1, "At least one entity must be selected"),
@@ -26,7 +31,11 @@ const createUserSchema = z.object({
 // Schema for updating a user
 const updateUserSchema = z.object({
     id: z.string(),
-    name: z.string().trim().min(2, "First name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    name: z
+        .string()
+        .trim()
+        .min(2, "First name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     email: z.string().email("Invalid email address"),
     active: z.boolean(),
     entitiesToAdd: z.array(z.string()),
@@ -41,7 +50,11 @@ const assignRolesSchema = z.object({
 
 // Schema for profile update
 const updateProfileSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     email: z.string().email("Please enter a valid email address"),
     image: z.string().optional(),
 })
@@ -49,6 +62,26 @@ const updateProfileSchema = z.object({
 // Schema for change selected entity
 const changeEntitySelectedSchema = z.object({
     entityId: z.string(),
+})
+
+const signUpSchema = z.object({
+    name: z
+        .string()
+        .trim()
+        .min(2, "First name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
+    email: z.string().email("Invalid email address"),
+    password: z
+        .string()
+        .trim()
+        .min(8, "Password must be at least 8 characters")
+        .max(64, "Password must be at most 64 characters"),
+    passwordConfirmation: z
+        .string()
+        .trim()
+        .min(8, "Password confirmation must be at least 8 characters")
+        .max(64, "Password confirmation must be at most 64 characters"),
+    token: z.string(),
 })
 
 // Server action for updating user profile
@@ -161,3 +194,22 @@ export const changeEntitySelectedAction = actionClient
             throw new Error("Failed to change entity")
         }
     })
+
+export const signUpAction = actionClient.schema(signUpSchema).action(async ({ parsedInput }) => {
+    if (parsedInput.password !== parsedInput.passwordConfirmation) {
+        throw new Error("Passwords do not match")
+    }
+    if (!(await checkToken(parsedInput.token, parsedInput.email))) {
+        throw new Error("Token invialid")
+    }
+
+    await auth.api.signUpEmail({
+        body: {
+            email: parsedInput.email,
+            name: parsedInput.name,
+            password: parsedInput.password,
+        },
+    })
+
+    return true
+})

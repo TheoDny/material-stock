@@ -10,7 +10,7 @@ export default async function SignInPage() {
     })
 
     if (session) {
-        redirect("/configuration/tags")
+        redirect("/")
     }
 
     return (

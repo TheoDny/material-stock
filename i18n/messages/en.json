@@ -36,7 +36,7 @@
         "email": "Email",
         "password": "Password",
         "confirmPassword": "Confirm Password",
-        "createAccount": "Create Account",
+        "createAccount": "Finalize account creation",
         "alreadyHaveAccount": "Already have an account?",
         "signIn": "Sign in"
     },

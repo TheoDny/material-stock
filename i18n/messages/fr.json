@@ -44,7 +44,7 @@
         "email": "Email",
         "password": "Mot de passe",
         "confirmPassword": "Confirmer le mot de passe",
-        "createAccount": "Créer un compte",
+        "createAccount": "Finaliser la création du compte",
         "alreadyHaveAccount": "Vous avez déjà un compte?",
         "signIn": "Se connecter"
     },

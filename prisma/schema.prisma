@@ -78,7 +78,7 @@ model Verification {
     @@map("verification")
 }
 
-model TokenCreateAccount {
+model TokenCreateUser {
     id        String   @id @default(cuid())
     email     String
     token     String
