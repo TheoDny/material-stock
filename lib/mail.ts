@@ -1,11 +1,11 @@
-import { createTransport } from "nodemailer"
+import nodemailer from "nodemailer"
 
-export const transporter = createTransport({
-    // @ts-ignore
-    host: process.env.NODEMAILER_HOST ?? "smtp.ethereal.email",
-    port: process.env.NODEMAILER_PORT ?? 587,
+export const transporter = nodemailer.createTransport({
+    host: process.env.MAIL_HOST ?? "smtp.ethereal.email",
+    port: parseInt(process.env.MAIL_PORT ?? "587", 10),
     auth: {
-        user: process.env.NODEMAILER_USER,
-        pass: process.env.NODEMAILER_PASSWORD,
+        user: process.env.MAIL_EMAIL_USER,
+        pass: process.env.MAIL_EMAIL_PASSWORD,
     },
+    secure: process.env.MAIL_SECURE === "true",
 })

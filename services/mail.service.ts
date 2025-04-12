@@ -13,7 +13,7 @@ async function sendEmail(options: EmailOptions) {
     let info: any = true
     if (process.env.MAILER_ACTIVE ?? true) {
         let mailOptions = {
-            from: `"${process.env.NEXT_PUBLIC_APP_NAME}" <myapp@test.com>`, //<myapp@test.com> does not work with gmail
+            from: `"${process.env.NEXT_PUBLIC_APP_NAME}" <noreplry@mail.com>`,
             to: options.to.join(", "),
             subject: options.subject,
             html: options.html,
