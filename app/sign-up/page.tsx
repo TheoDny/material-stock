@@ -1,7 +1,6 @@
 "use server"
 import { SignUp } from "@/components/card/sign-up"
 import { auth } from "@/lib/auth"
-import { checkToken } from "@/services/user.service"
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 

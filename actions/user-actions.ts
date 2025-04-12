@@ -10,11 +10,11 @@ import {
     assignRolesToUser,
     updateUserProfile,
     changeEntitySelected,
-    checkToken,
 } from "@/services/user.service"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { checkToken } from "@/services/auth.service"
 
 // Schema for creating a user
 const createUserSchema = z.object({
