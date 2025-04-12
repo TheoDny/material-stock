@@ -5,6 +5,7 @@ export type DataLogUserCreate = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string // the id of th user that do the action
@@ -16,6 +17,7 @@ export type DataLogUserUpdate = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -27,6 +29,7 @@ export type DataLogUserSetRole = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -38,6 +41,7 @@ export type DataLogUserSetEntity = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -49,6 +53,7 @@ export type DataLogUserDisable = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -60,6 +65,7 @@ export type DataLogUserEmailVerified = {
     info: {
         user: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -71,6 +77,7 @@ export type DataLogRoleCreate = {
     info: {
         role: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -82,6 +89,7 @@ export type DataLogRoleUpdate = {
     info: {
         role: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -93,6 +101,7 @@ export type DataLogRoleDelete = {
     info: {
         role: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -104,6 +113,7 @@ export type DataLogRoleSetPermission = {
     info: {
         role: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -115,6 +125,7 @@ export type DataLogTagCreate = {
     info: {
         tag: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -126,6 +137,7 @@ export type DataLogTagUpdate = {
     info: {
         tag: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -137,6 +149,7 @@ export type DataLogCharacteristicCreate = {
     info: {
         characteristic: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -148,6 +161,7 @@ export type DataLogCharacteristicUpdate = {
     info: {
         characteristic: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -159,6 +173,7 @@ export type DataLogCharacteristicDelete = {
     info: {
         characteristic: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -170,6 +185,7 @@ export type DataLogMaterialCreate = {
     info: {
         material: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -181,6 +197,7 @@ export type DataLogMaterialUpdate = {
     info: {
         material: {
             id: string
+            name: string
         }
     }
     userId: string
@@ -189,16 +206,43 @@ export type DataLogMaterialUpdate = {
 
 export type DataLogEntityUpdate = {
     type: "entity_update"
-    info: {}
+    info: {
+        entity: {
+            id: string
+            name: string
+        }
+    }
     userId: string
     entityId: string
 }
 
 export type DataLogEntityDisable = {
     type: "entity_disable"
-    info: {}
+    info: {
+        entity: {
+            id: string
+            name: string
+        }
+    }
     userId: string
     entityId: string
+}
+
+export type LogEntry = {
+    id: string
+    type: string
+    info: any
+    userId: string
+    entityId?: string
+    createdAt: Date
+    user: {
+        id: string
+        name: string
+    }
+    entity?: {
+        id: string
+        name: string
+    }
 }
 
 export type DataLog =

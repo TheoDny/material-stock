@@ -2,6 +2,14 @@ import { prisma } from "@/lib/prisma"
 import { TokenCreateUser } from "@prisma/client"
 import { isPast, addDays } from "date-fns"
 import { revalidatePath } from "next/cache"
+import {
+    addUserCreateLog,
+    addUserUpdateLog,
+    addUserSetRoleLog,
+    addUserSetEntityLog,
+    addUserDisableLog,
+    addUserEmailVerifiedLog,
+} from "@/services/log.service"
 
 // Get all users with their roles and entities
 export async function getUsers() {
@@ -44,6 +52,9 @@ export async function createUser(data: { name: string; email: string; active: bo
                 Entities: true,
             },
         })
+
+        // Add log
+        addUserCreateLog({ name: user.name || "", id: user.id })
 
         revalidatePath("/administration/users")
         return user
@@ -95,6 +106,14 @@ export async function updateUser(
             },
         })
 
+        // Add log
+        addUserUpdateLog({ id: user.id, name: user.name || "" })
+
+        // If user active status changed to false, add disable log
+        if (data.active === false) {
+            addUserDisableLog({ id: user.id, name: user.name || "" })
+        }
+
         revalidatePath("/administration/users")
         return user
     } catch (error) {
@@ -117,6 +136,9 @@ export async function assignRolesToUser(userId: string, roleIds: string[]) {
                 Roles: true,
             },
         })
+
+        // Add log
+        addUserSetRoleLog({ id: user.id, name: user.name || "" })
 
         revalidatePath("/administration/users")
         return user
@@ -168,6 +190,9 @@ export async function updateUserProfile(
         },
     })
 
+    // Add log
+    addUserUpdateLog({ id: updatedUser.id, name: updatedUser.name || "" })
+
     return updatedUser
 }
 
@@ -196,9 +221,32 @@ export async function changeEntitySelected(userId: string, entityId: string) {
             },
         })
 
+        // Add log
+        addUserSetEntityLog({ id: user.id, name: user.name || "" })
+
         return user
     } catch (error) {
         console.error("Failed to change entity selected:", error)
         throw new Error("Failed to change entity selected")
+    }
+}
+
+// Verify user email
+export async function verifyUserEmail(userId: string) {
+    try {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                emailVerified: true,
+            },
+        })
+
+        // Add log
+        addUserEmailVerifiedLog({ id: user.id, name: user.name || "" })
+
+        return user
+    } catch (error) {
+        console.error("Failed to verify user email:", error)
+        throw new Error("Failed to verify user email")
     }
 }

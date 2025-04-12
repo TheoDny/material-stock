@@ -6,7 +6,8 @@
         "configuration": "Configuration",
         "administration": "Administration",
         "users": "Gestion des utilisateurs",
-        "roles": "Gestion des rôles"
+        "roles": "Gestion des rôles",
+        "logs": "Journaux d'êvenements"
     },
     "Navigation": {
         "dashboard": "Tableau de bord",
@@ -334,6 +335,55 @@
         "apply": "Appliquer",
         "reset": "Réinitialiser",
         "close": "Fermer",
-        "back": "Retour"
+        "back": "Retour",
+        "noOptions": "Aucune option disponible"
+    },
+    "Logs": {
+        "title": "Journaux Système",
+        "description": "Consulter et filtrer tous les journaux système",
+        "message": "Action",
+        "user": "Utilisateur",
+        "entity": "Entité",
+        "date": "Date",
+        "filterByType": "Filtrer par Type",
+        "filterByUser": "Filtrer par Utilisateur",
+        "filterByEntity": "Filtrer par Entité",
+        "filterByRole": "Filtrer par Rôle",
+        "filterByMaterial": "Filtrer par Matériel",
+        "filterByCharacteristic": "Filtrer par Caractéristique",
+        "filterByTag": "Filtrer par Tag",
+        "selectLogType": "Sélectionner un type de journal",
+        "selectUser": "Sélectionner un utilisateur",
+        "selectEntity": "Sélectionner une entité",
+        "selectRole": "Sélectionner un rôle",
+        "selectMaterial": "Sélectionner un matériel",
+        "selectCharacteristic": "Sélectionner une caractéristique",
+        "selectTag": "Sélectionner un tag",
+        "noLogs": "Aucun journal trouvé",
+
+        "user_create": "Utilisateur {name} créé",
+        "user_update": "Utilisateur {name} mis à jour",
+        "user_set_role": "Rôles attribués à l'utilisateur {name}",
+        "user_set_entity": "Entités attribuées à l'utilisateur {name}",
+        "user_disable": "Utilisateur {name} désactivé",
+        "user_email_verified": "Email vérifié pour l'utilisateur {name}",
+
+        "role_create": "Rôle {name} créé",
+        "role_update": "Rôle {name} mis à jour",
+        "role_delete": "Rôle {name} supprimé",
+        "role_set_permission": "Permissions attribuées au rôle {name}",
+
+        "tag_create": "Tag {name} créé",
+        "tag_update": "Tag {name} mis à jour",
+
+        "characteristic_create": "Caractéristique {name} créée",
+        "characteristic_update": "Caractéristique {name} mise à jour",
+        "characteristic_delete": "Caractéristique {name} supprimée",
+
+        "material_create": "Matériel {name} créé",
+        "material_update": "Matériel {name} mis à jour",
+
+        "entity_update": "Entité {name} mise à jour",
+        "entity_disable": "Entité {name} désactivée"
     }
 }

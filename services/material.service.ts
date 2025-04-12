@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { createMaterialHistory } from "@/services/material-history.service"
+import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
 
 type CharacteristicValueInput = {
     characteristicId: string
@@ -88,6 +89,9 @@ export async function createMaterial(data: {
         // Create material history entry
         createMaterialHistory(material.id)
 
+        // Add log
+        addMaterialCreateLog({ id: material.id, name: material.name }, data.entityId)
+
         revalidatePath("/materials")
         return material
     } catch (error) {
@@ -158,6 +162,9 @@ export async function updateMaterial(
 
         // Create material history entry
         createMaterialHistory(material.id)
+
+        // Add log
+        addMaterialUpdateLog({ id: material.id, name: currentMaterial.name }, entityId)
 
         revalidatePath("/materials")
         return material

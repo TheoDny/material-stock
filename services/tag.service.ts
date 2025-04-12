@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { addTagCreateLog, addTagUpdateLog } from "@/services/log.service"
 
 // Get all tags with material count
 export async function getTags(entityId: string) {
@@ -32,6 +33,9 @@ export async function createTag(data: { name: string; fontColor: string; color: 
             data,
         })
 
+        // Add log
+        addTagCreateLog({ id: tag.id, name: tag.name }, data.entityId)
+
         revalidatePath("/dashboard/tags")
         return tag
     } catch (error) {
@@ -43,10 +47,22 @@ export async function createTag(data: { name: string; fontColor: string; color: 
 // Update an existing tag
 export async function updateTag(id: string, entityId: string, data: { fontColor: string; color: string }) {
     try {
+        // First get the tag to access its name
+        const existingTag = await prisma.tag.findUnique({
+            where: { id },
+        })
+
+        if (!existingTag) {
+            throw new Error("Tag not found")
+        }
+
         const tag = await prisma.tag.update({
             where: { id, entityId },
             data,
         })
+
+        // Add log
+        addTagUpdateLog({ id: tag.id, name: existingTag.name }, entityId)
 
         revalidatePath("/configuration/tags")
         return tag

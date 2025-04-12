@@ -6,7 +6,8 @@
         "configuration": "Configuration",
         "administration": "Administration",
         "users": "Users management",
-        "roles": "Roles management"
+        "roles": "Roles management",
+        "logs": "Log"
     },
     "Navigation": {
         "dashboard": "Dashboard",
@@ -330,6 +331,55 @@
         "apply": "Apply",
         "reset": "Reset",
         "close": "Close",
-        "back": "Back"
+        "back": "Back",
+        "noOptions": "No options available"
+    },
+    "Logs": {
+        "title": "System Logs",
+        "description": "View and filter all system logs",
+        "message": "Action",
+        "user": "User",
+        "entity": "Entity",
+        "date": "Date",
+        "filterByType": "Filter by Type",
+        "filterByUser": "Filter by User",
+        "filterByEntity": "Filter by Entity",
+        "filterByRole": "Filter by Role",
+        "filterByMaterial": "Filter by Material",
+        "filterByCharacteristic": "Filter by Characteristic",
+        "filterByTag": "Filter by Tag",
+        "selectLogType": "Select log type",
+        "selectUser": "Select user",
+        "selectEntity": "Select entity",
+        "selectRole": "Select role",
+        "selectMaterial": "Select material",
+        "selectCharacteristic": "Select characteristic",
+        "selectTag": "Select tag",
+        "noLogs": "No logs found",
+
+        "user_create": "User {name} created",
+        "user_update": "User {name} updated",
+        "user_set_role": "Roles assigned to user {name}",
+        "user_set_entity": "Entities assigned to user {name}",
+        "user_disable": "User {name} disabled",
+        "user_email_verified": "Email verified for user {name}",
+
+        "role_create": "Role {name} created",
+        "role_update": "Role {name} updated",
+        "role_delete": "Role {name} deleted",
+        "role_set_permission": "Permissions assigned to role {name}",
+
+        "tag_create": "Tag {name} created",
+        "tag_update": "Tag {name} updated",
+
+        "characteristic_create": "Characteristic {name} created",
+        "characteristic_update": "Characteristic {name} updated",
+        "characteristic_delete": "Characteristic {name} deleted",
+
+        "material_create": "Material {name} created",
+        "material_update": "Material {name} updated",
+
+        "entity_update": "Entity {name} updated",
+        "entity_disable": "Entity {name} disabled"
     }
 }

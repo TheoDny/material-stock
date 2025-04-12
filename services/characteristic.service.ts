@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { CharacteristicType } from "@prisma/client"
+import {
+    addCharacteristicCreateLog,
+    addCharacteristicUpdateLog,
+    addCharacteristicDeleteLog,
+} from "@/services/log.service"
 
 type CharacteristicCreateData = {
     name: string
@@ -49,6 +54,9 @@ export async function createCharacteristic(data: CharacteristicCreateData) {
             },
         })
 
+        // Add log
+        addCharacteristicCreateLog({ id: characteristic.id, name: characteristic.name }, data.entityId)
+
         revalidatePath("/configuration/characteristics")
         return {
             success: true,
@@ -66,6 +74,15 @@ export async function createCharacteristic(data: CharacteristicCreateData) {
 // Update an existing characteristic
 export async function updateCharacteristic(id: string, entityId: string, param: { description: string }) {
     try {
+        // First get the characteristic to access its name
+        const existingCharacteristic = await prisma.characteristic.findUnique({
+            where: { id },
+        })
+
+        if (!existingCharacteristic) {
+            throw new Error("Characteristic not found")
+        }
+
         const characteristic = await prisma.characteristic.update({
             where: {
                 id,
@@ -75,6 +92,9 @@ export async function updateCharacteristic(id: string, entityId: string, param: 
                 description: param.description,
             },
         })
+
+        // Add log
+        addCharacteristicUpdateLog({ id, name: existingCharacteristic.name }, entityId)
 
         revalidatePath("/configuration/characteristics")
         return {
@@ -86,6 +106,60 @@ export async function updateCharacteristic(id: string, entityId: string, param: 
         return {
             success: false,
             message: "Failed to update characteristic",
+        }
+    }
+}
+
+// Delete a characteristic
+export async function deleteCharacteristic(id: string, entityId: string) {
+    try {
+        // Check if the characteristic is used by any materials
+        const materialCount = await prisma.material.count({
+            where: {
+                Characteristics: {
+                    some: {
+                        id,
+                    },
+                },
+            },
+        })
+
+        if (materialCount > 0) {
+            return {
+                success: false,
+                message: "Cannot delete characteristic that is used by materials",
+            }
+        }
+
+        // First get the characteristic to access its name
+        const existingCharacteristic = await prisma.characteristic.findUnique({
+            where: { id },
+        })
+
+        if (!existingCharacteristic) {
+            throw new Error("Characteristic not found")
+        }
+
+        const characteristic = await prisma.characteristic.delete({
+            where: {
+                id,
+                entityId,
+            },
+        })
+
+        // Add log
+        addCharacteristicDeleteLog({ id, name: existingCharacteristic.name }, entityId)
+
+        revalidatePath("/configuration/characteristics")
+        return {
+            success: true,
+            data: characteristic,
+        }
+    } catch (error) {
+        console.error("Failed to delete characteristic:", error)
+        return {
+            success: false,
+            message: "Failed to delete characteristic",
         }
     }
 }

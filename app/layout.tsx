@@ -79,7 +79,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             if (permissions.has("log_read")) {
                 adminGroup.items.push({
                     title: tSidebar("logs"),
-                    url: "/admin/log",
+                    url: "/administration/log",
                     icon: <Logs />,
                 })
             }

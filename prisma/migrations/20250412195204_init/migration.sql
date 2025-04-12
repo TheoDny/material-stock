@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "LogType" AS ENUM ('user_create', 'user_update_', 'user_add_role', 'user_remove_role', 'user_disable', 'user_email_verified', 'role_create', 'role_update', 'role_delete', 'role_add_permission', 'role_remove_permission', 'tag_create', 'tag_update', 'characteristic_create', 'characteristic_update', 'characteristic_delete', 'material_create', 'material_update', 'material_update_tag', 'material_update_characteristic', 'entity_update', 'entity_delete');
+CREATE TYPE "LogType" AS ENUM ('user_create', 'user_update', 'user_set_role', 'user_set_entity', 'user_disable', 'user_email_verified', 'role_create', 'role_update', 'role_delete', 'role_set_permission', 'tag_create', 'tag_update', 'characteristic_create', 'characteristic_update', 'characteristic_delete', 'material_create', 'material_update', 'entity_update', 'entity_disable');
 
 -- CreateEnum
 CREATE TYPE "CharacteristicType" AS ENUM ('checkbox', 'radio', 'select', 'multiSelect', 'text', 'multiText', 'textarea', 'number', 'float', 'email', 'date', 'dateHour', 'dateRange', 'dateHourRange', 'link');
@@ -108,11 +108,11 @@ CREATE TABLE "entity" (
 -- CreateTable
 CREATE TABLE "log" (
     "id" TEXT NOT NULL,
-    "actionDetail" JSONB NOT NULL,
     "actionDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "actionType" TEXT NOT NULL,
+    "actionType" "LogType" NOT NULL,
+    "actionDetail" JSONB NOT NULL,
     "userId" TEXT NOT NULL,
-    "entityId" TEXT NOT NULL,
+    "entityId" TEXT,
 
     CONSTRAINT "log_pkey" PRIMARY KEY ("id")
 );
@@ -256,7 +256,7 @@ ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "log" ADD CONSTRAINT "log_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "log" ADD CONSTRAINT "log_entityId_fkey" FOREIGN KEY ("entityId") REFERENCES "entity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "log" ADD CONSTRAINT "log_entityId_fkey" FOREIGN KEY ("entityId") REFERENCES "entity"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "tag" ADD CONSTRAINT "tag_entityId_fkey" FOREIGN KEY ("entityId") REFERENCES "entity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

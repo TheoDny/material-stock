@@ -21,9 +21,63 @@ import {
     DataLogMaterialUpdate,
     DataLogEntityUpdate,
     DataLogEntityDisable,
+    LogEntry,
 } from "@/types/log.type"
 
 import { headers } from "next/headers"
+
+export const getLogs = async (entityIds: string[]): Promise<LogEntry[]> => {
+    const logs = await prisma.log.findMany({
+        where: {
+            OR: [
+                {
+                    entityId: {
+                        in: entityIds,
+                    },
+                },
+                {
+                    entityId: null,
+                },
+            ],
+        },
+        include: {
+            User: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
+            Entity: {
+                select: {
+                    id: true,
+                    name: true,
+                },
+            },
+        },
+        orderBy: {
+            actionDate: "desc",
+        },
+    })
+
+    return logs.map((log) => ({
+        id: log.id,
+        type: log.actionType,
+        info: log.actionDetail,
+        userId: log.userId,
+        entityId: log.entityId || undefined,
+        createdAt: log.actionDate,
+        user: {
+            id: log.User.id,
+            name: log.User.name || "",
+        },
+        entity: log.Entity
+            ? {
+                  id: log.Entity.id,
+                  name: log.Entity.name,
+              }
+            : undefined,
+    }))
+}
 
 export const addLog = async (dataLog: DataLog): Promise<boolean> => {
     try {
@@ -58,6 +112,7 @@ export const addUserCreateLog = async (
             info: {
                 user: {
                     id: userCreated.id,
+                    name: userCreated.name,
                 },
             },
             userId: userId ?? "",
@@ -73,7 +128,10 @@ export const addUserCreateLog = async (
     }
 }
 
-export const addUserUpdateLog = async (userUpdated: { id: string }, userId?: string): Promise<boolean> => {
+export const addUserUpdateLog = async (
+    userUpdated: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -86,6 +144,7 @@ export const addUserUpdateLog = async (userUpdated: { id: string }, userId?: str
             info: {
                 user: {
                     id: userUpdated.id,
+                    name: userUpdated.name,
                 },
             },
             userId: userId ?? "",
@@ -101,7 +160,10 @@ export const addUserUpdateLog = async (userUpdated: { id: string }, userId?: str
     }
 }
 
-export const addUserSetRoleLog = async (userTarget: { id: string }, userId?: string): Promise<boolean> => {
+export const addUserSetRoleLog = async (
+    userTarget: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -114,6 +176,7 @@ export const addUserSetRoleLog = async (userTarget: { id: string }, userId?: str
             info: {
                 user: {
                     id: userTarget.id,
+                    name: userTarget.name,
                 },
             },
             userId: userId ?? "",
@@ -129,7 +192,10 @@ export const addUserSetRoleLog = async (userTarget: { id: string }, userId?: str
     }
 }
 
-export const addUserSetEntityLog = async (userTarget: { id: string }, userId?: string): Promise<boolean> => {
+export const addUserSetEntityLog = async (
+    userTarget: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -142,6 +208,7 @@ export const addUserSetEntityLog = async (userTarget: { id: string }, userId?: s
             info: {
                 user: {
                     id: userTarget.id,
+                    name: userTarget.name,
                 },
             },
             userId: userId ?? "",
@@ -157,7 +224,10 @@ export const addUserSetEntityLog = async (userTarget: { id: string }, userId?: s
     }
 }
 
-export const addUserDisableLog = async (userTarget: { id: string }, userId?: string): Promise<boolean> => {
+export const addUserDisableLog = async (
+    userTarget: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -170,6 +240,7 @@ export const addUserDisableLog = async (userTarget: { id: string }, userId?: str
             info: {
                 user: {
                     id: userTarget.id,
+                    name: userTarget.name,
                 },
             },
             userId: userId ?? "",
@@ -185,7 +256,10 @@ export const addUserDisableLog = async (userTarget: { id: string }, userId?: str
     }
 }
 
-export const addUserEmailVerifiedLog = async (userTarget: { id: string }, userId?: string): Promise<boolean> => {
+export const addUserEmailVerifiedLog = async (
+    userTarget: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -198,6 +272,7 @@ export const addUserEmailVerifiedLog = async (userTarget: { id: string }, userId
             info: {
                 user: {
                     id: userTarget.id,
+                    name: userTarget.name,
                 },
             },
             userId: userId ?? "",
@@ -213,7 +288,10 @@ export const addUserEmailVerifiedLog = async (userTarget: { id: string }, userId
     }
 }
 
-export const addRoleCreateLog = async (roleCreated: { id: string }, userId?: string): Promise<boolean> => {
+export const addRoleCreateLog = async (
+    roleCreated: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -226,6 +304,7 @@ export const addRoleCreateLog = async (roleCreated: { id: string }, userId?: str
             info: {
                 role: {
                     id: roleCreated.id,
+                    name: roleCreated.name,
                 },
             },
             userId: userId ?? "",
@@ -241,7 +320,10 @@ export const addRoleCreateLog = async (roleCreated: { id: string }, userId?: str
     }
 }
 
-export const addRoleUpdateLog = async (roleUpdated: { id: string }, userId?: string): Promise<boolean> => {
+export const addRoleUpdateLog = async (
+    roleUpdated: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -254,6 +336,7 @@ export const addRoleUpdateLog = async (roleUpdated: { id: string }, userId?: str
             info: {
                 role: {
                     id: roleUpdated.id,
+                    name: roleUpdated.name,
                 },
             },
             userId: userId ?? "",
@@ -269,7 +352,10 @@ export const addRoleUpdateLog = async (roleUpdated: { id: string }, userId?: str
     }
 }
 
-export const addRoleDeleteLog = async (roleDeleted: { id: string }, userId?: string): Promise<boolean> => {
+export const addRoleDeleteLog = async (
+    roleDeleted: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -282,6 +368,7 @@ export const addRoleDeleteLog = async (roleDeleted: { id: string }, userId?: str
             info: {
                 role: {
                     id: roleDeleted.id,
+                    name: roleDeleted.name,
                 },
             },
             userId: userId ?? "",
@@ -297,7 +384,10 @@ export const addRoleDeleteLog = async (roleDeleted: { id: string }, userId?: str
     }
 }
 
-export const addRoleSetPermissionLog = async (roleTarget: { id: string }, userId?: string): Promise<boolean> => {
+export const addRoleSetPermissionLog = async (
+    roleTarget: { id: string; name: string },
+    userId?: string,
+): Promise<boolean> => {
     try {
         if (!userId) {
             const session = await auth.api.getSession({
@@ -310,6 +400,7 @@ export const addRoleSetPermissionLog = async (roleTarget: { id: string }, userId
             info: {
                 role: {
                     id: roleTarget.id,
+                    name: roleTarget.name,
                 },
             },
             userId: userId ?? "",
@@ -326,7 +417,7 @@ export const addRoleSetPermissionLog = async (roleTarget: { id: string }, userId
 }
 
 export const addTagCreateLog = async (
-    tagCreated: { id: string },
+    tagCreated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -351,6 +442,7 @@ export const addTagCreateLog = async (
             info: {
                 tag: {
                     id: tagCreated.id,
+                    name: tagCreated.name,
                 },
             },
             userId: userId,
@@ -367,7 +459,7 @@ export const addTagCreateLog = async (
 }
 
 export const addTagUpdateLog = async (
-    tagUpdated: { id: string },
+    tagUpdated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -392,6 +484,7 @@ export const addTagUpdateLog = async (
             info: {
                 tag: {
                     id: tagUpdated.id,
+                    name: tagUpdated.name,
                 },
             },
             userId: userId,
@@ -408,7 +501,7 @@ export const addTagUpdateLog = async (
 }
 
 export const addCharacteristicCreateLog = async (
-    characteristicCreated: { id: string },
+    characteristicCreated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -433,6 +526,7 @@ export const addCharacteristicCreateLog = async (
             info: {
                 characteristic: {
                     id: characteristicCreated.id,
+                    name: characteristicCreated.name,
                 },
             },
             userId: userId,
@@ -449,7 +543,7 @@ export const addCharacteristicCreateLog = async (
 }
 
 export const addCharacteristicUpdateLog = async (
-    characteristicUpdated: { id: string },
+    characteristicUpdated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -474,6 +568,7 @@ export const addCharacteristicUpdateLog = async (
             info: {
                 characteristic: {
                     id: characteristicUpdated.id,
+                    name: characteristicUpdated.name,
                 },
             },
             userId: userId,
@@ -490,7 +585,7 @@ export const addCharacteristicUpdateLog = async (
 }
 
 export const addCharacteristicDeleteLog = async (
-    characteristicDeleted: { id: string },
+    characteristicDeleted: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -515,6 +610,7 @@ export const addCharacteristicDeleteLog = async (
             info: {
                 characteristic: {
                     id: characteristicDeleted.id,
+                    name: characteristicDeleted.name,
                 },
             },
             userId: userId,
@@ -531,7 +627,7 @@ export const addCharacteristicDeleteLog = async (
 }
 
 export const addMaterialCreateLog = async (
-    materialCreated: { id: string },
+    materialCreated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -556,6 +652,7 @@ export const addMaterialCreateLog = async (
             info: {
                 material: {
                     id: materialCreated.id,
+                    name: materialCreated.name,
                 },
             },
             userId: userId,
@@ -572,7 +669,7 @@ export const addMaterialCreateLog = async (
 }
 
 export const addMaterialUpdateLog = async (
-    materialUpdated: { id: string },
+    materialUpdated: { id: string; name: string },
     entityId?: string,
     userId?: string,
 ): Promise<boolean> => {
@@ -597,6 +694,7 @@ export const addMaterialUpdateLog = async (
             info: {
                 material: {
                     id: materialUpdated.id,
+                    name: materialUpdated.name,
                 },
             },
             userId: userId,
@@ -612,9 +710,13 @@ export const addMaterialUpdateLog = async (
     }
 }
 
-export const addEntityUpdateLog = async (entityId: string, userId?: string): Promise<boolean> => {
+export const addEntityUpdateLog = async (
+    entity: { id: string; name: string },
+    entityId?: string,
+    userId?: string,
+): Promise<boolean> => {
     try {
-        if (!userId) {
+        if (!userId || !entityId) {
             const session = await auth.api.getSession({
                 headers: await headers(),
             })
@@ -622,13 +724,21 @@ export const addEntityUpdateLog = async (entityId: string, userId?: string): Pro
                 throw new Error("User session not found")
             }
 
+            if (!entityId) {
+                entityId = session?.user.entitySelectedId
+            }
             if (!userId) {
                 userId = session?.user.id
             }
         }
         const dataLog: DataLogEntityUpdate = {
             type: "entity_update",
-            info: {},
+            info: {
+                entity: {
+                    id: entity.id,
+                    name: entity.name,
+                },
+            },
             userId: userId,
             entityId: entityId,
         }
@@ -642,9 +752,13 @@ export const addEntityUpdateLog = async (entityId: string, userId?: string): Pro
     }
 }
 
-export const addEntityDisableLog = async (entityId: string, userId?: string): Promise<boolean> => {
+export const addEntityDisableLog = async (
+    entity: { id: string; name: string },
+    entityId?: string,
+    userId?: string,
+): Promise<boolean> => {
     try {
-        if (!userId) {
+        if (!userId || !entityId) {
             const session = await auth.api.getSession({
                 headers: await headers(),
             })
@@ -652,13 +766,21 @@ export const addEntityDisableLog = async (entityId: string, userId?: string): Pr
                 throw new Error("User session not found")
             }
 
+            if (!entityId) {
+                entityId = session?.user.entitySelectedId
+            }
             if (!userId) {
                 userId = session?.user.id
             }
         }
         const dataLog: DataLogEntityDisable = {
             type: "entity_disable",
-            info: {},
+            info: {
+                entity: {
+                    id: entity.id,
+                    name: entity.name,
+                },
+            },
             userId: userId,
             entityId: entityId,
         }

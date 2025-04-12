@@ -1,5 +1,11 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import {
+    addRoleCreateLog,
+    addRoleUpdateLog,
+    addRoleDeleteLog,
+    addRoleSetPermissionLog,
+} from "@/services/log.service"
 
 // Get all roles with their permissions
 export async function getRoles() {
@@ -33,6 +39,9 @@ export async function createRole(data: { name: string; description: string }) {
             },
         })
 
+        // Add log
+        addRoleCreateLog({ id: role.id, name: role.name })
+
         revalidatePath("/administration/roles")
         return role
     } catch (error) {
@@ -55,11 +64,56 @@ export async function updateRole(id: string, data: { name: string; description: 
             },
         })
 
+        // Add log
+        addRoleUpdateLog({ id: role.id, name: role.name })
+
         revalidatePath("/administration/roles")
         return role
     } catch (error) {
         console.error("Failed to update role:", error)
         throw new Error("Failed to update role")
+    }
+}
+
+// Delete a role
+export async function deleteRole(id: string) {
+    try {
+        // Check if the role is assigned to any users
+        const userCount = await prisma.user.count({
+            where: {
+                Roles: {
+                    some: {
+                        id,
+                    },
+                },
+            },
+        })
+
+        if (userCount > 0) {
+            throw new Error("Cannot delete a role that is assigned to users")
+        }
+
+        // Get role details for logging before deletion
+        const roleToDelete = await prisma.role.findUnique({
+            where: { id },
+        })
+
+        if (!roleToDelete) {
+            throw new Error("Role not found")
+        }
+
+        const role = await prisma.role.delete({
+            where: { id },
+        })
+
+        // Add log
+        addRoleDeleteLog({ id: role.id, name: roleToDelete.name })
+
+        revalidatePath("/administration/roles")
+        return role
+    } catch (error) {
+        console.error("Failed to delete role:", error)
+        throw new Error("Failed to delete role")
     }
 }
 
@@ -78,6 +132,9 @@ export async function assignPermissionsToRole(roleId: string, permissionCodes: s
                 Permissions: true,
             },
         })
+
+        // Add log
+        addRoleSetPermissionLog({ id: role.id, name: role.name })
 
         revalidatePath("/administration/roles")
         return role
