@@ -335,6 +335,27 @@
         "noOptions": "No options available"
     },
     "Logs": {
+        "label": {
+            "user_create": "User creation",
+            "user_update": "User update",
+            "user_set_role": "Role assignment to a user",
+            "user_set_entity": "Entity assignment to a user",
+            "user_disable": "User deactivation",
+            "user_email_verified": "User email verification",
+            "role_create": "Role creation",
+            "role_update": "Role update",
+            "role_delete": "Role deletion",
+            "role_set_permission": "Permission assignment to a role",
+            "tag_create": "Tag creation",
+            "tag_update": "Tag update",
+            "characteristic_create": "Characteristic creation",
+            "characteristic_update": "Characteristic update",
+            "characteristic_delete": "Characteristic deletion",
+            "material_create": "Material creation",
+            "material_update": "Material update",
+            "entity_update": "Entity update",
+            "entity_disable": "Entity deactivation"
+        },
         "title": "System Logs",
         "description": "View and filter all system logs",
         "message": "Action",

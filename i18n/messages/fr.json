@@ -339,6 +339,27 @@
         "noOptions": "Aucune option disponible"
     },
     "Logs": {
+        "label": {
+            "user_create": "Création d'un utilisateur",
+            "user_update": "Mise à jour d'un utilisateur",
+            "user_set_role": "Attribution de rôles à un utilisateur",
+            "user_set_entity": "Attribution d'entités à un utilisateur",
+            "user_disable": "Désactivation d'un utilisateur",
+            "user_email_verified": "Vérification de l'email d'un utilisateur",
+            "role_create": "Création d'un rôle",
+            "role_update": "Mise à jour d'un rôle",
+            "role_delete": "Suppression d'un rôle",
+            "role_set_permission": "Attribution de permissions à un rôle",
+            "tag_create": "Création d'un tag",
+            "tag_update": "Mise à jour d'un tag",
+            "characteristic_create": "Création d'une caractéristique",
+            "characteristic_update": "Mise à jour d'une caractéristique",
+            "characteristic_delete": "Suppression d'une caractéristique",
+            "material_create": "Création d'un matériel",
+            "material_update": "Mise à jour d'un matériel",
+            "entity_update": "Mise à jour d'une entité",
+            "entity_disable": "Désactivation d'une entité"
+        },
         "title": "Journaux Système",
         "description": "Consulter et filtrer tous les journaux système",
         "message": "Action",

@@ -9,6 +9,7 @@ import { format, formatDistanceToNow } from "date-fns"
 import { fr, enUS } from "date-fns/locale"
 import { LogEntry } from "@/types/log.type"
 import { Skeleton } from "../ui/skeleton"
+import { LogType } from "@prisma/client"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")
@@ -17,37 +18,20 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const [filterLoading, setFilterLoading] = useState(true)
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
     const [filters, setFilters] = useState({
-        logType: "",
-        user: "",
-        entity: "",
-        role: "",
-        material: "",
-        characteristic: "",
-        tag: "",
+        logType: [] as string[],
+        user: [] as string[],
+        entity: [] as string[],
+        role: [] as string[],
+        material: [] as string[],
+        characteristic: [] as string[],
+        tag: [] as string[],
     })
 
     // Get log types for filter
-    const logTypes: ComboboxOption[] = [
-        { value: "user_create", label: "User Create" },
-        { value: "user_update", label: "User Update" },
-        { value: "user_set_role", label: "User Set Role" },
-        { value: "user_set_entity", label: "User Set Entity" },
-        { value: "user_disable", label: "User Disable" },
-        { value: "user_email_verified", label: "User Email Verified" },
-        { value: "role_create", label: "Role Create" },
-        { value: "role_update", label: "Role Update" },
-        { value: "role_delete", label: "Role Delete" },
-        { value: "role_set_permission", label: "Role Set Permission" },
-        { value: "tag_create", label: "Tag Create" },
-        { value: "tag_update", label: "Tag Update" },
-        { value: "characteristic_create", label: "Characteristic Create" },
-        { value: "characteristic_update", label: "Characteristic Update" },
-        { value: "characteristic_delete", label: "Characteristic Delete" },
-        { value: "material_create", label: "Material Create" },
-        { value: "material_update", label: "Material Update" },
-        { value: "entity_update", label: "Entity Update" },
-        { value: "entity_disable", label: "Entity Disable" },
-    ]
+    const logTypes = Object.values(LogType).map((type) => ({
+        value: type,
+        label: t("label." + type),
+    }))
 
     // Extract users, entities, roles, etc. for filters
     const getFilterOptions = (logs: LogEntry[], key: string): ComboboxOption[] => {
@@ -85,38 +69,46 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
 
         let result = [...logs]
 
-        if (filters.logType) {
-            result = result.filter((log) => log.type === filters.logType)
+        if (filters.logType.length > 0) {
+            result = result.filter((log) => filters.logType.includes(log.type))
         }
 
-        if (filters.user) {
-            result = result.filter((log) => log.user?.id === filters.user)
+        if (filters.user.length > 0) {
+            result = result.filter((log) => log.user && filters.user.includes(log.user.id))
         }
 
-        if (filters.entity) {
-            result = result.filter((log) => log.entity?.id === filters.entity)
+        if (filters.entity.length > 0) {
+            result = result.filter((log) => log.entity && filters.entity.includes(log.entity.id))
         }
 
-        if (filters.role) {
-            result = result.filter((log) => log.type.includes("role_") && log.info?.role?.id === filters.role)
-        }
-
-        if (filters.material) {
+        if (filters.role.length > 0) {
             result = result.filter(
-                (log) => log.type.includes("material_") && log.info?.material?.id === filters.material,
+                (log) => log.type.includes("role_") && log.info?.role && filters.role.includes(log.info.role.id),
             )
         }
 
-        if (filters.characteristic) {
+        if (filters.material.length > 0) {
+            result = result.filter(
+                (log) =>
+                    log.type.includes("material_") &&
+                    log.info?.material &&
+                    filters.material.includes(log.info.material.id),
+            )
+        }
+
+        if (filters.characteristic.length > 0) {
             result = result.filter(
                 (log) =>
                     log.type.includes("characteristic_") &&
-                    log.info?.characteristic?.id === filters.characteristic,
+                    log.info?.characteristic &&
+                    filters.characteristic.includes(log.info.characteristic.id),
             )
         }
 
-        if (filters.tag) {
-            result = result.filter((log) => log.type.includes("tag_") && log.info?.tag?.id === filters.tag)
+        if (filters.tag.length > 0) {
+            result = result.filter(
+                (log) => log.type.includes("tag_") && log.info?.tag && filters.tag.includes(log.info.tag.id),
+            )
         }
 
         setFilteredLogs(result)
@@ -125,20 +117,20 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     }, [filters, logs])
 
     // Handle filter change
-    const handleFilterChange = (key: string, value: string) => {
+    const handleFilterChange = (key: string, value: string | string[]) => {
         setFilters((prev) => ({ ...prev, [key]: value }))
     }
 
     // Reset all filters
     const resetFilters = () => {
         setFilters({
-            logType: "",
-            user: "",
-            entity: "",
-            role: "",
-            material: "",
-            characteristic: "",
-            tag: "",
+            logType: [],
+            user: [],
+            entity: [],
+            role: [],
+            material: [],
+            characteristic: [],
+            tag: [],
         })
     }
 
@@ -188,6 +180,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("logType", value)}
                         placeholder={t("selectLogType")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -198,6 +191,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("user", value)}
                         placeholder={t("selectUser")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -208,6 +202,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("entity", value)}
                         placeholder={t("selectEntity")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -218,6 +213,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("role", value)}
                         placeholder={t("selectRole")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -228,6 +224,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("material", value)}
                         placeholder={t("selectMaterial")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -238,6 +235,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("characteristic", value)}
                         placeholder={t("selectCharacteristic")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div>
@@ -248,6 +246,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         onChange={(value) => handleFilterChange("tag", value)}
                         placeholder={t("selectTag")}
                         emptyMessage={tCommon("noOptions")}
+                        multiple={true}
                     />
                 </div>
                 <div className="flex items-end">
