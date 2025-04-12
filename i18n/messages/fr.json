@@ -339,7 +339,9 @@
         "noOptions": "Aucune option disponible",
         "startDate": "Date de début",
         "endDate": "Date de fin",
-        "refresh": "Rafraîchir"
+        "refresh": "Rafraîchir",
+        "lastXDays": "{days} derniers jours",
+        "dateRange": "Plage de dates"
     },
     "Logs": {
         "label": {

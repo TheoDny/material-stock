@@ -9,12 +9,11 @@ import { fr, enUS } from "date-fns/locale"
 import { LogEntry } from "@/types/log.type"
 import { Skeleton } from "../ui/skeleton"
 import { LogType } from "@prisma/client"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn, sleep } from "@/lib/utils"
+import { DatePickerRange } from "@/components/ui/date-picker-range"
+import { cn } from "@/lib/utils"
 import { getLogsAction } from "@/actions/log-actions"
 import { DataTable, Column } from "@/components/ui/data-table"
+import { DateRange } from "react-day-picker"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")
@@ -22,8 +21,10 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const locale = useLocale()
     const [filterLoading, setFilterLoading] = useState(true)
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
-    const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
-    const [endDate, setEndDate] = useState<Date>(new Date())
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: subDays(new Date(), 7),
+        to: new Date(),
+    })
     const [isLoadingData, setIsLoadingData] = useState(false)
 
     const [filters, setFilters] = useState<{
@@ -70,12 +71,13 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
 
     // Charger les logs avec les dates sélectionnées
     const loadLogs = async () => {
+        if (!dateRange?.from) return
+
         setIsLoadingData(true)
-        await sleep(2000)
         try {
             let result = await getLogsAction({
-                startDate: startDate.toISOString(),
-                endDate: endDate.toISOString(),
+                startDate: dateRange.from.toISOString(),
+                endDate: (dateRange.to || dateRange.from).toISOString(),
             })
 
             if (result?.bindArgsValidationErrors) {
@@ -103,8 +105,10 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
 
     // Charger les logs au changement de dates
     useEffect(() => {
-        loadLogs()
-    }, [startDate, endDate])
+        if (dateRange?.from) {
+            loadLogs()
+        }
+    }, [dateRange])
 
     // Charger les logs initiaux
     useEffect(() => {
@@ -255,68 +259,46 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         return t(type, { name })
     }
 
+    // Périodes prédéfinies pour le sélecteur de dates
+    const preSelectedRanges = [
+        {
+            label: tCommon("lastXDays", { days: 7 }),
+            dateRange: {
+                from: subDays(new Date(), 7),
+                to: new Date(),
+            },
+        },
+        {
+            label: tCommon("lastXDays", { days: 30 }),
+            dateRange: {
+                from: subDays(new Date(), 30),
+                to: new Date(),
+            },
+        },
+        {
+            label: tCommon("lastXDays", { days: 90 }),
+            dateRange: {
+                from: subDays(new Date(), 90),
+                to: new Date(),
+            },
+        },
+    ]
+
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
-                {/* Date Range Filters */}
-                <div>
-                    <label className="text-sm font-medium mb-1 block">{tCommon("startDate")}</label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !startDate && "text-muted-foreground",
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {startDate ? (
-                                    format(startDate, "PPP", { locale: locale === "fr" ? fr : enUS })
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={startDate}
-                                onSelect={(date) => date && setStartDate(date)}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                <div className="col-span-2">
+                    <label className="text-sm font-medium mb-1 block">{tCommon("dateRange")}</label>
+                    <DatePickerRange
+                        date={dateRange}
+                        setDate={setDateRange}
+                        preSelectedRanges={preSelectedRanges}
+                        textHolder={tCommon("selectDateRange")}
+                        className="w-full"
+                        includeTime={true}
+                    />
                 </div>
-                <div>
-                    <label className="text-sm font-medium mb-1 block">{tCommon("endDate")}</label>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full justify-start text-left font-normal",
-                                    !endDate && "text-muted-foreground",
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {endDate ? (
-                                    format(endDate, "PPP", { locale: locale === "fr" ? fr : enUS })
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                            <Calendar
-                                mode="single"
-                                selected={endDate}
-                                onSelect={(date) => date && setEndDate(date)}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
+
                 <div className="flex items-end">
                     <Button
                         variant="outline"

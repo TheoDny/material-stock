@@ -335,7 +335,9 @@
         "noOptions": "No options available",
         "startDate": "Start Date",
         "endDate": "End Date",
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "lastXDays": "Last {days} days",
+        "dateRange": "Date Range"
     },
     "Logs": {
         "label": {
