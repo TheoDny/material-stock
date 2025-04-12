@@ -18,13 +18,13 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const [filterLoading, setFilterLoading] = useState(true)
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
     const [filters, setFilters] = useState({
-        logType: [] as string[],
-        user: [] as string[],
-        entity: [] as string[],
-        role: [] as string[],
-        material: [] as string[],
-        characteristic: [] as string[],
-        tag: [] as string[],
+        logType: [],
+        user: [],
+        entity: [],
+        role: [],
+        material: [],
+        characteristic: [],
+        tag: [],
     })
 
     // Get log types for filter
