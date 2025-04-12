@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Search, ArrowUpDown, Eye, History, FileEdit } from "lucide-react"
+import { Plus, Search, History, FileEdit, Pencil } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -9,7 +9,6 @@ import { useTranslations } from "next-intl"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,6 +19,7 @@ import { MaterialDialog } from "./material-dialog"
 import { getMaterialsAction } from "@/actions/material-actions"
 import { formatDate } from "@/lib/utils"
 import { MaterialWithTag } from "@/types/material.type"
+import { DataTable, Column } from "@/components/ui/data-table"
 
 type SortField = "name" | "updatedAt"
 type SortDirection = "asc" | "desc"
@@ -48,7 +48,7 @@ export function MaterialManagement() {
             const materialsData = await getMaterialsAction()
             setMaterials(materialsData)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load materials")
         }
     }
@@ -113,11 +113,75 @@ export function MaterialManagement() {
         }
     }
 
-    const getSortIcon = (field: SortField) => {
-        if (sortField !== field) return null
-
-        return <ArrowUpDown className={`ml-2 h-4 w-4 ${sortDirection === "desc" ? "transform rotate-180" : ""}`} />
-    }
+    // Définition des colonnes pour DataTable
+    const columns: Column<MaterialWithTag>[] = [
+        {
+            key: "name",
+            header: "Name",
+            cell: (material) => (
+                <div>
+                    <div className="font-medium">{material.name}</div>
+                    <div className="text-sm text-muted-foreground truncate max-w-[250px]">
+                        {material.description}
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: "tags",
+            header: "Tags",
+            cell: (material) => (
+                <div className="flex flex-wrap gap-1">
+                    {material.Tags.length > 0 ? (
+                        material.Tags.map((tag) => (
+                            <Badge
+                                key={tag.id}
+                                style={{
+                                    backgroundColor: tag.color,
+                                    color: tag.fontColor,
+                                }}
+                            >
+                                {tag.name}
+                            </Badge>
+                        ))
+                    ) : (
+                        <span className="text-muted-foreground">No tags</span>
+                    )}
+                </div>
+            ),
+        },
+        {
+            key: "updatedAt",
+            header: "Last Updated",
+            cell: (material) => formatDate(material.updatedAt),
+        },
+        {
+            key: "actions",
+            header: "Actions",
+            cell: (material) => (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                        >
+                            <FileEdit className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditMaterial(material)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit Material
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewHistory(material.id)}>
+                            <History className="h-4 w-4 mr-2" />
+                            View History
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            ),
+        },
+    ]
 
     return (
         <div className="space-y-4 ">
@@ -137,101 +201,14 @@ export function MaterialManagement() {
                 </Button>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[250px]">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSort("name")}
-                                    className="flex items-center"
-                                >
-                                    Name
-                                    {getSortIcon("name")}
-                                </Button>
-                            </TableHead>
-                            <TableHead>Tags</TableHead>
-                            <TableHead className="w-[180px]">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSort("updatedAt")}
-                                    className="flex items-center"
-                                >
-                                    Last Updated
-                                    {getSortIcon("updatedAt")}
-                                </Button>
-                            </TableHead>
-                            <TableHead className="w-[120px]">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredMaterials.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={6}
-                                    className="text-center h-24"
-                                >
-                                    No materials found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredMaterials.map((material) => (
-                                <TableRow key={material.id}>
-                                    <TableCell className="font-medium">
-                                        <div>{material.name}</div>
-                                        <div className="text-sm text-muted-foreground truncate max-w-[250px]">
-                                            {material.description}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex flex-wrap gap-1">
-                                            {material.Tags.length > 0 ? (
-                                                material.Tags.map((tag) => (
-                                                    <Badge
-                                                        key={tag.id}
-                                                        style={{
-                                                            backgroundColor: tag.color,
-                                                            color: tag.fontColor,
-                                                        }}
-                                                    >
-                                                        {tag.name}
-                                                    </Badge>
-                                                ))
-                                            ) : (
-                                                <span className="text-muted-foreground">No tags</span>
-                                            )}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{formatDate(material.updatedAt)}</TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                >
-                                                    <FileEdit className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onClick={() => handleEditMaterial(material)}>
-                                                    <Eye className="h-4 w-4 mr-2" />
-                                                    Edit Material
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleViewHistory(material.id)}>
-                                                    <History className="h-4 w-4 mr-2" />
-                                                    View History
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+            <DataTable
+                data={filteredMaterials}
+                columns={columns}
+                keyExtractor={(material) => material.id}
+                pageSizeOptions={[15, 50, 100]}
+                defaultPageSize={15}
+                noDataMessage="No materials found."
+            />
 
             <MaterialDialog
                 open={isDialogOpen}

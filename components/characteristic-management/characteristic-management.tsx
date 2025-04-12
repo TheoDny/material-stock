@@ -1,18 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, Pencil, Search, ArrowUpDown } from "lucide-react"
+import { Plus, Pencil, Search } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { CharacteristicDialog } from "./characteristic-dialog"
 import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { getTypeColor } from "@/lib/utils"
+import { DataTable, Column } from "@/components/ui/data-table"
 
 type SortField = "name" | "type" | "materialsCount"
 type SortDirection = "asc" | "desc"
@@ -40,7 +40,7 @@ export function CharacteristicManagement() {
             const characteristicsData = await getCharacteristicsAction()
             setCharacteristics(characteristicsData)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load characteristics")
         }
     }
@@ -104,11 +104,54 @@ export function CharacteristicManagement() {
         }
     }
 
-    const getSortIcon = (field: SortField) => {
-        if (sortField !== field) return null
-
-        return <ArrowUpDown className={`ml-2 h-4 w-4 ${sortDirection === "desc" ? "transform rotate-180" : ""}`} />
-    }
+    // Définition des colonnes pour DataTable
+    const columns: Column<CharacteristicAndCountMaterial>[] = [
+        {
+            key: "name",
+            header: "Name",
+            cell: (characteristic) => <div className="font-medium">{characteristic.name}</div>,
+        },
+        {
+            key: "description",
+            header: "Description",
+            cell: (characteristic) => <div className="max-w-[200px] truncate">{characteristic.description}</div>,
+        },
+        {
+            key: "type",
+            header: "Type",
+            cell: (characteristic) => (
+                <Badge className={getTypeColor(characteristic.type)}>{characteristic.type}</Badge>
+            ),
+        },
+        {
+            key: "options",
+            header: "Options",
+            cell: () => null, // TODO handle option with different type
+        },
+        {
+            key: "units",
+            header: "Units",
+            cell: (characteristic) => characteristic.units || <span className="text-muted-foreground">None</span>,
+        },
+        {
+            key: "materialsCount",
+            header: "Materials",
+            cell: (characteristic) => characteristic._count.Materials,
+        },
+        {
+            key: "actions",
+            header: "Actions",
+            cell: (characteristic) => (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleEditCharacteristic(characteristic)}
+                >
+                    <Pencil className="h-4 w-4" />
+                </Button>
+            ),
+        },
+    ]
 
     return (
         <div className="space-y-4">
@@ -128,90 +171,14 @@ export function CharacteristicManagement() {
                 </Button>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[200px]">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSort("name")}
-                                    className="flex items-center"
-                                >
-                                    Name
-                                    {getSortIcon("name")}
-                                </Button>
-                            </TableHead>
-                            <TableHead>Description</TableHead>
-                            <TableHead>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSort("type")}
-                                    className="flex items-center"
-                                >
-                                    Type
-                                    {getSortIcon("type")}
-                                </Button>
-                            </TableHead>
-                            <TableHead>Options</TableHead>
-                            <TableHead>Units</TableHead>
-                            <TableHead>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleSort("materialsCount")}
-                                    className="flex items-center"
-                                >
-                                    Materials
-                                    {getSortIcon("materialsCount")}
-                                </Button>
-                            </TableHead>
-                            <TableHead className="w-[100px]">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredCharacteristics.length === 0 ? (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={7}
-                                    className="text-center h-24"
-                                >
-                                    No characteristics found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredCharacteristics.map((characteristic) => (
-                                <TableRow key={characteristic.id}>
-                                    <TableCell className="font-medium">{characteristic.name}</TableCell>
-                                    <TableCell className="max-w-[200px] truncate">
-                                        {characteristic.description}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge className={getTypeColor(characteristic.type)}>
-                                            {characteristic.type}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{/* TODO handle option with different type*/}</TableCell>
-                                    <TableCell>
-                                        {characteristic.units || (
-                                            <span className="text-muted-foreground">None</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>{characteristic._count.Materials}</TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleEditCharacteristic(characteristic)}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+            <DataTable
+                data={filteredCharacteristics}
+                columns={columns}
+                keyExtractor={(characteristic) => characteristic.id}
+                pageSizeOptions={[15, 50, 100]}
+                defaultPageSize={15}
+                noDataMessage="No characteristics found."
+            />
 
             <CharacteristicDialog
                 open={isDialogOpen}
