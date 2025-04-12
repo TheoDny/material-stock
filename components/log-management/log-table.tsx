@@ -17,7 +17,15 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const locale = useLocale()
     const [filterLoading, setFilterLoading] = useState(true)
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
-    const [filters, setFilters] = useState({
+    const [filters, setFilters] = useState<{
+        logType: string[]
+        user: string[]
+        entity: string[]
+        role: string[]
+        material: string[]
+        characteristic: string[]
+        tag: string[]
+    }>({
         logType: [],
         user: [],
         entity: [],
