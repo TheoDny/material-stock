@@ -8,9 +8,12 @@ import { headers } from "next/headers"
 import { unauthorized } from "next/navigation"
 import { getLogs } from "@/services/log.service"
 import { LogEntry } from "@/types/log.type"
+import { subDays } from "date-fns"
 
 export default async function LogPage() {
+    const sevenDaysAgo = subDays(new Date(), 7)
     const t = await getTranslations("Logs")
+
     const session = await auth.api.getSession({
         headers: await headers(),
     })
@@ -19,7 +22,10 @@ export default async function LogPage() {
         unauthorized()
     }
 
-    const logs: LogEntry[] = await getLogs(session.user.Entities.map((e) => e.id))
+    const entityIds = session.user.Entities.map((entity: { id: string }) => entity.id)
+
+    // Get logs for initial load (last 7 days)
+    const logs: LogEntry[] = await getLogs(entityIds, sevenDaysAgo)
 
     return (
         <div className="container mx-auto py-6">

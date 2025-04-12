@@ -332,7 +332,10 @@
         "reset": "Reset",
         "close": "Close",
         "back": "Back",
-        "noOptions": "No options available"
+        "noOptions": "No options available",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "refresh": "Refresh"
     },
     "Logs": {
         "label": {

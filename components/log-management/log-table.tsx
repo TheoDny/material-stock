@@ -5,11 +5,16 @@ import { useTranslations, useLocale } from "next-intl"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Button } from "@/components/ui/button"
-import { format, formatDistanceToNow } from "date-fns"
+import { format, subDays } from "date-fns"
 import { fr, enUS } from "date-fns/locale"
 import { LogEntry } from "@/types/log.type"
 import { Skeleton } from "../ui/skeleton"
 import { LogType } from "@prisma/client"
+import { CalendarIcon } from "lucide-react"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { getLogsAction } from "@/actions/log-actions"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")
@@ -17,6 +22,9 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const locale = useLocale()
     const [filterLoading, setFilterLoading] = useState(true)
     const [filteredLogs, setFilteredLogs] = useState<LogEntry[]>([])
+    const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
+    const [endDate, setEndDate] = useState<Date>(new Date())
+    const [isLoadingData, setIsLoadingData] = useState(false)
     const [filters, setFilters] = useState<{
         logType: string[]
         user: string[]
@@ -34,6 +42,51 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         characteristic: [],
         tag: [],
     })
+
+    // Charger les logs avec les dates sélectionnées
+    const loadLogs = async () => {
+        setIsLoadingData(true)
+        try {
+            let result = await getLogsAction({
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+            })
+
+            if (result?.bindArgsValidationErrors) {
+                console.error("Validation errors:", result.bindArgsValidationErrors)
+                result.data = []
+            } else if (result?.serverError) {
+                console.error("Server error:", result.serverError)
+                result.data = []
+            } else if (result?.validationErrors) {
+                console.error("Validation errors:", result.validationErrors)
+                result.data = []
+            } else if (!result?.data) {
+                console.error("No data returned from server")
+                result = { data: [] }
+            }
+
+            setFilteredLogs(result.data as LogEntry[])
+            setIsLoadingData(false)
+            setFilterLoading(false)
+        } catch (error) {
+            console.error("Error loading logs:", error)
+            setIsLoadingData(false)
+        }
+    }
+
+    // Charger les logs au changement de dates
+    useEffect(() => {
+        loadLogs()
+    }, [startDate, endDate])
+
+    // Charger les logs initiaux
+    useEffect(() => {
+        if (logs.length > 0) {
+            setFilteredLogs(logs)
+            setFilterLoading(false)
+        }
+    }, [logs])
 
     // Get log types for filter
     const logTypes = Object.values(LogType).map((type) => ({
@@ -75,7 +128,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     useEffect(() => {
         setFilterLoading(true)
 
-        let result = [...logs]
+        let result = [...filteredLogs]
 
         if (filters.logType.length > 0) {
             result = result.filter((log) => filters.logType.includes(log.type))
@@ -122,7 +175,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         setFilteredLogs(result)
 
         setFilterLoading(false)
-    }, [filters, logs])
+    }, [filters])
 
     // Handle filter change
     const handleFilterChange = (key: string, value: string | string[]) => {
@@ -179,7 +232,86 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                {/* Date Range Filters */}
+                <div>
+                    <label className="text-sm font-medium mb-1 block">{tCommon("startDate")}</label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !startDate && "text-muted-foreground",
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {startDate ? (
+                                    format(startDate, "PPP", { locale: locale === "fr" ? fr : enUS })
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={startDate}
+                                onSelect={(date) => date && setStartDate(date)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <div>
+                    <label className="text-sm font-medium mb-1 block">{tCommon("endDate")}</label>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !endDate && "text-muted-foreground",
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {endDate ? (
+                                    format(endDate, "PPP", { locale: locale === "fr" ? fr : enUS })
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                            <Calendar
+                                mode="single"
+                                selected={endDate}
+                                onSelect={(date) => date && setEndDate(date)}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+                <div className="flex items-end">
+                    <Button
+                        variant="outline"
+                        onClick={loadLogs}
+                        className="w-full"
+                        disabled={isLoadingData}
+                    >
+                        {isLoadingData ? tCommon("loading") : tCommon("refresh")}
+                    </Button>
+                </div>
+                <div className="flex items-end">
+                    <Button
+                        variant="outline"
+                        onClick={resetFilters}
+                        className="w-full"
+                    >
+                        {tCommon("reset")}
+                    </Button>
+                </div>
+
                 <div>
                     <label className="text-sm font-medium mb-1 block">{t("filterByType")}</label>
                     <Combobox
@@ -257,17 +389,8 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
                         multiple={true}
                     />
                 </div>
-                <div className="flex items-end">
-                    <Button
-                        variant="outline"
-                        onClick={resetFilters}
-                        className="w-full"
-                    >
-                        {tCommon("reset")}
-                    </Button>
-                </div>
             </div>
-            {filterLoading ? (
+            {filterLoading || isLoadingData ? (
                 <div>
                     <Skeleton className="h-[35px] w-full mb-0.5" />
                     <Skeleton className="h-[500px] w-full" />

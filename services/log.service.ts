@@ -26,7 +26,11 @@ import {
 
 import { headers } from "next/headers"
 
-export const getLogs = async (entityIds: string[]): Promise<LogEntry[]> => {
+export const getLogs = async (
+    entityIds: string[],
+    startDate: Date,
+    endDate: Date = new Date(),
+): Promise<LogEntry[]> => {
     const logs = await prisma.log.findMany({
         where: {
             OR: [
@@ -39,6 +43,10 @@ export const getLogs = async (entityIds: string[]): Promise<LogEntry[]> => {
                     entityId: null,
                 },
             ],
+            actionDate: {
+                gte: startDate,
+                lte: endDate,
+            },
         },
         include: {
             User: {

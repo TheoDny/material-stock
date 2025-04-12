@@ -336,7 +336,10 @@
         "reset": "Réinitialiser",
         "close": "Fermer",
         "back": "Retour",
-        "noOptions": "Aucune option disponible"
+        "noOptions": "Aucune option disponible",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "refresh": "Rafraîchir"
     },
     "Logs": {
         "label": {
