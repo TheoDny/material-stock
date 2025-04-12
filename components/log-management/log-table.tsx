@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useTranslations, useLocale } from "next-intl"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Combobox, ComboboxOption } from "@/components/ui/combobox"
 import { Button } from "@/components/ui/button"
 import { format, subDays } from "date-fns"
@@ -13,8 +12,9 @@ import { LogType } from "@prisma/client"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+import { cn, sleep } from "@/lib/utils"
 import { getLogsAction } from "@/actions/log-actions"
+import { DataTable, Column } from "@/components/ui/data-table"
 
 export function LogTable({ logs }: { logs: LogEntry[] }) {
     const t = useTranslations("Logs")
@@ -25,6 +25,7 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
     const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7))
     const [endDate, setEndDate] = useState<Date>(new Date())
     const [isLoadingData, setIsLoadingData] = useState(false)
+
     const [filters, setFilters] = useState<{
         logType: string[]
         user: string[]
@@ -43,9 +44,34 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         tag: [],
     })
 
+    // Définition des colonnes pour la table
+    const columns: Column<LogEntry>[] = [
+        {
+            key: "message",
+            header: t("message"),
+            cell: (log) => <div className="font-medium">{getLogMessage(log)}</div>,
+        },
+        {
+            key: "user",
+            header: t("user"),
+            cell: (log) => log.user?.name,
+        },
+        {
+            key: "entity",
+            header: t("entity"),
+            cell: (log) => log.entity?.name || "-",
+        },
+        {
+            key: "date",
+            header: t("date"),
+            cell: (log) => formatDate(log.createdAt),
+        },
+    ]
+
     // Charger les logs avec les dates sélectionnées
     const loadLogs = async () => {
         setIsLoadingData(true)
+        await sleep(2000)
         try {
             let result = await getLogsAction({
                 startDate: startDate.toISOString(),
@@ -173,7 +199,6 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
         }
 
         setFilteredLogs(result)
-
         setFilterLoading(false)
     }, [filters])
 
@@ -393,35 +418,18 @@ export function LogTable({ logs }: { logs: LogEntry[] }) {
             {filterLoading || isLoadingData ? (
                 <div>
                     <Skeleton className="h-[35px] w-full mb-0.5" />
-                    <Skeleton className="h-[500px] w-full" />
-                </div>
-            ) : filteredLogs.length === 0 ? (
-                <div className="text-center p-6">
-                    <p>{t("noLogs")}</p>
+                    <Skeleton className="h-[395px] w-full mb-0.5" />
+                    <Skeleton className="h-[30px] w-full" />
                 </div>
             ) : (
-                <div className="rounded-md border overflow-hidden">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t("message")}</TableHead>
-                                <TableHead>{t("user")}</TableHead>
-                                <TableHead>{t("entity")}</TableHead>
-                                <TableHead>{t("date")}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredLogs.map((log) => (
-                                <TableRow key={log.id}>
-                                    <TableCell className="font-medium">{getLogMessage(log)}</TableCell>
-                                    <TableCell>{log.user?.name}</TableCell>
-                                    <TableCell>{log.entity?.name || "-"}</TableCell>
-                                    <TableCell>{formatDate(log.createdAt)}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
+                <DataTable
+                    data={filteredLogs}
+                    columns={columns}
+                    keyExtractor={(log) => log.id}
+                    pageSizeOptions={[10, 50, 100]}
+                    defaultPageSize={10}
+                    noDataMessage={t("noLogs")}
+                />
             )}
         </div>
     )

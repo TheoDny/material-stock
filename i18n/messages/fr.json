@@ -363,8 +363,8 @@
             "entity_update": "Mise à jour d'une entité",
             "entity_disable": "Désactivation d'une entité"
         },
-        "title": "Journaux Système",
-        "description": "Consulter et filtrer tous les journaux système",
+        "title": "Journaux d'êvénements",
+        "description": "Consulter et filtrer tous les journaux d'êvénements",
         "message": "Action",
         "user": "Utilisateur",
         "entity": "Entité",
