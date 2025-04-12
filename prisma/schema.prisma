@@ -126,17 +126,16 @@ model Entity {
 
 enum LogType {
     user_create
-    user_update_
-    user_add_role
-    user_remove_role
+    user_update
+    user_set_role
+    user_set_entity
     user_disable
     user_email_verified
 
     role_create
     role_update
     role_delete
-    role_add_permission
-    role_remove_permission
+    role_set_permission
 
     tag_create
     tag_update
@@ -147,22 +146,20 @@ enum LogType {
 
     material_create
     material_update
-    material_update_tag
-    material_update_characteristic
 
     entity_update
-    entity_delete
+    entity_disable
 }
 
 model Log {
     id           String   @id @default(cuid())
-    actionDetail Json
     actionDate   DateTime @default(now())
-    actionType   String
+    actionType   LogType
+    actionDetail Json
     User         User     @relation(fields: [userId], references: [id])
     userId       String
-    Entity       Entity   @relation(fields: [entityId], references: [id])
-    entityId     String
+    Entity       Entity?   @relation(fields: [entityId], references: [id])
+    entityId     String?
 
     @@map("log")
 }
