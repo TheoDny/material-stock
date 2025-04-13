@@ -144,6 +144,18 @@ export type DataLogTagUpdate = {
     entityId: string
 }
 
+export type DataLogTagDelete = {
+    type: "tag_delete"
+    info: {
+        tag: {
+            id: string
+            name: string
+        }
+    }
+    userId: string
+    entityId: string
+}
+
 export type DataLogCharacteristicCreate = {
     type: "characteristic_create"
     info: {
@@ -258,6 +270,7 @@ export type DataLog =
     | DataLogRoleSetPermission
     | DataLogTagCreate
     | DataLogTagUpdate
+    | DataLogTagDelete
     | DataLogCharacteristicCreate
     | DataLogCharacteristicUpdate
     | DataLogCharacteristicDelete

@@ -10,6 +10,7 @@ import { auth } from "@/lib/auth"
 import { Permission } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 interface RootLayoutProps {
     children: ReactNode
@@ -143,12 +144,14 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <NextIntlClientProvider>
-                        <SidebarProvider>
-                            <AppSidebar data={navigation} />
-                            <SidebarInset className={"p-1.5"}>{children}</SidebarInset>
-                        </SidebarProvider>
-                    </NextIntlClientProvider>
+                    <TooltipProvider delayDuration={100}>
+                        <NextIntlClientProvider>
+                            <SidebarProvider>
+                                <AppSidebar data={navigation} />
+                                <SidebarInset className={"p-1.5"}>{children}</SidebarInset>
+                            </SidebarProvider>
+                        </NextIntlClientProvider>
+                    </TooltipProvider>
                 </NextThemesProvider>
             </body>
         </html>

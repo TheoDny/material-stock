@@ -139,6 +139,7 @@ enum LogType {
 
     tag_create
     tag_update
+    tag_delete
 
     characteristic_create
     characteristic_update

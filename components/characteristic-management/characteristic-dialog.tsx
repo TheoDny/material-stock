@@ -38,7 +38,7 @@ import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { CharacteristicType } from "@prisma/client"
 import { getTypeColor } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const characteristicTypes: CharacteristicType[] = [
     "checkbox",
@@ -373,29 +373,27 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                             )}
 
                             <DialogFooter className="flex !justify-between">
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div>
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    onClick={handleDelete}
-                                                    disabled={!canDelete}
-                                                    className="gap-2 text-destructive"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                    {tCommon("delete")}
-                                                </Button>
-                                            </div>
-                                        </TooltipTrigger>
-                                        {!canDelete && characteristic?._count?.Materials > 0 && (
-                                            <TooltipContent>
-                                                <p>{t("cannotDeleteUsed")}</p>
-                                            </TooltipContent>
-                                        )}
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={handleDelete}
+                                                disabled={!canDelete}
+                                                className="gap-2 text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                {tCommon("delete")}
+                                            </Button>
+                                        </div>
+                                    </TooltipTrigger>
+                                    {!canDelete && characteristic?._count?.Materials > 0 && (
+                                        <TooltipContent>
+                                            <p>{t("cannotDeleteUsed")}</p>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
                                 <div className="flex gap-2">
                                     <Button
                                         type="button"

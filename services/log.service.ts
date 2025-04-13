@@ -22,6 +22,7 @@ import {
     DataLogEntityUpdate,
     DataLogEntityDisable,
     LogEntry,
+    DataLogTagDelete,
 } from "@/types/log.type"
 
 import { headers } from "next/headers"
@@ -798,6 +799,48 @@ export const addEntityDisableLog = async (
         return true
     } catch (error) {
         console.error("Error adding entity disable log:", error)
+        return false
+    }
+}
+
+export const addTagDeleteLog = async (
+    tagDeleted: { id: string; name: string },
+    entityId?: string,
+    userId?: string,
+): Promise<boolean> => {
+    try {
+        if (!userId || !entityId) {
+            const session = await auth.api.getSession({
+                headers: await headers(),
+            })
+            if (!session?.user) {
+                throw new Error("User session not found")
+            }
+
+            if (!entityId) {
+                entityId = session?.user.entitySelectedId
+            }
+            if (!userId) {
+                userId = session?.user.id
+            }
+        }
+        const dataLog: DataLogTagDelete = {
+            type: "tag_delete",
+            info: {
+                tag: {
+                    id: tagDeleted.id,
+                    name: tagDeleted.name,
+                },
+            },
+            userId: userId,
+            entityId: entityId,
+        }
+
+        await addLog(dataLog)
+
+        return true
+    } catch (error) {
+        console.error("Error adding tag delete log:", error)
         return false
     }
 }

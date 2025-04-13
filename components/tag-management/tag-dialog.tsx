@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { HexColorPicker } from "react-colorful"
 import { useTranslations } from "next-intl"
+import { Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -28,8 +29,9 @@ import {
     FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { createTagAction, updateTagAction } from "@/actions/tag-actions"
+import { createTagAction, updateTagAction, deleteTagAction } from "@/actions/tag-actions"
 import { TagAndCountMaterial } from "@/types/tag.type"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const createTagSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -48,12 +50,11 @@ type UpdateTagFormValues = z.infer<typeof updateTagSchema>
 
 interface TagDialogProps {
     open: boolean
-    onOpenChange: (open: boolean) => void
     tag: TagAndCountMaterial | null
-    onClose: (success: boolean) => void
+    onClose: (refreshData: boolean) => void
 }
 
-export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) {
+export function TagDialog({ open, tag, onClose }: TagDialogProps) {
     const t = useTranslations("Configuration.tags.dialog")
     const tCommon = useTranslations("Common")
 
@@ -62,6 +63,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
     const [showTextColorPicker, setShowTextColorPicker] = useState(false)
 
     const isEditing = !!tag
+    const canDelete = isEditing && tag?._count?.Materials === 0
 
     const createForm = useForm<CreateTagFormValues>({
         resolver: zodResolver(createTagSchema),
@@ -99,12 +101,11 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
         }
     }, [open, tag, updateForm, createForm])
 
-    const handleClose = () => {
+    const handleClose = (refreshData: boolean = false) => {
         form.reset()
         setShowColorPicker(false)
         setShowTextColorPicker(false)
-        onOpenChange(false)
-        onClose(false)
+        onClose(refreshData)
     }
 
     const onSubmit = async (values: CreateTagFormValues | UpdateTagFormValues) => {
@@ -132,17 +133,41 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                 toast.success(t("createSuccess"))
             }
 
-            form.reset()
-            setShowColorPicker(false)
-            setShowTextColorPicker(false)
-            onOpenChange(false)
-            onClose(true)
+            handleClose(true)
         } catch (error) {
             console.error(error)
             toast.error(isEditing ? t("updateError") : t("createError"))
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    const handleDelete = async () => {
+        if (!tag || !canDelete) return
+
+        setIsSubmitting(true)
+        const result = await deleteTagAction({
+            id: tag.id,
+        })
+        setIsSubmitting(true)
+
+        if (result?.bindArgsValidationErrors) {
+            setIsSubmitting(true)
+            console.error(result?.bindArgsValidationErrors)
+            return toast.error(t("deleteError"))
+        } else if (result?.serverError) {
+            console.error(result?.serverError)
+            return toast.error(t("deleteError"))
+        } else if (result?.validationErrors) {
+            console.error(result?.validationErrors)
+            return toast.error(t("deleteError"))
+        } else if (!result?.data) {
+            console.error("No data returned")
+            return toast.error(t("deleteError"))
+        }
+
+        toast.success(t("deleteSuccess"))
+        handleClose(true)
     }
 
     const getPreviewBadge = () => {
@@ -165,7 +190,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
     return (
         <Dialog
             open={open}
-            onOpenChange={onOpenChange}
+            onOpenChange={handleClose}
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -274,24 +299,49 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                             </div>
                         </div>
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                            >
-                                {tCommon("cancel")}
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting
-                                    ? tCommon("saving")
-                                    : isEditing
-                                      ? tCommon("update")
-                                      : tCommon("create")}
-                            </Button>
+                        <DialogFooter className="flex !justify-between">
+                            {isEditing && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                onClick={handleDelete}
+                                                disabled={!canDelete || isSubmitting}
+                                                className="gap-2 text-destructive"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                {tCommon("delete")}
+                                            </Button>
+                                        </div>
+                                    </TooltipTrigger>
+                                    {!canDelete && tag?._count?.Materials > 0 && (
+                                        <TooltipContent>
+                                            <p>{t("cannotDeleteUsed")}</p>
+                                        </TooltipContent>
+                                    )}
+                                </Tooltip>
+                            )}
+                            <div className={isEditing ? "flex gap-2" : ""}>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => handleClose()}
+                                >
+                                    {tCommon("cancel")}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting
+                                        ? tCommon("saving")
+                                        : isEditing
+                                          ? tCommon("update")
+                                          : tCommon("create")}
+                                </Button>
+                            </div>
                         </DialogFooter>
                     </form>
                 </Form>

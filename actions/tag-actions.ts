@@ -3,11 +3,15 @@
 import { z } from "zod"
 import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
-import { getTags, createTag, updateTag } from "@/services/tag.service"
+import { getTags, createTag, updateTag, deleteTag } from "@/services/tag.service"
 
 // Schema for creating a tag
 const createTagSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     color: z.string().trim().max(7, "Color must be a valid hex color code"),
     fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
 })
@@ -22,6 +26,10 @@ const updateTagSchema = z.object({
         .max(64, "Name must be at most 64 characters"),
     color: z.string().trim().max(7, "Color must be a valid hex color code"),
     fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
+})
+
+const deleteTagSchema = z.object({
+    id: z.string().trim(),
 })
 
 // Get all tags with material count
@@ -72,5 +80,20 @@ export const updateTagAction = actionClient.schema(updateTagSchema).action(async
     } catch (error) {
         console.error("Failed to update tag:", error)
         throw new Error("Failed to update tag")
+    }
+})
+
+// Delete a tag
+export const deleteTagAction = actionClient.schema(deleteTagSchema).action(async ({ parsedInput }) => {
+    try {
+        // Check for tag_create permission (same as creating since it's a destructive action)
+        const session = await checkAuth({ requiredPermission: "tag_create" })
+
+        const { id } = parsedInput
+
+        return await deleteTag(id, session.user.entitySelectedId)
+    } catch (error) {
+        console.error("Failed to delete tag:", error)
+        throw new Error("Failed to delete tag")
     }
 })

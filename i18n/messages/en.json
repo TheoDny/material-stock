@@ -175,7 +175,10 @@
                 "createSuccess": "Tag created successfully",
                 "updateSuccess": "Tag updated successfully",
                 "createError": "Failed to create tag",
-                "updateError": "Failed to update tag"
+                "updateError": "Failed to update tag",
+                "cannotDeleteUsed": "Cannot delete tag used in materials",
+                "deleteError": "Failed to delete tag",
+                "deleteSuccess": "Tag deleted successfully"
             }
         },
         "characteristics": {

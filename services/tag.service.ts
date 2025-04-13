@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { addTagCreateLog, addTagUpdateLog } from "@/services/log.service"
+import { addTagCreateLog, addTagUpdateLog, addTagDeleteLog } from "@/services/log.service"
 import { createMaterialHistory } from "@/services/material-history.service"
 
 type TagUpdateData = {
@@ -94,5 +94,44 @@ export async function updateTag(id: string, entityId: string, data: TagUpdateDat
     } catch (error) {
         console.error("Failed to update tag:", error)
         throw new Error("Failed to update tag")
+    }
+}
+
+// Delete a tag
+export async function deleteTag(id: string, entityId: string) {
+    try {
+        // Check if the tag is used by any materials
+        const materialCount = await prisma.material.count({
+            where: {
+                Tags: {
+                    some: {
+                        id,
+                    },
+                },
+            },
+        })
+
+        if (materialCount > 0) {
+            throw new Error("Cannot delete tag used by materials")
+        }
+
+        const tag = await prisma.tag.delete({
+            where: {
+                id,
+                entityId,
+            },
+        })
+
+        // Add log
+        // No need to await, we can log in the background
+        addTagDeleteLog({ id, name: tag.name }, entityId).catch((error) =>
+            console.error("Failed to add tag delete log:", error),
+        )
+
+        revalidatePath("/configuration/tags")
+        return tag
+    } catch (error) {
+        console.error("Failed to delete tag:", error)
+        throw new Error("Failed to delete tag")
     }
 }

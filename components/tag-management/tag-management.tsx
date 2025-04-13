@@ -83,10 +83,10 @@ export function TagManagement() {
         setIsDialogOpen(true)
     }
 
-    const handleTagDialogClose = (success: boolean) => {
+    const handleTagDialogClose = (refreshData: boolean) => {
         setIsDialogOpen(false)
 
-        if (success) {
+        if (refreshData) {
             loadTags()
         }
     }
@@ -180,7 +180,6 @@ export function TagManagement() {
 
             <TagDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
                 tag={editingTag}
                 onClose={handleTagDialogClose}
             />
