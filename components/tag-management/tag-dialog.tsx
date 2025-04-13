@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { HexColorPicker } from "react-colorful"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +18,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+    FormDescription,
+} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { createTagAction, updateTagAction } from "@/actions/tag-actions"
 import { TagAndCountMaterial } from "@/types/tag.type"
@@ -29,6 +38,7 @@ const createTagSchema = z.object({
 })
 
 const updateTagSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
     fontColor: z.string().min(4, "Color text must be a valid color"),
     color: z.string().min(4, "Color must be a valid color"),
 })
@@ -44,6 +54,9 @@ interface TagDialogProps {
 }
 
 export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) {
+    const t = useTranslations("Configuration.tags.dialog")
+    const tCommon = useTranslations("Common")
+
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [showColorPicker, setShowColorPicker] = useState(false)
     const [showTextColorPicker, setShowTextColorPicker] = useState(false)
@@ -62,6 +75,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
     const updateForm = useForm<UpdateTagFormValues>({
         resolver: zodResolver(updateTagSchema),
         defaultValues: {
+            name: tag?.name || "",
             fontColor: tag?.fontColor || "#000000",
             color: tag?.color || "#ffffff",
         },
@@ -72,6 +86,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
     useEffect(() => {
         if (open && tag) {
             updateForm.reset({
+                name: tag.name,
                 fontColor: tag.fontColor,
                 color: tag.color,
             })
@@ -101,10 +116,11 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                 const updateValues = values as UpdateTagFormValues
                 await updateTagAction({
                     id: tag.id,
+                    name: updateValues.name,
                     fontColor: updateValues.fontColor,
                     color: updateValues.color,
                 })
-                toast.success("Tag updated successfully")
+                toast.success(t("updateSuccess"))
             } else {
                 // Create new tag
                 const createValues = values as CreateTagFormValues
@@ -113,7 +129,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                     fontColor: createValues.fontColor,
                     color: createValues.color,
                 })
-                toast.success("Tag created successfully")
+                toast.success(t("createSuccess"))
             }
 
             form.reset()
@@ -122,8 +138,8 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
             onOpenChange(false)
             onClose(true)
         } catch (error) {
-            console.error(error);
-            toast.error(isEditing ? "Failed to update tag" : "Failed to create tag")
+            console.error(error)
+            toast.error(isEditing ? t("updateError") : t("createError"))
         } finally {
             setIsSubmitting(false)
         }
@@ -132,7 +148,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
     const getPreviewBadge = () => {
         const color = form.watch("color")
         const fontColor = form.watch("fontColor")
-        const name = isEditing ? tag?.name : createForm.watch("name")
+        const name = form.watch("name")
 
         return (
             <Badge
@@ -153,9 +169,9 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
         >
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>{isEditing ? "Edit Tag" : "Create Tag"}</DialogTitle>
+                    <DialogTitle>{isEditing ? t("edit") : t("create")}</DialogTitle>
                     <DialogDescription>
-                        {isEditing ? "Update the tag details below." : "Fill in the details to create a new tag."}
+                        {isEditing ? t("editDescription") : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
@@ -163,34 +179,34 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4"
                     >
-                        {!isEditing && (
-                            <FormField
-                                control={createForm.control}
-                                name="name"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Name</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="Tag name"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                        <p className="text-xs text-muted-foreground">
-                                            Note: Name cannot be changed after creation
-                                        </p>
-                                    </FormItem>
-                                )}
-                            />
-                        )}
+                        <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>{t("name")}</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder={t("namePlaceholder")}
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                    {isEditing ? (
+                                        <FormDescription>{t("nameUpdateWarning")}</FormDescription>
+                                    ) : (
+                                        <FormDescription>{t("nameHelp")}</FormDescription>
+                                    )}
+                                </FormItem>
+                            )}
+                        />
 
                         <FormField
                             control={form.control}
                             name="fontColor"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Text Color</FormLabel>
+                                    <FormLabel>{t("textColor")}</FormLabel>
                                     <FormControl>
                                         <div className="flex items-center space-x-2">
                                             <div
@@ -223,7 +239,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                             name="color"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Background Color</FormLabel>
+                                    <FormLabel>{t("backgroundColor")}</FormLabel>
                                     <FormControl>
                                         <div className="flex items-center space-x-2">
                                             <div
@@ -252,7 +268,7 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                         />
 
                         <div className="space-y-2">
-                            <FormLabel>Preview</FormLabel>
+                            <FormLabel>{t("preview")}</FormLabel>
                             <div className="p-4 border rounded-md flex items-center justify-center">
                                 {getPreviewBadge()}
                             </div>
@@ -264,13 +280,17 @@ export function TagDialog({ open, onOpenChange, tag, onClose }: TagDialogProps) 
                                 variant="outline"
                                 onClick={handleClose}
                             >
-                                Cancel
+                                {tCommon("cancel")}
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
+                                {isSubmitting
+                                    ? tCommon("saving")
+                                    : isEditing
+                                      ? tCommon("update")
+                                      : tCommon("create")}
                             </Button>
                         </DialogFooter>
                     </form>

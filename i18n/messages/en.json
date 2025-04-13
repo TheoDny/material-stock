@@ -163,7 +163,19 @@
                 "edit": "Edit Tag",
                 "name": "Tag Name",
                 "description": "Description",
-                "color": "Color"
+                "color": "Color",
+                "createDescription": "Fill in the details to create a new tag.",
+                "editDescription": "Update the tag details below.",
+                "namePlaceholder": "Tag name",
+                "textColor": "Text Color",
+                "backgroundColor": "Background Color",
+                "preview": "Preview",
+                "nameUpdateWarning": "Changing the name will generate history records for all associated materials.",
+                "nameHelp": "Choose a descriptive name for this tag.",
+                "createSuccess": "Tag created successfully",
+                "updateSuccess": "Tag updated successfully",
+                "createError": "Failed to create tag",
+                "updateError": "Failed to update tag"
             }
         },
         "characteristics": {
@@ -208,6 +220,7 @@
                 "atLeastTwoOptions": "At least two options are required",
                 "unitPlaceholder": "e.g. kg, cm, etc.",
                 "nameCannotBeChanged": "Name cannot be changed after creation",
+                "nameUpdateWarning": "Changing the name will generate history records for all associated materials.",
                 "typeCannotBeChanged": "Type cannot be changed after creation",
                 "optionsCannotBeChanged": "Options cannot be changed after creation",
                 "unitCannotBeChanged": "Units cannot be changed after creation",

@@ -15,6 +15,11 @@ const createTagSchema = z.object({
 // Schema for updating a tag
 const updateTagSchema = z.object({
     id: z.string().trim(),
+    name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     color: z.string().trim().max(7, "Color must be a valid hex color code"),
     fontColor: z.string().trim().max(7, "Font color must be a valid hex color code"),
 })
@@ -55,9 +60,10 @@ export const updateTagAction = actionClient.schema(updateTagSchema).action(async
         // Check for tag_edit permission
         const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-        const { id, color, fontColor } = parsedInput
+        const { id, name, color, fontColor } = parsedInput
 
         const tag = await updateTag(id, session.user.entitySelectedId, {
+            name,
             color,
             fontColor,
         })

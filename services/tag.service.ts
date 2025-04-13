@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { addTagCreateLog, addTagUpdateLog } from "@/services/log.service"
+import { createMaterialHistory } from "@/services/material-history.service"
+
+type TagUpdateData = {
+    name?: string
+    fontColor: string
+    color: string
+}
 
 // Get all tags with material count
 export async function getTags(entityId: string) {
@@ -45,11 +52,21 @@ export async function createTag(data: { name: string; fontColor: string; color: 
 }
 
 // Update an existing tag
-export async function updateTag(id: string, entityId: string, data: { fontColor: string; color: string }) {
+export async function updateTag(id: string, entityId: string, data: TagUpdateData) {
     try {
-        // First get the tag to access its name
+        // First get the tag to access its name and related materials
         const existingTag = await prisma.tag.findUnique({
             where: { id },
+            include: {
+                Materials: {
+                    where: {
+                        deletedAt: null,
+                    },
+                    select: {
+                        id: true,
+                    },
+                },
+            },
         })
 
         if (!existingTag) {
@@ -61,8 +78,16 @@ export async function updateTag(id: string, entityId: string, data: { fontColor:
             data,
         })
 
+        // If the name has changed, generate history for all active materials using this tag
+        if (data.name && data.name !== existingTag.name && existingTag.Materials.length > 0) {
+            existingTag.Materials.forEach((material) => {
+                // No need to await, we can generate histories in the background
+                createMaterialHistory(material.id)
+            })
+        }
+
         // Add log
-        addTagUpdateLog({ id: tag.id, name: existingTag.name }, entityId)
+        addTagUpdateLog({ id: tag.id, name: tag.name }, entityId)
 
         revalidatePath("/configuration/tags")
         return tag

@@ -167,7 +167,19 @@
                 "edit": "Modifier un Tag",
                 "name": "Nom du Tag",
                 "description": "Description",
-                "color": "Couleur"
+                "color": "Couleur",
+                "createDescription": "Remplissez les détails pour créer un nouveau tag.",
+                "editDescription": "Mettez à jour les détails du tag ci-dessous.",
+                "namePlaceholder": "Nom du tag",
+                "textColor": "Couleur du texte",
+                "backgroundColor": "Couleur de fond",
+                "preview": "Aperçu",
+                "nameUpdateWarning": "La modification du nom générera des enregistrements d'historique pour tous les matériels associés.",
+                "nameHelp": "Choisissez un nom descriptif pour ce tag.",
+                "createSuccess": "Tag créé avec succès",
+                "updateSuccess": "Tag mis à jour avec succès",
+                "createError": "Échec de la création du tag",
+                "updateError": "Échec de la mise à jour du tag"
             }
         },
         "characteristics": {
@@ -212,6 +224,7 @@
                 "atLeastTwoOptions": "Au moins deux options sont nécessaires",
                 "unitPlaceholder": "ex: kg, cm, etc.",
                 "nameCannotBeChanged": "Le nom ne peut pas être modifié après la création",
+                "nameUpdateWarning": "La modification du nom générera des enregistrements d'historique pour tous les matériels associés.",
                 "typeCannotBeChanged": "Le type ne peut pas être modifié après la création",
                 "optionsCannotBeChanged": "Les options ne peuvent pas être modifiées après la création",
                 "unitCannotBeChanged": "Les unités ne peuvent pas être modifiées après la création",
