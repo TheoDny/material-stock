@@ -217,6 +217,22 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     const needsOptions = ["select", "radio", "multiSelect", "checkbox"].includes(selectedType)
     const needsUnits = ["number", "float"].includes(selectedType)
 
+    // Conversion des options en tableau de chaînes pour l'affichage
+    const getOptionsArray = () => {
+        if (!characteristic?.options) return []
+
+        if (Array.isArray(characteristic.options)) {
+            return characteristic.options
+        }
+
+        // Si c'est un objet JSON ou une autre structure
+        try {
+            return [characteristic.options.toString()]
+        } catch (e) {
+            return []
+        }
+    }
+
     return (
         <Dialog
             open={open}
@@ -266,12 +282,18 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                     </div>
 
                                     {characteristic.options && (
-                                        <div className="flex items-center space-x-2">
+                                        <div className="space-y-1">
                                             <div className="font-medium">{t("options")}:</div>
-                                            <div>
-                                                {Array.isArray(characteristic.options)
-                                                    ? characteristic.options.join(", ")
-                                                    : characteristic.options.toString()}
+                                            <div className="flex flex-wrap gap-2">
+                                                {getOptionsArray().map((option, index) => (
+                                                    <Badge
+                                                        key={index}
+                                                        variant="secondary"
+                                                        className="py-1"
+                                                    >
+                                                        {String(option)}
+                                                    </Badge>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
@@ -279,7 +301,12 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                     {characteristic.units && (
                                         <div className="flex items-center space-x-2">
                                             <div className="font-medium">{t("unit")}:</div>
-                                            <div>{characteristic.units}</div>
+                                            <Badge
+                                                variant="secondary"
+                                                className="py-1"
+                                            >
+                                                {String(characteristic.units)}
+                                            </Badge>
                                         </div>
                                     )}
                                 </div>
