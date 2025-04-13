@@ -17,6 +17,8 @@ import { DatePickerRange } from "@/components/ui/date-picker-range"
 import { Button } from "@/components/ui/button"
 import { addMonths, startOfDay, endOfDay } from "date-fns"
 import { DateRange } from "react-day-picker"
+import { useTranslations } from "next-intl"
+import { Skeleton } from "../ui/skeleton"
 
 // Define types for parsed JSON fields
 type Tag = {
@@ -103,6 +105,10 @@ const formatCharacteristicValue = (characteristic: Characteristic) => {
 }
 
 export function MaterialHistoryView({ materialId, materialName }: MaterialHistoryViewProps) {
+    const historyT = useTranslations("MaterialHistory")
+    const common = useTranslations("Common")
+    const materialsT = useTranslations("Materials")
+
     const [history, setHistory] = useState<Material_History[]>([])
     const [loading, setLoading] = useState(true)
     const [dateRange, setDateRange] = useState<DateRange>({
@@ -132,16 +138,16 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
 
             if (result?.bindArgsValidationErrors) {
                 console.error(result?.bindArgsValidationErrors)
-                toast.error("Failed to load material history: validation error")
+                toast.error(historyT("validationError"))
             } else if (result?.serverError) {
                 console.error(result?.serverError)
-                toast.error("Failed to load material history: server error")
+                toast.error(historyT("serverError"))
             } else if (result?.validationErrors) {
                 console.error(result?.validationErrors)
-                toast.error("Failed to load material history: validation error")
+                toast.error(historyT("validationError"))
             } else if (!result?.data) {
                 console.error("No data returned")
-                toast.error("Failed to load material history: no data returned")
+                toast.error(historyT("noData"))
             } else {
                 setHistory(result.data)
                 setTotalPages(Math.ceil(result.data.length / itemsPerPage))
@@ -149,7 +155,7 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
             }
         } catch (error) {
             console.error(error)
-            toast.error("Failed to load material history")
+            toast.error(historyT("failedToLoad"))
         } finally {
             setLoading(false)
         }
@@ -185,31 +191,36 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Material History - {materialName}</CardTitle>
+                <CardTitle>
+                    {materialsT("history.title")} - {materialName}
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="flex flex-col gap-4 mb-4 sm:flex-row items-end">
                     <DatePickerRange
                         date={dateRange}
                         setDate={handleSetDateRange}
-                        textHolder="Select date range"
+                        textHolder={common("selectDateRange")}
                         className="w-full sm:w-auto"
                         hoursText={{
-                            label: "Hours",
-                            from: "From",
-                            to: "To",
+                            label: common("language") === "fr" ? "Heures" : "Hours",
+                            from: common("language") === "fr" ? "De" : "From",
+                            to: common("language") === "fr" ? "À" : "To",
                         }}
                     />
                     <Button
                         onClick={loadHistory}
                         disabled={loading}
                     >
-                        {loading ? "Loading..." : "Filter"}
+                        {loading ? common("loading") : common("filter")}
                     </Button>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-8">Loading history...</div>
+                    <>
+                        <Skeleton className="h-[570px] w-full mb-1" />
+                        <Skeleton className="h-[35px] w-full" />
+                    </>
                 ) : (
                     <>
                         <MaterialHistoryDisplay history={getCurrentPageItems()} />
@@ -218,7 +229,7 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                         {history.length > 0 && (
                             <div className="flex justify-between items-center mt-4">
                                 <div className="text-sm text-muted-foreground">
-                                    {history.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                                    {(currentPage - 1) * itemsPerPage + 1}
                                     {" - "}
                                     {Math.min(currentPage * itemsPerPage, history.length)}{" "}
                                     {" -- (" + history.length + ")"}
@@ -271,8 +282,11 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
 
 // Component that just displays the history without fetching it
 export default function MaterialHistoryDisplay({ history }: { history: Material_History[] }) {
+    const historyT = useTranslations("MaterialHistory")
+    const materialsT = useTranslations("Materials")
+
     if (!history || history.length === 0) {
-        return <div>No history records found.</div>
+        return <div>{materialsT("history.noHistory")}</div>
     }
 
     return (
@@ -290,7 +304,9 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                 <AccordionTrigger className="px-4">
                                     <div className="flex justify-between w-full">
                                         <span>{new Date(record.createdAt).toLocaleString()}</span>
-                                        <span className="text-sm text-gray-500">Record for {record.name}</span>
+                                        <span className="text-sm text-gray-500">
+                                            {historyT("recordFor")} {record.name}
+                                        </span>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="px-4">
@@ -298,26 +314,38 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                     <div className="lg:hidden">
                                         <Tabs defaultValue="details">
                                             <TabsList className="w-full grid grid-cols-2 gap-2 mt-2">
-                                                <TabsTrigger value="details">Details & Tags</TabsTrigger>
-                                                <TabsTrigger value="characteristics">Characteristics</TabsTrigger>
+                                                <TabsTrigger value="details">
+                                                    {historyT("detailsAndTags")}
+                                                </TabsTrigger>
+                                                <TabsTrigger value="characteristics">
+                                                    {historyT("characteristics")}
+                                                </TabsTrigger>
                                             </TabsList>
 
                                             <TabsContent value="details">
                                                 <div className="grid grid-cols-2 gap-2 mt-2">
-                                                    <div className="text-sm font-medium">Name:</div>
-                                                    <div className="text-sm">{record.name || "N/A"}</div>
+                                                    <div className="text-sm font-medium">{historyT("name")}:</div>
+                                                    <div className="text-sm">{record.name || historyT("na")}</div>
 
-                                                    <div className="text-sm font-medium">Description:</div>
-                                                    <div className="text-sm">{record.description || "N/A"}</div>
+                                                    <div className="text-sm font-medium">
+                                                        {historyT("description")}:
+                                                    </div>
+                                                    <div className="text-sm">
+                                                        {record.description || historyT("na")}
+                                                    </div>
 
-                                                    <div className="text-sm font-medium">Created at:</div>
+                                                    <div className="text-sm font-medium">
+                                                        {historyT("createdAt")}:
+                                                    </div>
                                                     <div className="text-sm">
                                                         {new Date(record.createdAt).toLocaleString()}
                                                     </div>
                                                 </div>
 
                                                 <div className="mt-4">
-                                                    <div className="text-sm font-medium mb-2">Tags:</div>
+                                                    <div className="text-sm font-medium mb-2">
+                                                        {historyT("tags")}:
+                                                    </div>
                                                     {parseTags(record.Tags).length > 0 ? (
                                                         <div className="flex flex-wrap gap-2">
                                                             {parseTags(record.Tags).map((tag, idx) => (
@@ -333,7 +361,9 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                             ))}
                                                         </div>
                                                     ) : (
-                                                        <div className="text-sm text-gray-500">No tags</div>
+                                                        <div className="text-sm text-gray-500">
+                                                            {historyT("noTags")}
+                                                        </div>
                                                     )}
                                                 </div>
                                             </TabsContent>
@@ -360,7 +390,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                     </div>
                                                 ) : (
                                                     <div className="mt-2 text-sm text-gray-500">
-                                                        No characteristics
+                                                        {historyT("noCharacteristics")}
                                                     </div>
                                                 )}
                                             </TabsContent>
@@ -371,22 +401,28 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                     <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:mt-2">
                                         {/* Left column: Details and Tags */}
                                         <div>
-                                            <h3 className="text-sm font-medium mb-3">Details & Tags</h3>
+                                            <h3 className="text-sm font-medium mb-3">
+                                                {historyT("detailsAndTags")}
+                                            </h3>
                                             <div className="grid grid-cols-2 gap-2">
-                                                <div className="text-sm font-medium">Name:</div>
-                                                <div className="text-sm">{record.name || "N/A"}</div>
+                                                <div className="text-sm font-medium">{historyT("name")}:</div>
+                                                <div className="text-sm">{record.name || historyT("na")}</div>
 
-                                                <div className="text-sm font-medium">Description:</div>
-                                                <div className="text-sm">{record.description || "N/A"}</div>
+                                                <div className="text-sm font-medium">
+                                                    {historyT("description")}:
+                                                </div>
+                                                <div className="text-sm">
+                                                    {record.description || historyT("na")}
+                                                </div>
 
-                                                <div className="text-sm font-medium">Created at:</div>
+                                                <div className="text-sm font-medium">{historyT("createdAt")}:</div>
                                                 <div className="text-sm">
                                                     {new Date(record.createdAt).toLocaleString()}
                                                 </div>
                                             </div>
 
                                             <div className="mt-4">
-                                                <div className="text-sm font-medium mb-2">Tags:</div>
+                                                <div className="text-sm font-medium mb-2">{historyT("tags")}:</div>
                                                 {parseTags(record.Tags).length > 0 ? (
                                                     <div className="flex flex-wrap gap-2">
                                                         {parseTags(record.Tags).map((tag, idx) => (
@@ -402,14 +438,18 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <div className="text-sm text-gray-500">No tags</div>
+                                                    <div className="text-sm text-gray-500">
+                                                        {historyT("noTags")}
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>
 
                                         {/* Right column: Characteristics */}
                                         <div>
-                                            <h3 className="text-sm font-medium mb-3">Characteristics</h3>
+                                            <h3 className="text-sm font-medium mb-3">
+                                                {historyT("characteristics")}
+                                            </h3>
                                             {parseCharacteristics(record.Characteristics).length > 0 ? (
                                                 <div className="grid grid-cols-2 gap-2">
                                                     {parseCharacteristics(record.Characteristics).map(
@@ -430,7 +470,9 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                     )}
                                                 </div>
                                             ) : (
-                                                <div className="text-sm text-gray-500">No characteristics</div>
+                                                <div className="text-sm text-gray-500">
+                                                    {historyT("noCharacteristics")}
+                                                </div>
                                             )}
                                         </div>
                                     </div>

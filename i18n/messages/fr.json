@@ -366,7 +366,8 @@
         "refresh": "Rafraîchir",
         "lastXDays": "{days} derniers jours",
         "dateRange": "Plage de dates",
-        "selectDateRange": "Sélectionner une plage de dates"
+        "selectDateRange": "Sélectionner une plage de dates",
+        "filter": "Filtrer"
     },
     "Logs": {
         "label": {
@@ -437,5 +438,21 @@
 
         "entity_update": "Entité {name} mise à jour",
         "entity_disable": "Entité {name} désactivée"
+    },
+    "MaterialHistory": {
+        "failedToLoad": "Échec du chargement de l'historique du matériel",
+        "validationError": "Échec du chargement de l'historique du matériel : erreur de validation",
+        "serverError": "Échec du chargement de l'historique du matériel : erreur serveur",
+        "noData": "Échec du chargement de l'historique du matériel : aucune donnée retournée",
+        "recordFor": "Enregistrement pour",
+        "detailsAndTags": "Détails & Tags",
+        "characteristics": "Caractéristiques",
+        "name": "Nom",
+        "description": "Description",
+        "createdAt": "Créé le",
+        "tags": "Tags",
+        "noTags": "Aucun tag",
+        "noCharacteristics": "Aucune caractéristique",
+        "na": "N/A"
     }
 }

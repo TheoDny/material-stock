@@ -362,7 +362,8 @@
         "refresh": "Refresh",
         "lastXDays": "Last {days} days",
         "dateRange": "Date Range",
-        "selectDateRange": "Select date range"
+        "selectDateRange": "Select date range",
+        "filter": "Filter"
     },
     "Logs": {
         "label": {
@@ -433,5 +434,21 @@
 
         "entity_update": "Entity {name} updated",
         "entity_disable": "Entity {name} disabled"
+    },
+    "MaterialHistory": {
+        "failedToLoad": "Failed to load material history",
+        "validationError": "Failed to load material history: validation error",
+        "serverError": "Failed to load material history: server error",
+        "noData": "Failed to load material history: no data returned",
+        "recordFor": "Record for",
+        "detailsAndTags": "Details & Tags",
+        "characteristics": "Characteristics",
+        "name": "Name",
+        "description": "Description",
+        "createdAt": "Created at",
+        "tags": "Tags",
+        "noTags": "No tags",
+        "noCharacteristics": "No characteristics",
+        "na": "N/A"
     }
 }
