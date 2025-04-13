@@ -231,7 +231,9 @@
                 "createSuccess": "Caractéristique créée avec succès",
                 "updateSuccess": "Caractéristique mise à jour avec succès",
                 "createError": "Échec de la création de la caractéristique",
-                "updateError": "Échec de la mise à jour de la caractéristique"
+                "updateError": "Échec de la mise à jour de la caractéristique",
+                "cannotDeleteUsed": "Impossible de supprimer une caractéristique utilisée par des matériels",
+                "deleteSuccess": "Caractéristique supprimée avec succès"
             },
             "types": {
                 "text": "Texte",

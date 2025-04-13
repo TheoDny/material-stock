@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { PlusCircle, X } from "lucide-react"
+import { PlusCircle, X, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -29,11 +29,16 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createCharacteristicAction, updateCharacteristicAction } from "@/actions/characteritic-actions"
+import {
+    createCharacteristicAction,
+    updateCharacteristicAction,
+    deleteCharacteristicAction,
+} from "@/actions/characteritic-actions"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { CharacteristicType } from "@prisma/client"
 import { getTypeColor } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const characteristicTypes: CharacteristicType[] = [
     "checkbox",
@@ -70,12 +75,11 @@ type UpdateCharacteristicFormValues = z.infer<typeof updateCharacteristicSchema>
 
 interface CharacteristicDialogProps {
     open: boolean
-    onOpenChange: (open: boolean) => void
     characteristic: CharacteristicAndCountMaterial | null
-    onClose: (success: boolean) => void
+    onClose: (refreshData: boolean) => void
 }
 
-export function CharacteristicDialog({ open, onOpenChange, characteristic, onClose }: CharacteristicDialogProps) {
+export function CharacteristicDialog({ open, characteristic, onClose }: CharacteristicDialogProps) {
     const t = useTranslations("Configuration.characteristics.dialog")
     const tCommon = useTranslations("Common")
     const tTypes = useTranslations("Configuration.characteristics.types")
@@ -85,6 +89,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     const [newOption, setNewOption] = useState("")
 
     const isEditing = !!characteristic
+    const canDelete = isEditing && characteristic?._count?.Materials === 0
 
     const createForm = useForm<CreateCharacteristicFormValues>({
         resolver: zodResolver(createCharacteristicSchema),
@@ -135,12 +140,11 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
         }
     }, [optionItems, createForm, isEditing])
 
-    const handleClose = () => {
+    const handleClose = (refreshData: boolean = false) => {
         form.reset()
         setOptionItems([])
         setNewOption("")
-        onOpenChange(false)
-        onClose(false)
+        onClose(refreshData)
     }
 
     const addOption = () => {
@@ -174,11 +178,26 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
             if (isEditing && characteristic) {
                 // Update existing characteristic
                 const updateValues = values as UpdateCharacteristicFormValues
-                await updateCharacteristicAction({
+                const result = await updateCharacteristicAction({
                     id: characteristic.id,
                     name: updateValues.name,
                     description: updateValues.description || "",
                 })
+
+                if (result?.bindArgsValidationErrors) {
+                    console.error(result?.bindArgsValidationErrors)
+                    return toast.error("Failed to update characteristic")
+                } else if (result?.serverError) {
+                    console.error(result?.serverError)
+                    return toast.error("Failed to update characteristic")
+                } else if (result?.validationErrors) {
+                    console.error(result?.validationErrors)
+                    return toast.error("Failed to update characteristic")
+                } else if (!result?.data) {
+                    console.error("No data returned")
+                    return toast.error("Failed to update characteristic")
+                }
+
                 toast.success(t("updateSuccess"))
             } else {
                 // Create new characteristic
@@ -204,17 +223,37 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                 toast.success(t("createSuccess"))
             }
 
-            form.reset()
-            setOptionItems([])
-            setNewOption("")
-            onOpenChange(false)
-            onClose(true)
+            handleClose(true)
         } catch (error) {
             console.error(error)
             toast.error(isEditing ? t("updateError") : t("createError"))
         } finally {
             setIsSubmitting(false)
         }
+    }
+
+    const handleDelete = async () => {
+        if (!characteristic || !canDelete) return
+
+        const result = await deleteCharacteristicAction({
+            id: characteristic.id,
+        })
+
+        if (result?.bindArgsValidationErrors) {
+            console.error(result?.bindArgsValidationErrors)
+            return toast.error("Failed to delete characteristic")
+        } else if (result?.serverError) {
+            console.error(result?.serverError)
+            return toast.error("Failed to delete characteristic")
+        } else if (result?.validationErrors) {
+            console.error(result?.validationErrors)
+            return toast.error("Failed to delete characteristic")
+        } else if (!result?.data) {
+            console.error("No data returned")
+            return toast.error("Failed to delete characteristic")
+        }
+        toast.success(t("deleteSuccess"))
+        handleClose(true)
     }
 
     const selectedType = createForm.watch("type")
@@ -240,7 +279,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     return (
         <Dialog
             open={open}
-            onOpenChange={onOpenChange}
+            onOpenChange={handleClose}
         >
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
@@ -333,20 +372,45 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                 </div>
                             )}
 
-                            <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={handleClose}
-                                >
-                                    {tCommon("cancel")}
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? tCommon("saving") : tCommon("update")}
-                                </Button>
+                            <DialogFooter className="flex !justify-between">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    onClick={handleDelete}
+                                                    disabled={!canDelete}
+                                                    className="gap-2 text-destructive"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    {tCommon("delete")}
+                                                </Button>
+                                            </div>
+                                        </TooltipTrigger>
+                                        {!canDelete && characteristic?._count?.Materials > 0 && (
+                                            <TooltipContent>
+                                                <p>{t("cannotDeleteUsed")}</p>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => handleClose()}
+                                    >
+                                        {tCommon("cancel")}
+                                    </Button>
+                                    <Button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                    >
+                                        {isSubmitting ? tCommon("saving") : tCommon("update")}
+                                    </Button>
+                                </div>
                             </DialogFooter>
                         </form>
                     </Form>
@@ -515,7 +579,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={handleClose}
+                                    onClick={() => handleClose()}
                                 >
                                     {tCommon("cancel")}
                                 </Button>

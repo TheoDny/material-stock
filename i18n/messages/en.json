@@ -227,7 +227,9 @@
                 "createSuccess": "Characteristic created successfully",
                 "updateSuccess": "Characteristic updated successfully",
                 "createError": "Failed to create characteristic",
-                "updateError": "Failed to update characteristic"
+                "updateError": "Failed to update characteristic",
+                "cannotDeleteUsed": "Cannot delete characteristic used in materials",
+                "deleteSuccess": "Characteristic deleted successfully"
             },
             "types": {
                 "text": "Text",

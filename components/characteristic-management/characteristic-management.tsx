@@ -87,10 +87,9 @@ export function CharacteristicManagement() {
         setIsDialogOpen(true)
     }
 
-    const handleCharacteristicDialogClose = (success: boolean) => {
+    const handleCharacteristicDialogClose = (refreshData: boolean) => {
         setIsDialogOpen(false)
-
-        if (success) {
+        if (refreshData) {
             loadCharacteristics()
         }
     }
@@ -182,7 +181,6 @@ export function CharacteristicManagement() {
 
             <CharacteristicDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
                 characteristic={editingCharacteristic}
                 onClose={handleCharacteristicDialogClose}
             />

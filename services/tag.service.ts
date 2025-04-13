@@ -79,7 +79,7 @@ export async function updateTag(id: string, entityId: string, data: TagUpdateDat
         })
 
         // If the name has changed, generate history for all active materials using this tag
-        if (data.name && data.name !== existingTag.name && existingTag.Materials.length > 0) {
+        if (data.name !== existingTag.name && existingTag.Materials.length > 0) {
             existingTag.Materials.forEach((material) => {
                 // No need to await, we can generate histories in the background
                 createMaterialHistory(material.id)

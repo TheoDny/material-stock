@@ -4,11 +4,20 @@ import { z } from "zod"
 import { actionClient } from "@/lib/safe-action"
 import { CharacteristicType } from "@prisma/client"
 import { checkAuth } from "@/lib/auth-guard"
-import { getCharacteristics, createCharacteristic, updateCharacteristic } from "@/services/characteristic.service"
+import {
+    getCharacteristics,
+    createCharacteristic,
+    updateCharacteristic,
+    deleteCharacteristic,
+} from "@/services/characteristic.service"
 
 // Schema for creating a characteristic
 const createCharacteristicSchema = z.object({
-    name: z.string().trim().min(2, "Name must be at least 2 characters").max(64, "Name must be at most 64 characters"),
+    name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
     type: z.nativeEnum(CharacteristicType, {
         errorMap: () => ({ message: "Invalid characteristic type" }),
@@ -19,13 +28,17 @@ const createCharacteristicSchema = z.object({
 
 // Schema for updating a characteristic
 const updateCharacteristicSchema = z.object({
-    id: z.string().trim(),
+    id: z.string(),
     name: z
         .string()
         .trim()
         .min(2, "Name must be at least 2 characters")
         .max(64, "Name must be at most 64 characters"),
     description: z.string().trim().max(255, "Description must be at most 255 characters"),
+})
+
+const deleteCharacteristicSchema = z.object({
+    id: z.string(),
 })
 
 // Get all characteristics
@@ -46,7 +59,7 @@ export const createCharacteristicAction = actionClient
     .schema(createCharacteristicSchema)
     .action(async ({ parsedInput }) => {
         try {
-            const session = await checkAuth({ requiredPermission: "tag_create" })
+            const session = await checkAuth({ requiredPermission: "charac_create" })
 
             const { name, description, type, options, units } = parsedInput
 
@@ -71,7 +84,7 @@ export const updateCharacteristicAction = actionClient
     .schema(updateCharacteristicSchema)
     .action(async ({ parsedInput }) => {
         try {
-            const session = await checkAuth({ requiredPermission: "tag_edit" })
+            const session = await checkAuth({ requiredPermission: "charac_edit" })
 
             const { id, name, description } = parsedInput
 
@@ -82,5 +95,20 @@ export const updateCharacteristicAction = actionClient
         } catch (error) {
             console.error("Failed to update characteristic:", error)
             throw new Error("Failed to update characteristic")
+        }
+    })
+
+export const deleteCharacteristicAction = actionClient
+    .schema(deleteCharacteristicSchema)
+    .action(async ({ parsedInput }) => {
+        try {
+            const session = await checkAuth({ requiredPermission: "charac_create" })
+
+            const { id } = parsedInput
+
+            return await deleteCharacteristic(id, session.user.entitySelectedId)
+        } catch (error) {
+            console.error("Failed to delete characteristic:", error)
+            throw new Error("Failed to delete characteristic")
         }
     })
