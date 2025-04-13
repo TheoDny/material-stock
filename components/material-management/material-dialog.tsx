@@ -52,12 +52,11 @@ type MaterialFormValues = z.infer<typeof materialSchema>
 
 interface MaterialDialogProps {
     open: boolean
-    onOpenChange: (open: boolean) => void
     material: MaterialWithTag | null
-    onClose: (success: boolean) => void
+    onClose: (refreshData: boolean) => void
 }
 
-export function MaterialDialog({ open, onOpenChange, material, onClose }: MaterialDialogProps) {
+export function MaterialDialog({ open, material, onClose }: MaterialDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [tags, setTags] = useState<Tag[]>([])
     const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
@@ -122,7 +121,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const tagsData = await getTagsAction()
             setTags(tagsData)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load tags")
         }
     }
@@ -132,7 +131,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const characteristicsData = await getCharacteristicsAction()
             setCharacteristics(characteristicsData)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load characteristics")
         }
     }
@@ -142,21 +141,19 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
             const values = await getMaterialCharacteristicsAction(materialId)
             setCharacteristicValues(values)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load material characteristics")
         }
     }
 
-    const handleClose = () => {
+    const handleClose = (refreshData: boolean = false) => {
         form.reset()
         setActiveTab("general")
-        onOpenChange(false)
-        onClose(false)
+        onClose(refreshData)
     }
 
     const onSubmit = async (values: MaterialFormValues) => {
         setIsSubmitting(true)
-
         try {
             if (isEditing && material) {
                 // Update existing material
@@ -209,12 +206,9 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                 toast.success("Material created successfully")
             }
 
-            form.reset()
-            setActiveTab("general")
-            onOpenChange(false)
-            onClose(true)
+            handleClose(true)
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error(isEditing ? "Failed to update material" : "Failed to create material")
         } finally {
             setIsSubmitting(false)
@@ -335,7 +329,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
     return (
         <Dialog
             open={open}
-            onOpenChange={onOpenChange}
+            onOpenChange={handleClose}
         >
             <DialogContent
                 className="sm:max-w-[700px] max-h-[80vh] flex flex-col top-[10%] translate-y-0"
@@ -558,7 +552,7 @@ export function MaterialDialog({ open, onOpenChange, material, onClose }: Materi
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={handleClose}
+                                    onClick={() => handleClose()}
                                 >
                                     Cancel
                                 </Button>

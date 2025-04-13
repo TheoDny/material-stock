@@ -96,10 +96,10 @@ export function MaterialManagement() {
         router.push(`/materials/history/${materialId}`)
     }
 
-    const handleMaterialDialogClose = (success: boolean) => {
+    const handleMaterialDialogClose = (refreshData: boolean) => {
         setIsDialogOpen(false)
 
-        if (success) {
+        if (refreshData) {
             loadMaterials()
         }
     }
@@ -212,7 +212,6 @@ export function MaterialManagement() {
 
             <MaterialDialog
                 open={isDialogOpen}
-                onOpenChange={setIsDialogOpen}
                 material={editingMaterial}
                 onClose={handleMaterialDialogClose}
             />
