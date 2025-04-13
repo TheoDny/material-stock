@@ -30,6 +30,20 @@ export async function getMaterials(entityId: string) {
     }
 }
 
+// Get material by ID
+export async function getMaterialById(id: string) {
+    try {
+        const material = await prisma.material.findUnique({
+            where: { id },
+        })
+
+        return material
+    } catch (error) {
+        console.error("Failed to fetch material:", error)
+        throw new Error("Failed to fetch material")
+    }
+}
+
 // Get material characteristics
 export async function getMaterialCharacteristics(materialId: string) {
     try {

@@ -79,3 +79,26 @@ const buildCharacteristicsJson = (
 
     return characteristicsJson
 }
+
+// Get material history
+export async function getMaterialHistory(materialId: string, dateFrom: Date, dateTo: Date) {
+    try {
+        const history = await prisma.material_History.findMany({
+            where: {
+                materialId,
+                createdAt: {
+                    gte: dateFrom,
+                    lte: dateTo,
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        })
+
+        return history
+    } catch (error) {
+        console.error("Failed to fetch material history:", error)
+        throw new Error("Failed to fetch material history")
+    }
+}

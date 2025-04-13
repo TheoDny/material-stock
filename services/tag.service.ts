@@ -124,10 +124,8 @@ export async function deleteTag(id: string, entityId: string) {
 
         // Add log
         // No need to await, we can log in the background
-        addTagDeleteLog({ id, name: tag.name }, entityId).catch((error) =>
-            console.error("Failed to add tag delete log:", error),
-        )
-
+        addTagDeleteLog({ id, name: tag.name }, entityId)
+        
         revalidatePath("/configuration/tags")
         return tag
     } catch (error) {

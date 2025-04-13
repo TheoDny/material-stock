@@ -8,6 +8,7 @@ import {
     getMaterialCharacteristics,
     createMaterial,
     updateMaterial,
+    getMaterialById,
 } from "@/services/material.service"
 
 // Schema for creating a material
@@ -43,6 +44,10 @@ const updateMaterialSchema = z.object({
         .default([]),
 })
 
+const getMaterialSchema = z.object({
+    id: z.string(),
+})
+
 // Get all materials with their tags and characteristic count
 export async function getMaterialsAction() {
     try {
@@ -55,6 +60,18 @@ export async function getMaterialsAction() {
         throw new Error("Failed to fetch materials")
     }
 }
+
+export const getMaterialAction = actionClient.schema(getMaterialSchema).action(async ({ parsedInput }) => {
+    try {
+        // Basic auth check
+        await checkAuth()
+
+        return await getMaterialById(parsedInput.id)
+    } catch (error) {
+        console.error("Failed to fetch material:", error)
+        throw new Error("Failed to fetch material")
+    }
+})
 
 // Get material characteristics
 export async function getMaterialCharacteristicsAction(materialId: string) {

@@ -6,8 +6,8 @@ import { ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MaterialHistoryView } from "@/components/material-management/material-history-view"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getMaterialByIdAction } from "@/actions/material-history-actions"
 import { getTranslations } from "next-intl/server"
+import { getMaterialById } from "@/services/material.service"
 
 interface MaterialHistoryPageProps {
     params: Promise<{
@@ -20,9 +20,11 @@ export default async function MaterialHistoryPage({ params }: MaterialHistoryPag
     const resolvedParams = await params
     const materialId = resolvedParams.id
 
-    const material = await getMaterialByIdAction(materialId)
-    const t = await getTranslations("Materials.history")
-    const tCommon = await getTranslations("Common")
+    const [material, t, tCommon] = await Promise.all([
+        getMaterialById(materialId),
+        getTranslations("Materials.history"),
+        getTranslations("Common"),
+    ])
 
     if (!material) {
         notFound()
