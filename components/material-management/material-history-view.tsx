@@ -11,7 +11,7 @@ import { getMaterialHistoryAction } from "@/actions/material-history-actions"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Check, X } from "lucide-react"
+import { Check, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 import { isEmpty } from "@/lib/utils"
 import { DatePickerRange } from "@/components/ui/date-picker-range"
 import { Button } from "@/components/ui/button"
@@ -109,6 +109,9 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
         from: addMonths(new Date(), -1),
         to: new Date(),
     })
+    const [currentPage, setCurrentPage] = useState(1)
+    const [totalPages, setTotalPages] = useState(1)
+    const itemsPerPage = 10
 
     useEffect(() => {
         loadHistory()
@@ -141,6 +144,8 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                 toast.error("Failed to load material history: no data returned")
             } else {
                 setHistory(result.data)
+                setTotalPages(Math.ceil(result.data.length / itemsPerPage))
+                setCurrentPage(1) // Reset to first page when new data is loaded
             }
         } catch (error) {
             console.error(error)
@@ -148,6 +153,33 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
         } finally {
             setLoading(false)
         }
+    }
+
+    // Get current page items
+    const getCurrentPageItems = () => {
+        const startIndex = (currentPage - 1) * itemsPerPage
+        const endIndex = startIndex + itemsPerPage
+        return history.slice(startIndex, endIndex)
+    }
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages) {
+            setCurrentPage((current) => current + 1)
+        }
+    }
+
+    const goToPreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((current) => current - 1)
+        }
+    }
+
+    const goToFirstPage = () => {
+        setCurrentPage(1)
+    }
+
+    const goToLastPage = () => {
+        setCurrentPage(totalPages)
     }
 
     return (
@@ -179,7 +211,58 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                 {loading ? (
                     <div className="text-center py-8">Loading history...</div>
                 ) : (
-                    <MaterialHistoryDisplay history={history} />
+                    <>
+                        <MaterialHistoryDisplay history={getCurrentPageItems()} />
+
+                        {/* Pagination controls */}
+                        {history.length > 0 && (
+                            <div className="flex justify-between items-center mt-4">
+                                <div className="text-sm text-muted-foreground">
+                                    {history.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}
+                                    {" - "}
+                                    {Math.min(currentPage * itemsPerPage, history.length)}{" "}
+                                    {" -- (" + history.length + ")"}
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={goToFirstPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <ChevronsLeft className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={goToPreviousPage}
+                                        disabled={currentPage === 1}
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Button>
+                                    <span className="text-sm">
+                                        {currentPage} / {totalPages}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={goToNextPage}
+                                        disabled={currentPage >= totalPages}
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={goToLastPage}
+                                        disabled={currentPage >= totalPages}
+                                    >
+                                        <ChevronsRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </CardContent>
         </Card>
