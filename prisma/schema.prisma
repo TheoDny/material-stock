@@ -223,6 +223,7 @@ model Material {
     Tags                          Tag[]
     Characteristics               Characteristic[]
     order_Material_Characteristic String[]
+    deletedAt                     DateTime?
 
     Entity                   Entity                    @relation(fields: [entityId], references: [id])
     entityId                 String

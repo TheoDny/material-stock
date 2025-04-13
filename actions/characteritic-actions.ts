@@ -20,6 +20,11 @@ const createCharacteristicSchema = z.object({
 // Schema for updating a characteristic
 const updateCharacteristicSchema = z.object({
     id: z.string().trim(),
+    name: z
+        .string()
+        .trim()
+        .min(2, "Name must be at least 2 characters")
+        .max(64, "Name must be at most 64 characters"),
     description: z.string().trim().max(255, "Description must be at most 255 characters"),
 })
 
@@ -68,9 +73,10 @@ export const updateCharacteristicAction = actionClient
         try {
             const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-            const { id, description } = parsedInput
+            const { id, name, description } = parsedInput
 
             return await updateCharacteristic(id, session.user.entitySelectedId, {
+                name,
                 description,
             })
         } catch (error) {

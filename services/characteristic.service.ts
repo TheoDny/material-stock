@@ -6,6 +6,7 @@ import {
     addCharacteristicUpdateLog,
     addCharacteristicDeleteLog,
 } from "@/services/log.service"
+import { createMaterialHistory } from "@/services/material-history.service"
 
 type CharacteristicCreateData = {
     name: string
@@ -14,6 +15,11 @@ type CharacteristicCreateData = {
     options: any
     units: string | null
     entityId: string
+}
+
+type CharacteristicUpdateData = {
+    name: string
+    description: string
 }
 
 // Get all characteristics with material count
@@ -72,11 +78,21 @@ export async function createCharacteristic(data: CharacteristicCreateData) {
 }
 
 // Update an existing characteristic
-export async function updateCharacteristic(id: string, entityId: string, param: { description: string }) {
+export async function updateCharacteristic(id: string, entityId: string, param: CharacteristicUpdateData) {
     try {
         // First get the characteristic to access its name
         const existingCharacteristic = await prisma.characteristic.findUnique({
             where: { id },
+            include: {
+                Materials: {
+                    where: {
+                        deletedAt: null,
+                    },
+                    select: {
+                        id: true,
+                    },
+                },
+            },
         })
 
         if (!existingCharacteristic) {
@@ -89,12 +105,21 @@ export async function updateCharacteristic(id: string, entityId: string, param: 
                 entityId,
             },
             data: {
+                name: param.name,
                 description: param.description,
             },
         })
 
+        // Generate material history for all active materials using this characteristic
+        if (existingCharacteristic.Materials.length > 0) {
+            existingCharacteristic.Materials.forEach((material) => {
+                // No need to await, we can generate histories in the background
+                createMaterialHistory(material.id)
+            })
+        }
+
         // Add log
-        addCharacteristicUpdateLog({ id, name: existingCharacteristic.name }, entityId)
+        addCharacteristicUpdateLog({ id, name: characteristic.name }, entityId)
 
         revalidatePath("/configuration/characteristics")
         return {

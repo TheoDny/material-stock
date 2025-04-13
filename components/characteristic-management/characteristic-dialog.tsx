@@ -61,6 +61,7 @@ const createCharacteristicSchema = z.object({
 })
 
 const updateCharacteristicSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
     description: z.string().optional(),
 })
 
@@ -99,6 +100,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     const updateForm = useForm<UpdateCharacteristicFormValues>({
         resolver: zodResolver(updateCharacteristicSchema),
         defaultValues: {
+            name: characteristic?.name || "",
             description: characteristic?.description || "",
         },
     })
@@ -108,6 +110,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     useEffect(() => {
         if (open && characteristic) {
             updateForm.reset({
+                name: characteristic.name,
                 description: characteristic.description,
             })
         } else if (open && !characteristic) {
@@ -173,6 +176,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                 const updateValues = values as UpdateCharacteristicFormValues
                 await updateCharacteristicAction({
                     id: characteristic.id,
+                    name: updateValues.name,
                     description: updateValues.description || "",
                 })
                 toast.success(t("updateSuccess"))
@@ -251,6 +255,23 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                             onSubmit={updateForm.handleSubmit(onSubmit)}
                             className="space-y-4"
                         >
+                            <FormField
+                                control={updateForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("name")}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder={t("namePlaceholder")}
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={updateForm.control}
                                 name="description"
