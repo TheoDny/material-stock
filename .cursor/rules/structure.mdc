@@ -3,22 +3,22 @@ description:
 globs: 
 alwaysApply: true
 ---
-# 📌 Conventions & Structure de Fichiers
+# 📌 Conventions & File Structure
 
-> Utilisation avec `checkAuth` ([auth-guard.ts](mdc:lib/auth-guard.ts)), `zod`, Prisma et `next-safe-action` dans une app Next.js 15 avec App Router et TypeScript.
+> Usage with `checkAuth` ([auth-guard.ts](mdc:lib/auth-guard.ts)), `zod`, Prisma and `next-safe-action` in a Next.js 15 app with App Router and TypeScript.
 
 ---
 
-## ✅ Règles Générales
+## ✅ General Rules
 
 ### 📁 `/actions`
-- **Nom :** `[domain].actions.ts`
-- **Responsabilité :** Actions sécurisées, typées et validées.
-- **Importe toujours :**
-  - `actionClient` depuis `/lib/safe-action`
-  - `checkAuth` depuis `/lib/auth-guard`
-  - Schéma `zod`
-- **Utile :** La liste des permissions se trouve dans [permission.ts](mdc:prisma/permission.ts)
+- **Name:** `[domain].actions.ts`
+- **Responsibility:** Secure, typed, and validated actions.
+- **Always imports:**
+  - `actionClient` from `/lib/safe-action`
+  - `checkAuth` from `/lib/auth-guard`
+  - `zod` schema
+- **Useful:** The list of permissions can be found in [permission.ts](mdc:prisma/permission.ts)
 
 ```ts
 "use server"
@@ -46,10 +46,10 @@ export const createSomethingAction = actionClient
 ```
 
 ### 📁 `/services`
-- **Nom :** `[domain].services.ts`
-- **Responsabilité :** Fonction utilisé côtés serveur et communication avec la base de données
-- **Importe toujours :**
-  - `prisma` depuis `/lib/prisma`
+- **Name:** `[domain].services.ts`
+- **Responsibility:** Functions used on the server side and communication with the database
+- **Always imports:**
+  - `prisma` from `/lib/prisma`
 
 ```ts
 import { prisma } from "@/lib/prisma"
@@ -60,11 +60,11 @@ type SomethingCreateData = {
   description: string
 }
 
-export async function createSomething(entityId: stribg, data: SomethingCreateData): Promise<Something> {
+export async function createSomething(entityId: string, data: SomethingCreateData): Promise<Something> {
   return await prisma.something.create({
     data: {
       name: data.name,
-      description: date.description
+      description: data.description,
       entityId: entityId,
     },
   })
@@ -73,14 +73,14 @@ export async function createSomething(entityId: stribg, data: SomethingCreateDat
 
 ### 📁 `/services`
 ## Server Component
-- Can call directly to the fucntion from the services
+- Can call directly to the functions from the services
 
 ## Client Component
-- If needed can call the function from the actions 
-- Never call directly function from the services
+- If needed can call the functions from the actions 
+- Never call directly functions from the services
 
 # Handling server action result
-- you should usualy call the server action like the example under
+- You should usually call the server action like the example below
   
 ```ts
 const result = await createMaterialAction({
@@ -104,4 +104,3 @@ if (result?.bindArgsValidationErrors) {
 
 toast.success("Something created successfully")
 ```
-
