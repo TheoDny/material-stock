@@ -200,6 +200,12 @@
                 "descriptionPlaceholder": "Characteristic description",
                 "selectType": "Select a type",
                 "optionsPlaceholder": "Option 1, Option 2, Option 3",
+                "addOptionPlaceholder": "Enter a new option",
+                "currentOptions": "Current options",
+                "removeOption": "Remove option",
+                "optionAlreadyExists": "This option already exists",
+                "optionsRequired": "You must define at least one option",
+                "atLeastTwoOptions": "At least two options are required",
                 "unitPlaceholder": "e.g. kg, cm, etc.",
                 "nameCannotBeChanged": "Name cannot be changed after creation",
                 "typeCannotBeChanged": "Type cannot be changed after creation",
@@ -337,7 +343,8 @@
         "endDate": "End Date",
         "refresh": "Refresh",
         "lastXDays": "Last {days} days",
-        "dateRange": "Date Range"
+        "dateRange": "Date Range",
+        "selectDateRange": "Select date range"
     },
     "Logs": {
         "label": {

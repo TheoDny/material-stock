@@ -204,6 +204,12 @@
                 "descriptionPlaceholder": "Description de la caractéristique",
                 "selectType": "Sélectionner un type",
                 "optionsPlaceholder": "Option 1, Option 2, Option 3",
+                "addOptionPlaceholder": "Saisir une nouvelle option",
+                "currentOptions": "Options actuelles",
+                "removeOption": "Supprimer l'option",
+                "optionAlreadyExists": "Cette option existe déjà",
+                "optionsRequired": "Vous devez définir au moins une option",
+                "atLeastTwoOptions": "Au moins deux options sont nécessaires",
                 "unitPlaceholder": "ex: kg, cm, etc.",
                 "nameCannotBeChanged": "Le nom ne peut pas être modifié après la création",
                 "typeCannotBeChanged": "Le type ne peut pas être modifié après la création",
@@ -341,7 +347,8 @@
         "endDate": "Date de fin",
         "refresh": "Rafraîchir",
         "lastXDays": "{days} derniers jours",
-        "dateRange": "Plage de dates"
+        "dateRange": "Plage de dates",
+        "selectDateRange": "Sélectionner une plage de dates"
     },
     "Logs": {
         "label": {

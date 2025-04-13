@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { PlusCircle, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -79,6 +80,8 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
     const tTypes = useTranslations("Configuration.characteristics.types")
 
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [optionItems, setOptionItems] = useState<string[]>([])
+    const [newOption, setNewOption] = useState("")
 
     const isEditing = !!characteristic
 
@@ -115,13 +118,50 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                 options: "",
                 units: "",
             })
+            setOptionItems([])
+            setNewOption("")
         }
     }, [open, characteristic, updateForm, createForm])
 
+    // Mettre à jour le champ caché du formulaire quand les options changent
+    useEffect(() => {
+        if (!isEditing && optionItems.length > 0) {
+            createForm.setValue("options", optionItems.join(","))
+        } else if (!isEditing) {
+            createForm.setValue("options", "")
+        }
+    }, [optionItems, createForm, isEditing])
+
     const handleClose = () => {
         form.reset()
+        setOptionItems([])
+        setNewOption("")
         onOpenChange(false)
         onClose(false)
+    }
+
+    const addOption = () => {
+        if (!newOption.trim()) return
+
+        if (!optionItems.includes(newOption.trim())) {
+            setOptionItems([...optionItems, newOption.trim()])
+            setNewOption("")
+        } else {
+            toast.error(t("optionAlreadyExists"))
+        }
+    }
+
+    const removeOption = (index: number) => {
+        const newOptions = [...optionItems]
+        newOptions.splice(index, 1)
+        setOptionItems(newOptions)
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault()
+            addOption()
+        }
     }
 
     const onSubmit = async (values: CreateCharacteristicFormValues | UpdateCharacteristicFormValues) => {
@@ -139,21 +179,30 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
             } else {
                 // Create new characteristic
                 const createValues = values as CreateCharacteristicFormValues
-                const options = createValues.options
-                    ? createValues.options.split(",").map((option) => option.trim())
-                    : null
+
+                // Vérifier que les options sont définies si nécessaires
+                const selectedType = createValues.type
+                const needsOptions = ["select", "radio", "multiSelect", "checkbox"].includes(selectedType)
+
+                if (needsOptions && optionItems.length === 0) {
+                    toast.error(t("optionsRequired"))
+                    setIsSubmitting(false)
+                    return
+                }
 
                 await createCharacteristicAction({
                     name: createValues.name,
                     description: createValues.description || "",
                     type: createValues.type,
-                    options,
+                    options: optionItems.length > 0 ? optionItems : null,
                     units: createValues.units || null,
                 })
                 toast.success(t("createSuccess"))
             }
 
             form.reset()
+            setOptionItems([])
+            setNewOption("")
             onOpenChange(false)
             onClose(true)
         } catch (error) {
@@ -177,9 +226,7 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                 <DialogHeader>
                     <DialogTitle>{isEditing ? t("edit") : t("create")}</DialogTitle>
                     <DialogDescription>
-                        {isEditing
-                            ? t("editDescription")
-                            : t("createDescription")}
+                        {isEditing ? t("editDescription") : t("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
                 {isEditing ? (
@@ -211,7 +258,10 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                                     <div className="flex items-center space-x-2">
                                         <div className="font-medium">{t("type")}:</div>
                                         <Badge className={getTypeColor(characteristic.type)}>
-                                            {tTypes[characteristic.type as keyof typeof tTypes] || characteristic.type}
+                                            {String(
+                                                tTypes[characteristic.type as keyof typeof tTypes] ||
+                                                    characteristic.type,
+                                            )}
                                         </Badge>
                                     </div>
 
@@ -255,142 +305,181 @@ export function CharacteristicDialog({ open, onOpenChange, characteristic, onClo
                 ) : (
                     <Form {...createForm}>
                         <form
-                                onSubmit={createForm.handleSubmit(onSubmit)}
-                                className="space-y-4"
-                            >
-                                <FormField
-                                    control={createForm.control}
-                                    name="name"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>{t("name")}</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    placeholder={t("namePlaceholder")}
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                            <FormDescription>
-                                                {t("nameCannotBeChanged")}
-                                            </FormDescription>
-                                        </FormItem>
-                                    )}
-                                />
+                            onSubmit={createForm.handleSubmit(onSubmit)}
+                            className="space-y-4"
+                        >
+                            <FormField
+                                control={createForm.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("name")}</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                placeholder={t("namePlaceholder")}
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                        <FormDescription>{t("nameCannotBeChanged")}</FormDescription>
+                                    </FormItem>
+                                )}
+                            />
 
-                                <FormField
-                                    control={createForm.control}
-                                    name="type"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>{t("type")}</FormLabel>
-                                            <Select
-                                                onValueChange={field.onChange}
-                                                defaultValue={field.value}
-                                            >
-                                                <FormControl>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder={t("selectType")} />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {characteristicTypes.map((type) => (
-                                                        <SelectItem
-                                                            key={type}
-                                                            value={type}
-                                                        >
-                                                        {tTypes[type as keyof typeof tTypes] || type}
+                            <FormField
+                                control={createForm.control}
+                                name="type"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("type")}</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value)
+                                                // Réinitialiser les options si on change pour un type qui n'en a pas besoin
+                                                if (
+                                                    !["select", "radio", "multiSelect", "checkbox"].includes(value)
+                                                ) {
+                                                    setOptionItems([])
+                                                    createForm.setValue("options", "")
+                                                }
+                                            }}
+                                            defaultValue={field.value}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={t("selectType")} />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {characteristicTypes.map((type) => (
+                                                    <SelectItem
+                                                        key={type}
+                                                        value={type}
+                                                    >
+                                                        {String(tTypes[type as keyof typeof tTypes] || type)}
                                                     </SelectItem>
                                                 ))}
-                                                </SelectContent>
-                                            </Select>
-                                            <FormMessage />
-                                            <FormDescription>
-                                                {t("typeCannotBeChanged")}
-                                            </FormDescription>
-                                        </FormItem>
-                                    )}
-                                />
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                        <FormDescription>{t("typeCannotBeChanged")}</FormDescription>
+                                    </FormItem>
+                                )}
+                            />
 
-                                {needsOptions && (
+                            {needsOptions && (
+                                <div className="space-y-2">
                                     <FormField
                                         control={createForm.control}
                                         name="options"
-                                        render={({ field }) => (
+                                        render={() => (
                                             <FormItem>
                                                 <FormLabel>{t("options")}</FormLabel>
-                                                <FormControl>
+                                                <div className="flex space-x-2">
                                                     <Input
-                                                        placeholder={t("optionsPlaceholder")}
-                                                        {...field}
+                                                        placeholder={t("addOptionPlaceholder")}
+                                                        value={newOption}
+                                                        onChange={(e) => setNewOption(e.target.value)}
+                                                        onKeyDown={handleKeyDown}
                                                     />
-                                                </FormControl>
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        size="icon"
+                                                        onClick={addOption}
+                                                    >
+                                                        <PlusCircle className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
                                                 <FormMessage />
-                                                <FormDescription>
-                                                    {t("optionsCannotBeChanged")}
-                                                </FormDescription>
+                                                <FormDescription>{t("optionsCannotBeChanged")}</FormDescription>
                                             </FormItem>
                                         )}
                                     />
-                                )}
-
-                                {needsUnits && (
-                                    <FormField
-                                        control={createForm.control}
-                                        name="units"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>{t("unit")}</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        placeholder={t("unitPlaceholder")}
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                                <FormDescription>
-                                                    {t("unitCannotBeChanged")}
-                                                </FormDescription>
-                                            </FormItem>
+                                    <div className="bg-muted/40 p-2 rounded-md">
+                                        <p className="text-sm font-medium mb-2">{t("currentOptions")}:</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {optionItems.map((option, index) => (
+                                                <Badge
+                                                    key={index}
+                                                    variant="outline"
+                                                    className="flex items-center gap-1 py-1"
+                                                >
+                                                    {option}
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
+                                                        onClick={() => removeOption(index)}
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                        <span className="sr-only">{t("removeOption")}</span>
+                                                    </Button>
+                                                </Badge>
+                                            ))}
+                                        </div>
+                                        {optionItems.length < 2 && (
+                                            <p className="text-sm text-amber-500 mt-2">{t("atLeastTwoOptions")}</p>
                                         )}
-                                    />
-                                )}
-
+                                    </div>
+                                </div>
+                            )}
+                            {needsUnits && (
                                 <FormField
                                     control={createForm.control}
-                                    name="description"
+                                    name="units"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>{t("description")}</FormLabel>
+                                            <FormLabel>{t("unit")}</FormLabel>
                                             <FormControl>
-                                                <Textarea
-                                                    placeholder={t("descriptionPlaceholder")}
-                                                    className="resize-none"
+                                                <Input
+                                                    placeholder={t("unitPlaceholder")}
                                                     {...field}
                                                 />
                                             </FormControl>
                                             <FormMessage />
+                                            <FormDescription>{t("unitCannotBeChanged")}</FormDescription>
                                         </FormItem>
                                     )}
                                 />
+                            )}
 
-                                <DialogFooter>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={handleClose}
-                                    >
-                                        {tCommon("cancel")}
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                    >
-                                        {isSubmitting ? tCommon("saving") : tCommon("create")}
-                                    </Button>
-                                </DialogFooter>
-                            </form>
-                        </Form>
+                            <FormField
+                                control={createForm.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>{t("description")}</FormLabel>
+                                        <FormControl>
+                                            <Textarea
+                                                placeholder={t("descriptionPlaceholder")}
+                                                className="resize-none"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <DialogFooter>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={handleClose}
+                                >
+                                    {tCommon("cancel")}
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting || (needsOptions && optionItems.length < 2)}
+                                >
+                                    {isSubmitting ? tCommon("saving") : tCommon("create")}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </Form>
                 )}
             </DialogContent>
         </Dialog>
