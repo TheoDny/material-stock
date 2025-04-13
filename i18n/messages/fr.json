@@ -382,6 +382,7 @@
             "role_set_permission": "Attribution de permissions à un rôle",
             "tag_create": "Création d'un tag",
             "tag_update": "Mise à jour d'un tag",
+            "tag_delete": "Suppression d'un tag",
             "characteristic_create": "Création d'une caractéristique",
             "characteristic_update": "Mise à jour d'une caractéristique",
             "characteristic_delete": "Suppression d'une caractéristique",

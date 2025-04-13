@@ -378,6 +378,7 @@
             "role_set_permission": "Permission assignment to a role",
             "tag_create": "Tag creation",
             "tag_update": "Tag update",
+            "tag_delete": "Tag deletion",
             "characteristic_create": "Characteristic creation",
             "characteristic_update": "Characteristic update",
             "characteristic_delete": "Characteristic deletion",

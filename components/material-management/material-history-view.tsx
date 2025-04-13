@@ -13,6 +13,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Check, X } from "lucide-react"
 import { isEmpty } from "@/lib/utils"
+import { DatePickerRange } from "@/components/ui/date-picker-range"
+import { Button } from "@/components/ui/button"
+import { addMonths, startOfDay, endOfDay } from "date-fns"
+import { DateRange } from "react-day-picker"
 
 // Define types for parsed JSON fields
 type Tag = {
@@ -83,7 +87,7 @@ const formatCharacteristicValue = (characteristic: Characteristic) => {
             ) : (
                 <>
                     <X className="text-red-700" />
-                        No
+                    No
                 </>
             )
         case "number":
@@ -101,35 +105,49 @@ const formatCharacteristicValue = (characteristic: Characteristic) => {
 export function MaterialHistoryView({ materialId, materialName }: MaterialHistoryViewProps) {
     const [history, setHistory] = useState<Material_History[]>([])
     const [loading, setLoading] = useState(true)
+    const [dateRange, setDateRange] = useState<DateRange>({
+        from: addMonths(new Date(), -1),
+        to: new Date(),
+    })
 
     useEffect(() => {
         loadHistory()
     }, [materialId])
 
+    const handleSetDateRange = (range: DateRange | undefined) => {
+        if (range) setDateRange(range)
+    }
+
     const loadHistory = async () => {
         try {
             setLoading(true)
-            const historyData = await getMaterialHistoryAction(materialId)
-            setHistory(historyData)
+            const result = await getMaterialHistoryAction({
+                materialId,
+                dateFrom: dateRange.from ? startOfDay(dateRange.from) : addMonths(startOfDay(new Date()), -1),
+                dateTo: dateRange.to ? endOfDay(dateRange.to) : endOfDay(new Date()),
+            })
+
+            if (result?.bindArgsValidationErrors) {
+                console.error(result?.bindArgsValidationErrors)
+                toast.error("Failed to load material history: validation error")
+            } else if (result?.serverError) {
+                console.error(result?.serverError)
+                toast.error("Failed to load material history: server error")
+            } else if (result?.validationErrors) {
+                console.error(result?.validationErrors)
+                toast.error("Failed to load material history: validation error")
+            } else if (!result?.data) {
+                console.error("No data returned")
+                toast.error("Failed to load material history: no data returned")
+            } else {
+                setHistory(result.data)
+            }
         } catch (error) {
-            console.error(error);
+            console.error(error)
             toast.error("Failed to load material history")
         } finally {
             setLoading(false)
         }
-    }
-
-    if (loading) {
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Material History - {materialName}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-center py-8">Loading history...</div>
-                </CardContent>
-            </Card>
-        )
     }
 
     return (
@@ -138,7 +156,31 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
                 <CardTitle>Material History - {materialName}</CardTitle>
             </CardHeader>
             <CardContent>
-                <MaterialHistoryDisplay history={history} />
+                <div className="flex flex-col gap-4 mb-4 sm:flex-row items-end">
+                    <DatePickerRange
+                        date={dateRange}
+                        setDate={handleSetDateRange}
+                        textHolder="Select date range"
+                        className="w-full sm:w-auto"
+                        hoursText={{
+                            label: "Hours",
+                            from: "From",
+                            to: "To",
+                        }}
+                    />
+                    <Button
+                        onClick={loadHistory}
+                        disabled={loading}
+                    >
+                        {loading ? "Loading..." : "Filter"}
+                    </Button>
+                </div>
+
+                {loading ? (
+                    <div className="text-center py-8">Loading history...</div>
+                ) : (
+                    <MaterialHistoryDisplay history={history} />
+                )}
             </CardContent>
         </Card>
     )
