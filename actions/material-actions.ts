@@ -12,16 +12,6 @@ import {
 } from "@/services/material.service"
 import { ValueFieldCharacteristic } from "@/types/material.type"
 
-// Define schema for file upload values
-const fileValueSchema = z.object({
-    file: z.array(z.instanceof(File)),
-})
-
-const fileUpdateValueSchema = z.object({
-    fileToDelete: z.array(z.string()).default([]),
-    fileToAdd: z.array(z.instanceof(File)).default([]),
-})
-
 // Schema for creating a material with file upload
 const createMaterialSchema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
