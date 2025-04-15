@@ -10,8 +10,19 @@ import {
     updateMaterial,
     getMaterialById,
 } from "@/services/material.service"
+import { ValueFieldCharacteristic } from "@/types/material.type"
 
-// Schema for creating a material
+// Define schema for file upload values
+const fileValueSchema = z.object({
+    file: z.array(z.instanceof(File)),
+})
+
+const fileUpdateValueSchema = z.object({
+    fileToDelete: z.array(z.string()).default([]),
+    fileToAdd: z.array(z.instanceof(File)).default([]),
+})
+
+// Schema for creating a material with file upload
 const createMaterialSchema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
     description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
@@ -21,7 +32,17 @@ const createMaterialSchema = z.object({
         .array(
             z.object({
                 characteristicId: z.string(),
-                value: z.any(),
+                value: z
+                    .union([
+                        z.null(),
+                        z.string(),
+                        z.array(z.string()),
+                        z.boolean(),
+                        z.object({ date: z.date() }),
+                        z.object({ from: z.date(), to: z.date() }),
+                        z.object({ file: z.array(z.instanceof(File)) }),
+                    ])
+                    .optional(),
             }),
         )
         .default([]),
@@ -38,7 +59,20 @@ const updateMaterialSchema = z.object({
         .array(
             z.object({
                 characteristicId: z.string(),
-                value: z.any(),
+                value: z
+                    .union([
+                        z.null(),
+                        z.string(),
+                        z.array(z.string()),
+                        z.boolean(),
+                        z.object({ date: z.date() }),
+                        z.object({ from: z.date(), to: z.date() }),
+                        z.object({
+                            fileToDelete: z.array(z.string()).default([]),
+                            fileToAdd: z.array(z.instanceof(File)).default([]),
+                        }),
+                    ])
+                    .optional(),
             }),
         )
         .default([]),
