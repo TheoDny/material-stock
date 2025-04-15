@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { ValueFieldCharacteristic } from "@/types/material.type"
 import { $Enums, Characteristic, Material_Characteristic, Prisma, Tag } from "@prisma/client"
 import { JsonValue } from "@prisma/client/runtime/library"
 
@@ -20,7 +21,7 @@ export const createMaterialHistory = async (materialId: string) => {
     }
 
     const tagsJson = buildTagsJson(materialFullInfo.Tags)
-    const characteristicsJson = buildCharacteristicsJson(
+    const characteristicsJson = await buildCharacteristicsJson(
         materialFullInfo.order_Material_Characteristic,
         materialFullInfo.Characteristics,
         materialFullInfo.Material_Characteristics,
@@ -31,8 +32,8 @@ export const createMaterialHistory = async (materialId: string) => {
             materialId: materialId,
             name: materialFullInfo.name,
             description: materialFullInfo.description,
-            Tags: JSON.stringify(tagsJson),
-            Characteristics: JSON.stringify(characteristicsJson),
+            Tags: tagsJson,
+            Characteristics: characteristicsJson,
             createdAt: new Date(),
         },
     })
@@ -50,7 +51,22 @@ const buildTagsJson = (tags: Tag[]) => {
     })
 }
 
-const buildCharacteristicsJson = (
+export type ValueFieldCharacteristicHistory =
+    | null
+    | string[]
+    | string
+    | boolean
+    | { date: Date }
+    | { from: Date; to: Date }
+    | {
+          file: {
+              type: string
+              name: string
+              path: string
+          }[]
+      }
+
+const buildCharacteristicsJson = async (
     order: string[],
     characteristics: Characteristic[],
     characteristics_value: Material_Characteristic[],
@@ -59,23 +75,55 @@ const buildCharacteristicsJson = (
         name: string
         type: $Enums.CharacteristicType
         units: string | null
-        value: JsonValue | null
+        value: ValueFieldCharacteristicHistory
     }[] = []
-    order.forEach((orderItem) => {
-        const characteristic = characteristics.find((char) => char.id === orderItem)
-        if (!characteristic) {
-            console.error(`Characteristic with id ${orderItem} not found, it should not be possible`)
-        } else {
+
+    // Use Promise.all with map instead of forEach to properly handle async operations
+    await Promise.all(
+        order.map(async (orderItem) => {
+            const characteristic = characteristics.find((char) => char.id === orderItem)
+            if (!characteristic) {
+                console.error(`Characteristic with id ${orderItem} not found, it should not be possible`)
+                return
+            }
+
             const characteristicValue = characteristics_value.find((char) => char.characteristicId === orderItem)
+            const c_value: ValueFieldCharacteristic | undefined = characteristicValue?.value as
+                | ValueFieldCharacteristic
+                | undefined
+            let valueToSave: ValueFieldCharacteristicHistory = null
+
+            if (characteristic.type === "file" && c_value && typeof c_value === "object" && "file" in c_value) {
+                const fileIds = c_value.file
+
+                if (fileIds && Array.isArray(fileIds)) {
+                    const files = await prisma.fileDb.findMany({
+                        where: {
+                            id: { in: fileIds },
+                        },
+                    })
+
+                    valueToSave = {
+                        file: files.map((f) => {
+                            return {
+                                type: f.type,
+                                name: f.name,
+                                path: f.path,
+                            }
+                        }),
+                    }
+                }
+            }
 
             characteristicsJson.push({
                 name: characteristic.name,
                 type: characteristic.type,
                 units: characteristic.units ? characteristic.units : null,
-                value: characteristicValue?.value ? characteristicValue.value : null,
+                //@ts-ignore complicate but it work
+                value: valueToSave ?? c_value ?? null,
             })
-        }
-    })
+        }),
+    )
 
     return characteristicsJson
 }

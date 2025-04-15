@@ -195,6 +195,7 @@ enum CharacteristicType {
     dateRange
     dateHourRange
     link
+    file
 }
 
 model Characteristic {
@@ -240,7 +241,7 @@ model Material_Characteristic {
     Material         Material       @relation(fields: [materialId], references: [id])
     characteristicId String
     Characteristic   Characteristic @relation(fields: [characteristicId], references: [id])
-    value            Json
+    value            Json?
 
     @@map("material_characteristic")
 }
@@ -256,4 +257,14 @@ model Material_History {
     createdAt       DateTime @default(now())
 
     @@map("material_history")
+}
+
+model FileDb {
+    id        String   @id @default(cuid())
+    type      String
+    name      String
+    path      String
+    createdAt DateTime @default(now())
+
+    @@map("filedb")
 }

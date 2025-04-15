@@ -2,11 +2,27 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { createMaterialHistory } from "@/services/material-history.service"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
+import { saveFile, deleteFiles } from "@/services/storage.service"
+import { ValueFieldCharacteristic } from "@/types/material.type"
 
-type CharacteristicValueInput = {
+type CreateCharacteristicValueInput = {
     characteristicId: string
-    value?: any
+    value?: null | string[] | string | boolean | { date: Date } | { from: Date; to: Date } | { file: File[] }
 }
+
+type UpdateCharacteristicValueInput = {
+    characteristicId: string
+    value?:
+        | null
+        | string[]
+        | string
+        | boolean
+        | { date: Date }
+        | { from: Date; to: Date }
+        | { fileToDelete: string[]; fileToAdd: File[] }
+}
+
+const materialImageMaxWidth = { imgMaxWidth: 720, imgMaxHeight: 720 }
 
 // Get all materials with their tags
 export async function getMaterials(entityId: string) {
@@ -69,7 +85,7 @@ export async function createMaterial(data: {
     description: string
     tagIds: string[]
     orderCharacteristics: string[]
-    characteristicValues: CharacteristicValueInput[]
+    characteristicValues: CreateCharacteristicValueInput[]
     entityId: string
 }) {
     try {
@@ -91,13 +107,63 @@ export async function createMaterial(data: {
 
         // Create material characteristics
         if (data.characteristicValues.length > 0) {
-            await prisma.material_Characteristic.createMany({
-                data: data.characteristicValues.map((cv) => ({
-                    materialId: material.id,
-                    characteristicId: cv.characteristicId,
-                    value: cv.value || null,
-                })),
-            })
+            for (const cv of data.characteristicValues) {
+                let isFile = false
+                let processedValue:
+                    | null
+                    | string[]
+                    | string
+                    | boolean
+                    | { date: Date }
+                    | { from: Date; to: Date }
+                    | { file: string[] } = null
+
+                // Check if value is a file upload object
+                if (
+                    cv.value &&
+                    typeof cv.value === "object" &&
+                    "file" in cv.value &&
+                    Array.isArray(cv.value.file)
+                ) {
+                    isFile = true
+                    const fileIds = []
+
+                    // Process each file in the array
+                    for (const file of cv.value.file) {
+                        if (file instanceof File) {
+                            // Save file using storage service
+                            const savedFile = await saveFile(
+                                file,
+                                `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                materialImageMaxWidth,
+                            )
+
+                            fileIds.push(savedFile.id)
+                        }
+                    }
+
+                    // Store file IDs instead of actual files
+                    processedValue = { file: fileIds.length > 0 ? fileIds : [] }
+                }
+                if (!isFile) {
+                    processedValue = cv.value as
+                        | null
+                        | string[]
+                        | string
+                        | boolean
+                        | { date: Date }
+                        | { from: Date; to: Date }
+                }
+
+                // Create the characteristic value
+                await prisma.material_Characteristic.create({
+                    data: {
+                        materialId: material.id,
+                        characteristicId: cv.characteristicId,
+                        value: processedValue || undefined,
+                    },
+                })
+            }
         }
 
         // Create material history entry
@@ -122,7 +188,7 @@ export async function updateMaterial(
         description: string
         tagIds: string[]
         orderCharacteristics: string[]
-        characteristicValues: CharacteristicValueInput[]
+        characteristicValues: UpdateCharacteristicValueInput[]
     },
 ) {
     try {
@@ -165,13 +231,83 @@ export async function updateMaterial(
 
         // Then, add the new characteristics
         if (data.characteristicValues.length > 0) {
-            await prisma.material_Characteristic.createMany({
-                data: data.characteristicValues.map((cv) => ({
-                    materialId: id,
-                    characteristicId: cv.characteristicId,
-                    value: cv.value || null,
-                })),
-            })
+            for (const cv of data.characteristicValues) {
+                let isFile = false
+                let processedValue: ValueFieldCharacteristic = null
+
+                // Check if value is a file upload object
+                if (
+                    cv.value &&
+                    typeof cv.value === "object" &&
+                    "fileToAdd" in cv.value &&
+                    Array.isArray(cv.value.fileToAdd)
+                ) {
+                    isFile = true
+                    const fileIds = []
+
+                    // Process each file in the array
+                    for (const file of cv.value.fileToAdd) {
+                        if (file instanceof File) {
+                            // Save file using storage service
+                            const savedFile = await saveFile(
+                                file,
+                                `materials/${material.id}/characteristics/${cv.characteristicId}`,
+                                materialImageMaxWidth,
+                            )
+
+                            fileIds.push(savedFile.id)
+                        }
+                    }
+
+                    // Get existing file IDs if any
+                    const existingCharacteristic = currentMaterial.Material_Characteristics.find(
+                        (mc) => mc.characteristicId === cv.characteristicId,
+                    )
+                    let existingFileIds: string[] = []
+                    if (
+                        existingCharacteristic?.value &&
+                        typeof existingCharacteristic.value === "object" &&
+                        "file" in existingCharacteristic.value
+                    ) {
+                        existingFileIds = existingCharacteristic.value.file as string[]
+                    }
+
+                    // Remove files that should be deleted
+                    const filesToKeep = existingFileIds.filter((id) => {
+                        if (cv.value && typeof cv.value === "object" && "fileToDelete" in cv.value) {
+                            return !(cv.value as { fileToDelete?: string[] }).fileToDelete?.includes(id)
+                        }
+                        return true
+                    })
+
+                    // Delete removed files
+                    const filesToDelete = existingFileIds.filter((id) => !filesToKeep.includes(id))
+                    if (filesToDelete.length > 0) {
+                        await deleteFiles(filesToDelete, true) // Only delete from DB (for history purpose)
+                    }
+
+                    // Store file IDs instead of actual files
+                    processedValue = { file: [...filesToKeep, ...fileIds] }
+                }
+                if (!isFile) {
+                    processedValue = cv.value as
+                        | null
+                        | string[]
+                        | string
+                        | boolean
+                        | { date: Date }
+                        | { from: Date; to: Date }
+                }
+
+                // Create the characteristic value
+                await prisma.material_Characteristic.create({
+                    data: {
+                        materialId: id,
+                        characteristicId: cv.characteristicId,
+                        value: processedValue || undefined,
+                    },
+                })
+            }
         }
 
         // Create material history entry
