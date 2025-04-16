@@ -28,6 +28,7 @@ import { Characteristic, FileDb } from "@prisma/client"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic
@@ -85,6 +86,33 @@ const formatFileSize = (bytes: number): string => {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB"
 }
 
+// Check if file type is supported for preview
+const isPreviewSupported = (fileName: string): boolean => {
+    const extension = fileName.split(".").pop()?.toLowerCase() || ""
+    const supportedExtensions = [
+        // Images
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "webp",
+        "bmp",
+        "svg",
+        // Documents
+        "pdf",
+        // Text files
+        "txt",
+        "csv",
+        "json",
+        "md",
+        "xml",
+        "html",
+        "css",
+        "js",
+    ]
+    return supportedExtensions.includes(extension)
+}
+
 export function CharacteristicValueForm({
     characteristic,
     value,
@@ -99,6 +127,14 @@ export function CharacteristicValueForm({
     )
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [filePreviewUrls, setFilePreviewUrls] = useState<Map<string, string>>(new Map())
+
+    // State for file preview dialog
+    const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
+    const [previewFile, setPreviewFile] = useState<{
+        url: string
+        name: string
+        type?: string
+    } | null>(null)
 
     // Create preview URLs for uploaded files
     useEffect(() => {
@@ -119,6 +155,165 @@ export function CharacteristicValueForm({
         } else {
             onChange("")
         }
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files)
+
+            // Check individual file sizes
+            const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
+            if (oversizedFiles.length > 0) {
+                const fileNames = oversizedFiles.map((f) => f.name).join(", ")
+                toast.error(
+                    tMat.rich("fileSizeError", {
+                        size: formatFileSize(MAX_FILE_SIZE),
+                        files: fileNames,
+                    }),
+                )
+                // Filter out oversized files
+                const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+                if (validFiles.length === 0) return
+
+                // Continue with valid files only
+                const validNewFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+
+                // Create preview URLs for new files
+                validNewFiles.forEach((file) => {
+                    const previewUrl = URL.createObjectURL(file)
+                    setFilePreviewUrls((prev) => new Map(prev).set(file.name + Math.random(), previewUrl))
+                })
+
+                // Calculate total size of files being uploaded in this operation
+                const totalNewFilesSize = validNewFiles.reduce((sum, file) => sum + file.size, 0)
+
+                // Check if the size of files in this upload operation exceeds the limit
+                if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
+                    toast.error(
+                        tMat.rich("totalSizeError", {
+                            size: formatFileSize(totalNewFilesSize),
+                            maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
+                        }),
+                    )
+                    return
+                }
+
+                if (isEditing) {
+                    // Update for edit mode (append to existing fileToAdd)
+                    const currentValue = value || {}
+                    const currentFilesToAdd = Array.isArray(currentValue.fileToAdd) ? currentValue.fileToAdd : []
+                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
+                        ? currentValue.fileToDelete
+                        : []
+
+                    onChange({
+                        fileToAdd: [...currentFilesToAdd, ...validNewFiles],
+                        fileToDelete: currentFilesToDelete,
+                    })
+                } else {
+                    // Update for create mode
+                    const currentFiles = value && typeof value === "object" && "file" in value ? value.file : []
+
+                    onChange({ file: [...currentFiles, ...validNewFiles] })
+                }
+            }
+        }
+    }
+
+    const removeNewFile = (index: number) => {
+        if (isEditing) {
+            // Remove from fileToAdd in edit mode
+            const currentValue = value || {}
+            const currentFilesToAdd = Array.isArray(currentValue.fileToAdd) ? [...currentValue.fileToAdd] : []
+
+            // Revoke the URL if it exists
+            const file = currentFilesToAdd[index]
+            const key = file.name + index
+            if (filePreviewUrls.has(key)) {
+                URL.revokeObjectURL(filePreviewUrls.get(key)!)
+                setFilePreviewUrls((prev) => {
+                    const newMap = new Map(prev)
+                    newMap.delete(key)
+                    return newMap
+                })
+            }
+
+            currentFilesToAdd.splice(index, 1)
+
+            onChange({
+                ...currentValue,
+                fileToAdd: currentFilesToAdd,
+            })
+        } else {
+            // Remove from file array in create mode
+            const currentFiles = value && typeof value === "object" && "file" in value ? [...value.file] : []
+
+            // Revoke the URL if it exists
+            const file = currentFiles[index]
+            const key = file.name + index
+            if (filePreviewUrls.has(key)) {
+                URL.revokeObjectURL(filePreviewUrls.get(key)!)
+                setFilePreviewUrls((prev) => {
+                    const newMap = new Map(prev)
+                    newMap.delete(key)
+                    return newMap
+                })
+            }
+
+            currentFiles.splice(index, 1)
+            onChange({ file: currentFiles })
+        }
+    }
+
+    const markFileForDeletion = (fileId: string) => {
+        if (!isEditing) return
+
+        const currentValue = value || {}
+        const currentFilesToDelete = Array.isArray(currentValue.fileToDelete) ? [...currentValue.fileToDelete] : []
+
+        // Add file to delete list if not already there
+        if (!currentFilesToDelete.includes(fileId)) {
+            onChange({
+                ...currentValue,
+                fileToDelete: [...currentFilesToDelete, fileId],
+            })
+        }
+    }
+
+    const unmarkFileForDeletion = (fileId: string) => {
+        if (!isEditing) return
+
+        const currentValue = value || {}
+        const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
+            ? currentValue.fileToDelete.filter((id: string) => id !== fileId)
+            : []
+
+        onChange({
+            ...currentValue,
+            fileToDelete: currentFilesToDelete,
+        })
+    }
+
+    const isFileMarkedForDeletion = (fileId: string): boolean => {
+        if (!isEditing) return false
+        return (
+            value &&
+            typeof value === "object" &&
+            "fileToDelete" in value &&
+            Array.isArray(value.fileToDelete) &&
+            (value as { fileToDelete: string[] }).fileToDelete.includes(fileId)
+        )
+    }
+
+    // Open file preview dialog
+    const handleOpenPreview = (file: { id: string; name: string; type: string }) => {
+        const fileUrl = `/api/image/${file.id}`
+        setPreviewFile({
+            url: fileUrl,
+            name: file.name,
+            type: file.type,
+        })
+        setPreviewDialogOpen(true)
     }
 
     const renderFormControl = () => {
@@ -345,164 +540,6 @@ export function CharacteristicValueForm({
                     }
                 }
 
-                const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                        const newFiles = Array.from(e.target.files)
-
-                        // Check individual file sizes
-                        const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
-                        if (oversizedFiles.length > 0) {
-                            const fileNames = oversizedFiles.map((f) => f.name).join(", ")
-                            toast.error(
-                                tMat.rich("fileSizeError", {
-                                    size: formatFileSize(MAX_FILE_SIZE),
-                                    files: fileNames,
-                                }),
-                            )
-                            // Filter out oversized files
-                            const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
-                            if (validFiles.length === 0) return
-
-                            // Continue with valid files only
-                            const validNewFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
-
-                            // Create preview URLs for new files
-                            validNewFiles.forEach((file) => {
-                                const previewUrl = URL.createObjectURL(file)
-                                setFilePreviewUrls((prev) =>
-                                    new Map(prev).set(file.name + Math.random(), previewUrl),
-                                )
-                            })
-
-                            // Calculate total size of files being uploaded in this operation
-                            const totalNewFilesSize = validNewFiles.reduce((sum, file) => sum + file.size, 0)
-
-                            // Check if the size of files in this upload operation exceeds the limit
-                            if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
-                                toast.error(
-                                    tMat.rich("totalSizeError", {
-                                        size: formatFileSize(totalNewFilesSize),
-                                        maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
-                                    }),
-                                )
-                                return
-                            }
-
-                            if (isEditing) {
-                                // Update for edit mode (append to existing fileToAdd)
-                                const currentValue = value || {}
-                                const currentFilesToAdd = Array.isArray(currentValue.fileToAdd)
-                                    ? currentValue.fileToAdd
-                                    : []
-                                const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
-                                    ? currentValue.fileToDelete
-                                    : []
-
-                                onChange({
-                                    fileToAdd: [...currentFilesToAdd, ...validNewFiles],
-                                    fileToDelete: currentFilesToDelete,
-                                })
-                            } else {
-                                // Update for create mode
-                                const currentFiles =
-                                    value && typeof value === "object" && "file" in value ? value.file : []
-
-                                onChange({ file: [...currentFiles, ...validNewFiles] })
-                            }
-                        }
-                    }
-                }
-
-                const removeNewFile = (index: number) => {
-                    if (isEditing) {
-                        // Remove from fileToAdd in edit mode
-                        const currentValue = value || {}
-                        const currentFilesToAdd = Array.isArray(currentValue.fileToAdd)
-                            ? [...currentValue.fileToAdd]
-                            : []
-
-                        // Revoke the URL if it exists
-                        const file = currentFilesToAdd[index]
-                        const key = file.name + index
-                        if (filePreviewUrls.has(key)) {
-                            URL.revokeObjectURL(filePreviewUrls.get(key)!)
-                            setFilePreviewUrls((prev) => {
-                                const newMap = new Map(prev)
-                                newMap.delete(key)
-                                return newMap
-                            })
-                        }
-
-                        currentFilesToAdd.splice(index, 1)
-
-                        onChange({
-                            ...currentValue,
-                            fileToAdd: currentFilesToAdd,
-                        })
-                    } else {
-                        // Remove from file array in create mode
-                        const currentFiles =
-                            value && typeof value === "object" && "file" in value ? [...value.file] : []
-
-                        // Revoke the URL if it exists
-                        const file = currentFiles[index]
-                        const key = file.name + index
-                        if (filePreviewUrls.has(key)) {
-                            URL.revokeObjectURL(filePreviewUrls.get(key)!)
-                            setFilePreviewUrls((prev) => {
-                                const newMap = new Map(prev)
-                                newMap.delete(key)
-                                return newMap
-                            })
-                        }
-
-                        currentFiles.splice(index, 1)
-                        onChange({ file: currentFiles })
-                    }
-                }
-
-                const markFileForDeletion = (fileId: string) => {
-                    if (!isEditing) return
-
-                    const currentValue = value || {}
-                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
-                        ? [...currentValue.fileToDelete]
-                        : []
-
-                    // Add file to delete list if not already there
-                    if (!currentFilesToDelete.includes(fileId)) {
-                        onChange({
-                            ...currentValue,
-                            fileToDelete: [...currentFilesToDelete, fileId],
-                        })
-                    }
-                }
-
-                const unmarkFileForDeletion = (fileId: string) => {
-                    if (!isEditing) return
-
-                    const currentValue = value || {}
-                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
-                        ? currentValue.fileToDelete.filter((id: string) => id !== fileId)
-                        : []
-
-                    onChange({
-                        ...currentValue,
-                        fileToDelete: currentFilesToDelete,
-                    })
-                }
-
-                const isFileMarkedForDeletion = (fileId: string): boolean => {
-                    if (!isEditing) return false
-                    return (
-                        value &&
-                        typeof value === "object" &&
-                        "fileToDelete" in value &&
-                        Array.isArray(value.fileToDelete) &&
-                        (value as { fileToDelete: string[] }).fileToDelete.includes(fileId)
-                    )
-                }
-
                 return (
                     <div className="space-y-3">
                         {/* Upload button */}
@@ -576,6 +613,7 @@ export function CharacteristicValueForm({
                                         {existingFiles.map((file) => {
                                             const isMarkedForDeletion = isFileMarkedForDeletion(file.id)
                                             const fileUrl = `/api/image/${file.id}`
+                                            const canPreview = isPreviewSupported(file.name)
 
                                             return (
                                                 <div
@@ -626,16 +664,19 @@ export function CharacteristicValueForm({
                                                         </p>
                                                         {!isMarkedForDeletion && (
                                                             <div className="flex gap-2 mt-1">
-                                                                <a
-                                                                    href={fileUrl}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    className="inline-flex items-center text-xs text-primary hover:underline"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                >
-                                                                    <Eye className="h-3 w-3 mr-1" />
-                                                                    {tMat("view")}
-                                                                </a>
+                                                                {canPreview && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="inline-flex items-center text-xs text-primary hover:underline"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            handleOpenPreview(file)
+                                                                        }}
+                                                                    >
+                                                                        <Eye className="h-3 w-3 mr-1" />
+                                                                        {tMat("view")}
+                                                                    </button>
+                                                                )}
                                                                 <a
                                                                     href={fileUrl}
                                                                     download={file.name}
@@ -673,6 +714,17 @@ export function CharacteristicValueForm({
                                 </div>
                             )}
                         </div>
+
+                        {/* File Preview Dialog */}
+                        {previewFile && (
+                            <FilePreviewDialog
+                                open={previewDialogOpen}
+                                onOpenChange={setPreviewDialogOpen}
+                                fileUrl={previewFile.url}
+                                fileName={previewFile.name}
+                                fileType={previewFile.type}
+                            />
+                        )}
                     </div>
                 )
 

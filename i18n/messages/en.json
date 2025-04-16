@@ -153,7 +153,10 @@
             "download": "Download",
             "undo": "Undo",
             "fileSizeError": "Some files exceed the {size}mb limit: {files}",
-            "totalSizeError": "Files in this upload ({size}mb) exceed the maximum allowed size ({maxSize}mb)"
+            "totalSizeError": "Files in this upload ({size}mb) exceed the maximum allowed size ({maxSize}mb)",
+            "loading": "Loading file...",
+            "errorLoadingFile": "Error loading file",
+            "previewNotAvailable": "Preview not available for this file type"
         }
     },
     "Configuration": {

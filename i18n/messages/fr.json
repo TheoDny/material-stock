@@ -157,7 +157,10 @@
             "download": "Télécharger",
             "undo": "Annuler",
             "fileSizeError": "Certains fichiers dépassent la limite de {size}mb : {files}",
-            "totalSizeError": "Les fichiers de ce téléchargement ({size}mb) dépassent la taille maximale autorisée ({maxSize}mb)"
+            "totalSizeError": "Les fichiers de ce téléchargement ({size}mb) dépassent la taille maximale autorisée ({maxSize}mb)",
+            "loading": "Chargement du fichier...",
+            "errorLoadingFile": "Erreur lors du chargement du fichier",
+            "previewNotAvailable": "Aperçu non disponible pour ce type de fichier"
         }
     },
     "Configuration": {
