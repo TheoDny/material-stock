@@ -11,6 +11,7 @@ import { Permission } from "@prisma/client"
 import { getLocale, getTranslations } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 
 interface RootLayoutProps {
     children: ReactNode
@@ -146,6 +147,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 >
                     <TooltipProvider delayDuration={100}>
                         <NextIntlClientProvider>
+                            <Toaster />
                             <SidebarProvider>
                                 <AppSidebar data={navigation} />
                                 <SidebarInset className={"p-1.5"}>{children}</SidebarInset>

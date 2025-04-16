@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
     experimental: {
         nodeMiddleware: true,
         authInterrupts: true,
+        serverActions: {
+            bodySizeLimit: "55mb",
+        },
     },
 }
 

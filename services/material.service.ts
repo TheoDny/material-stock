@@ -4,6 +4,7 @@ import { createMaterialHistory } from "@/services/material-history.service"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
 import { saveFile, deleteFiles } from "@/services/storage.service"
 import { ValueFieldCharacteristic } from "@/types/material.type"
+import { Material, Material_Characteristic, FileDb } from "@prisma/client"
 
 type CreateCharacteristicValueInput = {
     characteristicId: string
@@ -20,6 +21,12 @@ type UpdateCharacteristicValueInput = {
         | { date: Date }
         | { from: Date; to: Date }
         | { fileToDelete: string[]; fileToAdd: File[] }
+}
+
+type MaterialWithMaterialCharacteristics = Material & {
+    Material_Characteristics: (Material_Characteristic & {
+        File: FileDb[]
+    })[]
 }
 
 const materialImageMaxWidth = { imgMaxWidth: 720, imgMaxHeight: 720 }
@@ -69,6 +76,7 @@ export async function getMaterialCharacteristics(materialId: string) {
             },
             include: {
                 Characteristic: true,
+                File: true,
             },
         })
 
@@ -109,14 +117,8 @@ export async function createMaterial(data: {
         if (data.characteristicValues.length > 0) {
             for (const cv of data.characteristicValues) {
                 let isFile = false
-                let processedValue:
-                    | null
-                    | string[]
-                    | string
-                    | boolean
-                    | { date: Date }
-                    | { from: Date; to: Date }
-                    | { file: string[] } = null
+                let processedValue: any = null
+                let fileDbIds: string[] = []
 
                 // Check if value is a file upload object
                 if (
@@ -126,7 +128,6 @@ export async function createMaterial(data: {
                     Array.isArray(cv.value.file)
                 ) {
                     isFile = true
-                    const fileIds = []
 
                     // Process each file in the array
                     for (const file of cv.value.file) {
@@ -138,13 +139,11 @@ export async function createMaterial(data: {
                                 materialImageMaxWidth,
                             )
 
-                            fileIds.push(savedFile.id)
+                            fileDbIds.push(savedFile.id)
                         }
                     }
-
-                    // Store file IDs instead of actual files
-                    processedValue = { file: fileIds.length > 0 ? fileIds : [] }
                 }
+
                 if (!isFile) {
                     processedValue = cv.value as
                         | null
@@ -156,13 +155,26 @@ export async function createMaterial(data: {
                 }
 
                 // Create the characteristic value
-                await prisma.material_Characteristic.create({
-                    data: {
-                        materialId: material.id,
-                        characteristicId: cv.characteristicId,
-                        value: processedValue || undefined,
-                    },
-                })
+                if (isFile && fileDbIds.length > 0) {
+                    await prisma.material_Characteristic.create({
+                        data: {
+                            materialId: material.id,
+                            characteristicId: cv.characteristicId,
+                            value: undefined,
+                            File: {
+                                connect: fileDbIds.map((id) => ({ id })),
+                            },
+                        },
+                    })
+                } else {
+                    await prisma.material_Characteristic.create({
+                        data: {
+                            materialId: material.id,
+                            characteristicId: cv.characteristicId,
+                            value: processedValue,
+                        },
+                    })
+                }
             }
         }
 
@@ -197,7 +209,11 @@ export async function updateMaterial(
             where: { id, entityId },
             include: {
                 Tags: true,
-                Material_Characteristics: true,
+                Material_Characteristics: {
+                    include: {
+                        File: true,
+                    },
+                },
             },
         })
 
@@ -223,6 +239,39 @@ export async function updateMaterial(
 
         // Update material characteristics
         // First, remove all existing characteristics
+        for (const mc of currentMaterial.Material_Characteristics) {
+            // For file type characteristics, we need to delete the actual files if needed
+            if (mc.File.length > 0) {
+                // Keep track of file IDs to delete
+                const fileIdsToDelete: string[] = []
+
+                // Check if this characteristic is being updated with a file deletion
+                const characteristicUpdate = data.characteristicValues.find(
+                    (cv) => cv.characteristicId === mc.characteristicId,
+                )
+
+                if (
+                    characteristicUpdate &&
+                    characteristicUpdate.value &&
+                    typeof characteristicUpdate.value === "object" &&
+                    "fileToDelete" in characteristicUpdate.value
+                ) {
+                    // Add specified files to the delete list
+                    fileIdsToDelete.push(...characteristicUpdate.value.fileToDelete)
+                } else {
+                    // If the characteristic is removed or completely replaced,
+                    // all files need to be deleted
+                    fileIdsToDelete.push(...mc.File.map((f: FileDb) => f.id))
+                }
+
+                // Delete the files that need to be removed
+                if (fileIdsToDelete.length > 0) {
+                    await deleteFiles(fileIdsToDelete, true) // Only delete from DB (for history purpose)
+                }
+            }
+        }
+
+        // Delete all existing material characteristics
         await prisma.material_Characteristic.deleteMany({
             where: {
                 materialId: id,
@@ -233,19 +282,35 @@ export async function updateMaterial(
         if (data.characteristicValues.length > 0) {
             for (const cv of data.characteristicValues) {
                 let isFile = false
-                let processedValue: ValueFieldCharacteristic = null
+                let processedValue: any = null
+                let fileDbIds: string[] = []
 
-                // Check if value is a file upload object
+                // Check if value is a file upload object for updating
                 if (
                     cv.value &&
                     typeof cv.value === "object" &&
                     "fileToAdd" in cv.value &&
-                    Array.isArray(cv.value.fileToAdd)
+                    "fileToDelete" in cv.value
                 ) {
                     isFile = true
-                    const fileIds = []
 
-                    // Process each file in the array
+                    // Find existing characteristic to get current files
+                    const existingCharacteristic = currentMaterial.Material_Characteristics.find(
+                        (mc) => mc.characteristicId === cv.characteristicId,
+                    )
+
+                    // Keep files that shouldn't be deleted
+                    if (existingCharacteristic && existingCharacteristic.File.length > 0) {
+                        const filesToDelete: string[] = cv.value.fileToDelete
+                        const filesToKeep = existingCharacteristic.File.filter(
+                            (file) => !filesToDelete.includes(file.id),
+                        )
+
+                        // Add IDs of files to keep
+                        fileDbIds.push(...filesToKeep.map((f) => f.id))
+                    }
+
+                    // Process new files to add
                     for (const file of cv.value.fileToAdd) {
                         if (file instanceof File) {
                             // Save file using storage service
@@ -255,40 +320,11 @@ export async function updateMaterial(
                                 materialImageMaxWidth,
                             )
 
-                            fileIds.push(savedFile.id)
+                            fileDbIds.push(savedFile.id)
                         }
                     }
-
-                    // Get existing file IDs if any
-                    const existingCharacteristic = currentMaterial.Material_Characteristics.find(
-                        (mc) => mc.characteristicId === cv.characteristicId,
-                    )
-                    let existingFileIds: string[] = []
-                    if (
-                        existingCharacteristic?.value &&
-                        typeof existingCharacteristic.value === "object" &&
-                        "file" in existingCharacteristic.value
-                    ) {
-                        existingFileIds = existingCharacteristic.value.file as string[]
-                    }
-
-                    // Remove files that should be deleted
-                    const filesToKeep = existingFileIds.filter((id) => {
-                        if (cv.value && typeof cv.value === "object" && "fileToDelete" in cv.value) {
-                            return !(cv.value as { fileToDelete?: string[] }).fileToDelete?.includes(id)
-                        }
-                        return true
-                    })
-
-                    // Delete removed files
-                    const filesToDelete = existingFileIds.filter((id) => !filesToKeep.includes(id))
-                    if (filesToDelete.length > 0) {
-                        await deleteFiles(filesToDelete, true) // Only delete from DB (for history purpose)
-                    }
-
-                    // Store file IDs instead of actual files
-                    processedValue = { file: [...filesToKeep, ...fileIds] }
                 }
+
                 if (!isFile) {
                     processedValue = cv.value as
                         | null
@@ -299,14 +335,27 @@ export async function updateMaterial(
                         | { from: Date; to: Date }
                 }
 
-                // Create the characteristic value
-                await prisma.material_Characteristic.create({
-                    data: {
-                        materialId: id,
-                        characteristicId: cv.characteristicId,
-                        value: processedValue || undefined,
-                    },
-                })
+                // Create the characteristic value with updated data
+                if (isFile && fileDbIds.length > 0) {
+                    await prisma.material_Characteristic.create({
+                        data: {
+                            materialId: id,
+                            characteristicId: cv.characteristicId,
+                            value: undefined,
+                            File: {
+                                connect: fileDbIds.map((id) => ({ id })),
+                            },
+                        },
+                    })
+                } else {
+                    await prisma.material_Characteristic.create({
+                        data: {
+                            materialId: id,
+                            characteristicId: cv.characteristicId,
+                            value: processedValue,
+                        },
+                    })
+                }
             }
         }
 

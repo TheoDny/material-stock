@@ -147,6 +147,17 @@
             "date": "Date",
             "user": "Utilisateur",
             "noHistory": "Aucun historique disponible"
+        },
+        "files": {
+            "uploadFiles": "Télécharger des fichiers",
+            "newFiles": "Nouveaux fichiers",
+            "existingFiles": "Fichiers existants",
+            "markedForDeletion": "Marqué pour suppression",
+            "view": "Voir",
+            "download": "Télécharger",
+            "undo": "Annuler",
+            "fileSizeError": "Certains fichiers dépassent la limite de {size}mb : {files}",
+            "totalSizeError": "Les fichiers de ce téléchargement ({size}mb) dépassent la taille maximale autorisée ({maxSize}mb)"
         }
     },
     "Configuration": {

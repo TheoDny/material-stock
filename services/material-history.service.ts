@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
-import { ValueFieldCharacteristic } from "@/types/material.type"
-import { $Enums, Characteristic, Material_Characteristic, Prisma, Tag } from "@prisma/client"
+import { MaterialCharacteristicWithFile, ValueFieldCharacteristic } from "@/types/material.type"
+import { $Enums, Characteristic, Material_Characteristic, Prisma, Tag, FileDb } from "@prisma/client"
 import { JsonValue } from "@prisma/client/runtime/library"
 
 export const createMaterialHistory = async (materialId: string) => {
@@ -11,7 +11,11 @@ export const createMaterialHistory = async (materialId: string) => {
         include: {
             Tags: true,
             Characteristics: true,
-            Material_Characteristics: true,
+            Material_Characteristics: {
+                include: {
+                    File: true,
+                },
+            },
         },
     })
 
@@ -69,7 +73,7 @@ export type ValueFieldCharacteristicHistory =
 const buildCharacteristicsJson = async (
     order: string[],
     characteristics: Characteristic[],
-    characteristics_value: Material_Characteristic[],
+    characteristics_value: MaterialCharacteristicWithFile[],
 ) => {
     const characteristicsJson: {
         name: string
@@ -88,39 +92,32 @@ const buildCharacteristicsJson = async (
             }
 
             const characteristicValue = characteristics_value.find((char) => char.characteristicId === orderItem)
-            const c_value: ValueFieldCharacteristic | undefined = characteristicValue?.value as
-                | ValueFieldCharacteristic
-                | undefined
             let valueToSave: ValueFieldCharacteristicHistory = null
 
-            if (characteristic.type === "file" && c_value && typeof c_value === "object" && "file" in c_value) {
-                const fileIds = c_value.file
-
-                if (fileIds && Array.isArray(fileIds)) {
-                    const files = await prisma.fileDb.findMany({
-                        where: {
-                            id: { in: fileIds },
-                        },
-                    })
-
-                    valueToSave = {
-                        file: files.map((f) => {
-                            return {
-                                type: f.type,
-                                name: f.name,
-                                path: f.path,
-                            }
-                        }),
-                    }
+            if (
+                characteristic.type === "file" &&
+                characteristicValue?.File &&
+                characteristicValue.File.length > 0
+            ) {
+                valueToSave = {
+                    file: characteristicValue.File.map((f) => {
+                        return {
+                            type: f.type,
+                            name: f.name,
+                            path: f.path,
+                        }
+                    }),
                 }
+            } else if (characteristicValue?.value) {
+                // For non-file types, use the value field directly
+                valueToSave = characteristicValue.value as ValueFieldCharacteristicHistory
             }
 
             characteristicsJson.push({
                 name: characteristic.name,
                 type: characteristic.type,
                 units: characteristic.units ? characteristic.units : null,
-                //@ts-ignore complicate but it work
-                value: valueToSave ?? c_value ?? null,
+                value: valueToSave,
             })
         }),
     )

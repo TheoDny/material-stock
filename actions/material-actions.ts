@@ -10,7 +10,6 @@ import {
     updateMaterial,
     getMaterialById,
 } from "@/services/material.service"
-import { ValueFieldCharacteristic } from "@/types/material.type"
 
 // Schema for creating a material with file upload
 const createMaterialSchema = z.object({

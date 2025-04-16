@@ -83,7 +83,7 @@ export async function createSomething(entityId: string, data: SomethingCreateDat
 - You should usually call the server action like the example below
   
 ```ts
-const result = await createMaterialAction({
+const result = await createSomethingAction({
   name: values.name,
   description: values.description || "",
 })

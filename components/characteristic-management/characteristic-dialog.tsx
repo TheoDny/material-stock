@@ -55,6 +55,7 @@ const characteristicTypes: CharacteristicType[] = [
     "dateRange",
     "dateHourRange",
     "link",
+    "file",
 ] as const
 
 const createCharacteristicSchema = z.object({

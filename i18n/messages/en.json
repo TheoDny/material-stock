@@ -143,6 +143,17 @@
             "date": "Date",
             "user": "User",
             "noHistory": "No history available"
+        },
+        "files": {
+            "uploadFiles": "Upload files",
+            "newFiles": "New Files",
+            "existingFiles": "Existing Files",
+            "markedForDeletion": "Marked for deletion",
+            "view": "View",
+            "download": "Download",
+            "undo": "Undo",
+            "fileSizeError": "Some files exceed the {size}mb limit: {files}",
+            "totalSizeError": "Files in this upload ({size}mb) exceed the maximum allowed size ({maxSize}mb)"
         }
     },
     "Configuration": {

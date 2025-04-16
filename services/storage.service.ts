@@ -15,11 +15,14 @@ export type OptionSaveFile = {
 export async function saveFile(file: File, filePath: string, option: OptionSaveFile): Promise<FileDb> {
     // Ensure storage directory exists
     const fullPath = path.join(STORAGE_PATH, filePath)
-    await fs.ensureDir(path.dirname(fullPath))
+    await fs.ensureDir(path.normalize(fullPath))
+    console.log("\n\npath\n", path.normalize(fullPath))
+    console.log(file.name)
 
     // Generate a unique filename
     const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
     const fullFilePath = path.join(fullPath, fileName)
+    console.log("File saved to:", fullFilePath)
 
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer()
@@ -120,4 +123,32 @@ export async function deleteFiles(fileIds: string[], onlyDb: boolean = false) {
             id: { in: fileIds },
         },
     })
+}
+
+export async function getFileById(fileId: string) {
+    // Retrieve file data from database
+    const file = await prisma.fileDb.findUnique({
+        where: { id: fileId },
+    })
+
+    if (!file) {
+        return null
+    }
+
+    // Read file from storage
+    const fullPath = path.join(STORAGE_PATH, file.path)
+
+    try {
+        const data = await fs.readFile(fullPath)
+
+        return {
+            ...file,
+            data,
+            mimeType: file.type,
+            filename: file.name,
+        }
+    } catch (error) {
+        console.error(`Failed to read file ${file.id} at ${fullPath}:`, error)
+        return null
+    }
 }

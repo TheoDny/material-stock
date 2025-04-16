@@ -38,7 +38,7 @@ import {
 import { getTagsAction } from "@/actions/tag-actions"
 import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicValueForm } from "./characteristic-value-form"
-import { Tag, Characteristic } from "@prisma/client"
+import { Tag, Characteristic, FileDb } from "@prisma/client"
 import { CharacteristicValue, MaterialWithTag } from "@/types/material.type"
 
 const materialSchema = z.object({
@@ -56,11 +56,15 @@ interface MaterialDialogProps {
     onClose: (refreshData: boolean) => void
 }
 
+type ExtendedCharacteristicValue = CharacteristicValue & {
+    File?: FileDb[]
+}
+
 export function MaterialDialog({ open, material, onClose }: MaterialDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [tags, setTags] = useState<Tag[]>([])
     const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
-    const [characteristicValues, setCharacteristicValues] = useState<CharacteristicValue[]>([])
+    const [characteristicValues, setCharacteristicValues] = useState<ExtendedCharacteristicValue[]>([])
     const [activeTab, setActiveTab] = useState("general")
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
 
@@ -139,7 +143,27 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const loadMaterialCharacteristics = async (materialId: string) => {
         try {
             const values = await getMaterialCharacteristicsAction(materialId)
-            setCharacteristicValues(values)
+
+            // Process file relationships into the proper format for the form
+            const processedValues = values.map((cv) => {
+                const result = { ...cv }
+
+                // For file type characteristics, prepare file data for the UI
+                if (cv.Characteristic.type === "file" && cv.File && cv.File.length > 0) {
+                    // If using direct relationships, prepare file data for the form
+                    result.value = {
+                        file: cv.File.map((file) => ({
+                            id: file.id,
+                            name: file.name,
+                            type: file.type,
+                        })),
+                    }
+                }
+
+                return result
+            })
+
+            setCharacteristicValues(processedValues)
         } catch (error) {
             console.error(error)
             toast.error("Failed to load material characteristics")
@@ -155,6 +179,36 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const onSubmit = async (values: MaterialFormValues) => {
         setIsSubmitting(true)
         try {
+            // Process characteristic values for saving
+            const processedCharacteristicValues = characteristicValues.map((cv) => {
+                // If it's a file characteristic, ensure it's in the proper format for saving
+                if (cv.Characteristic.type === "file") {
+                    if (isEditing) {
+                        // For editing, need fileToAdd and fileToDelete format
+                        const value = cv.value || {}
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: {
+                                fileToAdd: Array.isArray(value.fileToAdd) ? value.fileToAdd : [],
+                                fileToDelete: Array.isArray(value.fileToDelete) ? value.fileToDelete : [],
+                            },
+                        }
+                    } else {
+                        // For creating, use simple file array format
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: cv.value,
+                        }
+                    }
+                }
+
+                // For non-file types, just pass the value as is
+                return {
+                    characteristicId: cv.characteristicId,
+                    value: cv.value,
+                }
+            })
+
             if (isEditing && material) {
                 // Update existing material
                 const result = await updateMaterialAction({
@@ -163,20 +217,21 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     description: values.description || "",
                     tagIds: values.tagIds,
                     orderCharacteristics: values.orderCharacteristics,
-                    characteristicValues: characteristicValues.map((cv) => ({
-                        characteristicId: cv.characteristicId,
-                        value: cv.value || "",
-                    })),
+                    characteristicValues: processedCharacteristicValues,
                 })
 
                 if (result?.bindArgsValidationErrors) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.bindArgsValidationErrors)
+                    return toast.error("Failed to update material")
                 } else if (result?.serverError) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.serverError)
+                    return toast.error("Failed to update material")
                 } else if (result?.validationErrors) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.validationErrors)
+                    return toast.error("Failed to update material")
                 } else if (!result?.data) {
-                    return toast.error("Failed to update role")
+                    console.error("No data returned")
+                    return toast.error("Failed to update material")
                 }
 
                 toast.success("Material updated successfully")
@@ -187,20 +242,21 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     description: values.description || "",
                     tagIds: values.tagIds,
                     orderCharacteristics: values.orderCharacteristics,
-                    characteristicValues: characteristicValues.map((cv) => ({
-                        characteristicId: cv.characteristicId,
-                        value: cv.value || "",
-                    })),
+                    characteristicValues: processedCharacteristicValues,
                 })
 
                 if (result?.bindArgsValidationErrors) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.bindArgsValidationErrors)
+                    return toast.error("Failed to create material")
                 } else if (result?.serverError) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.serverError)
+                    return toast.error("Failed to create material")
                 } else if (result?.validationErrors) {
-                    return toast.error("Failed to update role")
+                    console.error(result?.validationErrors)
+                    return toast.error("Failed to create material")
                 } else if (!result?.data) {
-                    return toast.error("Failed to update role")
+                    console.error("No data returned")
+                    return toast.error("Failed to create material")
                 }
 
                 toast.success("Material created successfully")
@@ -243,6 +299,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     Characteristic: characteristic,
                     characteristicId,
                     value: null,
+                    File: [],
                 },
             ])
 
@@ -263,7 +320,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         )
     }
 
-    const handleCharacteristicValueChange = (characteristicId: string, value: string) => {
+    const handleCharacteristicValueChange = (characteristicId: string, value: any) => {
         setCharacteristicValues(
             characteristicValues.map((cv) => (cv.characteristicId === characteristicId ? { ...cv, value } : cv)),
         )
@@ -532,13 +589,14 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                         </div>
                                                         <CharacteristicValueForm
                                                             characteristic={cv.Characteristic}
-                                                            value={cv.value || ""}
+                                                            value={cv.value}
                                                             onChange={(value) =>
                                                                 handleCharacteristicValueChange(
                                                                     cv.characteristicId,
                                                                     value,
                                                                 )
                                                             }
+                                                            isEditing={isEditing}
                                                         />
                                                     </div>
                                                 ))

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -10,18 +10,107 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import { CalendarIcon } from "lucide-react"
+import {
+    CalendarIcon,
+    FileIcon,
+    X,
+    Upload,
+    Download,
+    Eye,
+    File,
+    FileText,
+    FileSpreadsheet,
+    FileArchive,
+    FileVolume,
+} from "lucide-react"
 import { format } from "date-fns"
-import { Characteristic } from "@prisma/client"
+import { Characteristic, FileDb } from "@prisma/client"
+import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic
-    value: string
-    onChange: (value: string) => void
+    value: any
+    onChange: (value: any) => void
+    isEditing?: boolean
 }
 
-export function CharacteristicValueForm({ characteristic, value, onChange }: CharacteristicValueFormProps) {
-    const [date, setDate] = useState<Date | undefined>(value ? new Date(value) : undefined)
+// File type detection helpers
+const getFileIcon = (fileName: string) => {
+    const extension = fileName.split(".").pop()?.toLowerCase() || ""
+
+    switch (extension) {
+        case "pdf":
+            return <FileText className="h-6 w-6 text-red-700" />
+        case "doc":
+        case "docx":
+            return <FileText className="h-6 w-6 text-blue-600" />
+        case "xls":
+        case "xlsx":
+            return <FileSpreadsheet className="h-6 w-6 text-green-600" />
+        case "txt":
+        case "csv":
+            return <FileText className="h-6 w-6 text-gray-500" />
+        case "zip":
+        case "rar":
+        case "7z":
+        case "tar":
+            return <FileArchive className="h-6 w-6 text-orange-700" />
+        case "mp3":
+        case "wav":
+        case "ogg":
+        case "wmv":
+        case "mp4":
+        case "avi":
+        case "mkv":
+            return <FileVolume className="h-6 w-6 text-purple-600" />
+        default:
+            return <File className="h-6 w-6 text-gray-500" />
+    }
+}
+
+const isImageFile = (fileName: string) => {
+    const extensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".svg"]
+    return extensions.some((ext) => fileName.toLowerCase().endsWith(ext))
+}
+
+// Constants for file size limits
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
+const MAX_TOTAL_FILE_SIZE = 50 * 1024 * 1024 // 50MB max total for all files
+
+const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + " B"
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB"
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB"
+}
+
+export function CharacteristicValueForm({
+    characteristic,
+    value,
+    onChange,
+    isEditing = false,
+}: CharacteristicValueFormProps) {
+    const t = useTranslations()
+    const tMat = useTranslations("Materials.files")
+    const tCommon = useTranslations("Common")
+    const [date, setDate] = useState<Date | undefined>(
+        value && typeof value === "string" ? new Date(value) : undefined,
+    )
+    const fileInputRef = useRef<HTMLInputElement>(null)
+    const [filePreviewUrls, setFilePreviewUrls] = useState<Map<string, string>>(new Map())
+
+    // Create preview URLs for uploaded files
+    useEffect(() => {
+        // Clean up previous preview URLs
+        return () => {
+            filePreviewUrls.forEach((url) => {
+                if (url.startsWith("blob:")) {
+                    URL.revokeObjectURL(url)
+                }
+            })
+        }
+    }, [filePreviewUrls])
 
     const handleDateChange = (date: Date | undefined) => {
         setDate(date)
@@ -154,7 +243,7 @@ export function CharacteristicValueForm({ characteristic, value, onChange }: Cha
                                         if (checked) {
                                             newValues = [...selectedValues, option]
                                         } else {
-                                            newValues = selectedValues.filter((v) => v !== option)
+                                            newValues = selectedValues.filter((v: string) => v !== option)
                                         }
                                         onChange(newValues.join(","))
                                     }}
@@ -207,6 +296,384 @@ export function CharacteristicValueForm({ characteristic, value, onChange }: Cha
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter URL"
                     />
+                )
+
+            case "file":
+                // Handle file uploads
+                let files: File[] = []
+                let existingFiles: Array<{ id: string; name: string; type: string }> = []
+                let filesToDelete: string[] = []
+
+                // Initialize file data based on value and editing state
+                if (isEditing) {
+                    if (value && typeof value === "object") {
+                        if ("fileToAdd" in value && Array.isArray(value.fileToAdd)) {
+                            files = value.fileToAdd
+
+                            // Create preview URLs for new files
+                            files.forEach((file, index) => {
+                                if (!filePreviewUrls.has(file.name + index)) {
+                                    const previewUrl = URL.createObjectURL(file)
+                                    setFilePreviewUrls((prev) => new Map(prev).set(file.name + index, previewUrl))
+                                }
+                            })
+                        }
+                        if ("fileToDelete" in value && Array.isArray(value.fileToDelete)) {
+                            filesToDelete = value.fileToDelete
+                        }
+                    }
+
+                    // Get existing files from the related File entities
+                    if (characteristic && characteristic.id) {
+                        // Parse existingFiles from the original value
+                        const currentMaterialValue =
+                            value && typeof value === "object" && "file" in value ? value.file : []
+                        existingFiles = Array.isArray(currentMaterialValue) ? currentMaterialValue : []
+                    }
+                } else {
+                    // For new material, just handle new files
+                    if (value && typeof value === "object" && "file" in value && Array.isArray(value.file)) {
+                        files = value.file
+
+                        // Create preview URLs for new files
+                        files.forEach((file, index) => {
+                            if (!filePreviewUrls.has(file.name + index)) {
+                                const previewUrl = URL.createObjectURL(file)
+                                setFilePreviewUrls((prev) => new Map(prev).set(file.name + index, previewUrl))
+                            }
+                        })
+                    }
+                }
+
+                const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                        const newFiles = Array.from(e.target.files)
+
+                        // Check individual file sizes
+                        const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
+                        if (oversizedFiles.length > 0) {
+                            const fileNames = oversizedFiles.map((f) => f.name).join(", ")
+                            toast.error(
+                                tMat.rich("fileSizeError", {
+                                    size: formatFileSize(MAX_FILE_SIZE),
+                                    files: fileNames,
+                                }),
+                            )
+                            // Filter out oversized files
+                            const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+                            if (validFiles.length === 0) return
+
+                            // Continue with valid files only
+                            const validNewFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+
+                            // Create preview URLs for new files
+                            validNewFiles.forEach((file) => {
+                                const previewUrl = URL.createObjectURL(file)
+                                setFilePreviewUrls((prev) =>
+                                    new Map(prev).set(file.name + Math.random(), previewUrl),
+                                )
+                            })
+
+                            // Calculate total size of files being uploaded in this operation
+                            const totalNewFilesSize = validNewFiles.reduce((sum, file) => sum + file.size, 0)
+
+                            // Check if the size of files in this upload operation exceeds the limit
+                            if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
+                                toast.error(
+                                    tMat.rich("totalSizeError", {
+                                        size: formatFileSize(totalNewFilesSize),
+                                        maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
+                                    }),
+                                )
+                                return
+                            }
+
+                            if (isEditing) {
+                                // Update for edit mode (append to existing fileToAdd)
+                                const currentValue = value || {}
+                                const currentFilesToAdd = Array.isArray(currentValue.fileToAdd)
+                                    ? currentValue.fileToAdd
+                                    : []
+                                const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
+                                    ? currentValue.fileToDelete
+                                    : []
+
+                                onChange({
+                                    fileToAdd: [...currentFilesToAdd, ...validNewFiles],
+                                    fileToDelete: currentFilesToDelete,
+                                })
+                            } else {
+                                // Update for create mode
+                                const currentFiles =
+                                    value && typeof value === "object" && "file" in value ? value.file : []
+
+                                onChange({ file: [...currentFiles, ...validNewFiles] })
+                            }
+                        }
+                    }
+                }
+
+                const removeNewFile = (index: number) => {
+                    if (isEditing) {
+                        // Remove from fileToAdd in edit mode
+                        const currentValue = value || {}
+                        const currentFilesToAdd = Array.isArray(currentValue.fileToAdd)
+                            ? [...currentValue.fileToAdd]
+                            : []
+
+                        // Revoke the URL if it exists
+                        const file = currentFilesToAdd[index]
+                        const key = file.name + index
+                        if (filePreviewUrls.has(key)) {
+                            URL.revokeObjectURL(filePreviewUrls.get(key)!)
+                            setFilePreviewUrls((prev) => {
+                                const newMap = new Map(prev)
+                                newMap.delete(key)
+                                return newMap
+                            })
+                        }
+
+                        currentFilesToAdd.splice(index, 1)
+
+                        onChange({
+                            ...currentValue,
+                            fileToAdd: currentFilesToAdd,
+                        })
+                    } else {
+                        // Remove from file array in create mode
+                        const currentFiles =
+                            value && typeof value === "object" && "file" in value ? [...value.file] : []
+
+                        // Revoke the URL if it exists
+                        const file = currentFiles[index]
+                        const key = file.name + index
+                        if (filePreviewUrls.has(key)) {
+                            URL.revokeObjectURL(filePreviewUrls.get(key)!)
+                            setFilePreviewUrls((prev) => {
+                                const newMap = new Map(prev)
+                                newMap.delete(key)
+                                return newMap
+                            })
+                        }
+
+                        currentFiles.splice(index, 1)
+                        onChange({ file: currentFiles })
+                    }
+                }
+
+                const markFileForDeletion = (fileId: string) => {
+                    if (!isEditing) return
+
+                    const currentValue = value || {}
+                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
+                        ? [...currentValue.fileToDelete]
+                        : []
+
+                    // Add file to delete list if not already there
+                    if (!currentFilesToDelete.includes(fileId)) {
+                        onChange({
+                            ...currentValue,
+                            fileToDelete: [...currentFilesToDelete, fileId],
+                        })
+                    }
+                }
+
+                const unmarkFileForDeletion = (fileId: string) => {
+                    if (!isEditing) return
+
+                    const currentValue = value || {}
+                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
+                        ? currentValue.fileToDelete.filter((id: string) => id !== fileId)
+                        : []
+
+                    onChange({
+                        ...currentValue,
+                        fileToDelete: currentFilesToDelete,
+                    })
+                }
+
+                const isFileMarkedForDeletion = (fileId: string): boolean => {
+                    if (!isEditing) return false
+                    return (
+                        value &&
+                        typeof value === "object" &&
+                        "fileToDelete" in value &&
+                        Array.isArray(value.fileToDelete) &&
+                        (value as { fileToDelete: string[] }).fileToDelete.includes(fileId)
+                    )
+                }
+
+                return (
+                    <div className="space-y-3">
+                        {/* Upload button */}
+                        <div>
+                            <input
+                                type="file"
+                                multiple
+                                className="hidden"
+                                onChange={handleFileChange}
+                                ref={fileInputRef}
+                            />
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full"
+                            >
+                                <Upload className="h-4 w-4 mr-2" />
+                                {tMat("uploadFiles")}
+                            </Button>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            {/* Display new files */}
+                            {files && files.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-medium mb-2">{tMat("newFiles")}</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {files.map((file, index) => (
+                                            <div
+                                                key={`new-${index}`}
+                                                className="relative border rounded-md p-3 flex items-center gap-3 group hover:bg-accent/5 transition-colors"
+                                            >
+                                                <div className="h-14 w-14 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                    {isImageFile(file.name) ? (
+                                                        <img
+                                                            src={filePreviewUrls.get(file.name + index) || ""}
+                                                            alt={file.name}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        getFileIcon(file.name)
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate">{file.name}</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {Math.round(file.size / 1024)} KB
+                                                    </p>
+                                                </div>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    onClick={() => removeNewFile(index)}
+                                                    aria-label={tCommon("delete")}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Display existing files for edit mode */}
+                            {isEditing && existingFiles && existingFiles.length > 0 && (
+                                <div>
+                                    <h4 className="text-sm font-medium mb-2">{tMat("existingFiles")}</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {existingFiles.map((file) => {
+                                            const isMarkedForDeletion = isFileMarkedForDeletion(file.id)
+                                            const fileUrl = `/api/image/${file.id}`
+
+                                            return (
+                                                <div
+                                                    key={`existing-${file.id}`}
+                                                    className={cn(
+                                                        "relative border rounded-md p-3 flex items-center gap-3 group transition-all",
+                                                        isMarkedForDeletion
+                                                            ? "opacity-50 bg-accent/5"
+                                                            : "hover:bg-accent/5",
+                                                    )}
+                                                >
+                                                    <div className="h-14 w-14 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                        {isImageFile(file.name) ? (
+                                                            <img
+                                                                src={fileUrl}
+                                                                alt={file.name}
+                                                                className="h-full w-full object-cover"
+                                                                onError={(e) => {
+                                                                    // If image fails to load, show file icon instead
+                                                                    const target = e.target as HTMLImageElement
+                                                                    target.style.display = "none"
+                                                                    target.parentElement!.appendChild(
+                                                                        (() => {
+                                                                            const div =
+                                                                                document.createElement("div")
+                                                                            div.className =
+                                                                                "h-full w-full flex items-center justify-center"
+                                                                            div.appendChild(
+                                                                                getFileIcon(
+                                                                                    file.name,
+                                                                                ) as unknown as Node,
+                                                                            )
+                                                                            return div
+                                                                        })(),
+                                                                    )
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            getFileIcon(file.name)
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium truncate">{file.name}</p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {isMarkedForDeletion
+                                                                ? tMat("markedForDeletion")
+                                                                : file.type || "File"}
+                                                        </p>
+                                                        {!isMarkedForDeletion && (
+                                                            <div className="flex gap-2 mt-1">
+                                                                <a
+                                                                    href={fileUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="inline-flex items-center text-xs text-primary hover:underline"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <Eye className="h-3 w-3 mr-1" />
+                                                                    {tMat("view")}
+                                                                </a>
+                                                                <a
+                                                                    href={fileUrl}
+                                                                    download={file.name}
+                                                                    className="inline-flex items-center text-xs text-primary hover:underline"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <Download className="h-3 w-3 mr-1" />
+                                                                    {tMat("download")}
+                                                                </a>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        onClick={() =>
+                                                            isMarkedForDeletion
+                                                                ? unmarkFileForDeletion(file.id)
+                                                                : markFileForDeletion(file.id)
+                                                        }
+                                                    >
+                                                        {isMarkedForDeletion ? (
+                                                            <span className="text-xs font-medium text-primary">
+                                                                {tMat("undo")}
+                                                            </span>
+                                                        ) : (
+                                                            <X className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )
 
             default:

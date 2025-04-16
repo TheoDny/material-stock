@@ -1,8 +1,8 @@
 -- CreateEnum
-CREATE TYPE "LogType" AS ENUM ('user_create', 'user_update', 'user_set_role', 'user_set_entity', 'user_disable', 'user_email_verified', 'role_create', 'role_update', 'role_delete', 'role_set_permission', 'tag_create', 'tag_update', 'characteristic_create', 'characteristic_update', 'characteristic_delete', 'material_create', 'material_update', 'entity_update', 'entity_disable');
+CREATE TYPE "LogType" AS ENUM ('user_create', 'user_update', 'user_set_role', 'user_set_entity', 'user_disable', 'user_email_verified', 'role_create', 'role_update', 'role_delete', 'role_set_permission', 'tag_create', 'tag_update', 'tag_delete', 'characteristic_create', 'characteristic_update', 'characteristic_delete', 'material_create', 'material_update', 'entity_update', 'entity_disable');
 
 -- CreateEnum
-CREATE TYPE "CharacteristicType" AS ENUM ('checkbox', 'radio', 'select', 'multiSelect', 'text', 'multiText', 'textarea', 'number', 'float', 'email', 'date', 'dateHour', 'dateRange', 'dateHourRange', 'link');
+CREATE TYPE "CharacteristicType" AS ENUM ('checkbox', 'radio', 'select', 'multiSelect', 'text', 'multiText', 'textarea', 'number', 'float', 'email', 'date', 'dateHour', 'dateRange', 'dateHourRange', 'link', 'file');
 
 -- CreateTable
 CREATE TABLE "user" (
@@ -154,6 +154,7 @@ CREATE TABLE "material" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "order_Material_Characteristic" TEXT[],
+    "deletedAt" TIMESTAMP(3),
     "entityId" TEXT NOT NULL,
 
     CONSTRAINT "material_pkey" PRIMARY KEY ("id")
@@ -164,7 +165,7 @@ CREATE TABLE "material_characteristic" (
     "id" TEXT NOT NULL,
     "materialId" TEXT NOT NULL,
     "characteristicId" TEXT NOT NULL,
-    "value" JSONB NOT NULL,
+    "value" JSONB,
 
     CONSTRAINT "material_characteristic_pkey" PRIMARY KEY ("id")
 );
@@ -180,6 +181,17 @@ CREATE TABLE "material_history" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "material_history_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "filedb" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "path" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "filedb_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -222,6 +234,14 @@ CREATE TABLE "_MaterialToTag" (
     CONSTRAINT "_MaterialToTag_AB_pkey" PRIMARY KEY ("A","B")
 );
 
+-- CreateTable
+CREATE TABLE "_FileDbToMaterial_Characteristic" (
+    "A" TEXT NOT NULL,
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_FileDbToMaterial_Characteristic_AB_pkey" PRIMARY KEY ("A","B")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
@@ -242,6 +262,9 @@ CREATE INDEX "_CharacteristicToMaterial_B_index" ON "_CharacteristicToMaterial"(
 
 -- CreateIndex
 CREATE INDEX "_MaterialToTag_B_index" ON "_MaterialToTag"("B");
+
+-- CreateIndex
+CREATE INDEX "_FileDbToMaterial_Characteristic_B_index" ON "_FileDbToMaterial_Characteristic"("B");
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_entitySelectedId_fkey" FOREIGN KEY ("entitySelectedId") REFERENCES "entity"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -305,3 +328,9 @@ ALTER TABLE "_MaterialToTag" ADD CONSTRAINT "_MaterialToTag_A_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "_MaterialToTag" ADD CONSTRAINT "_MaterialToTag_B_fkey" FOREIGN KEY ("B") REFERENCES "tag"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_FileDbToMaterial_Characteristic" ADD CONSTRAINT "_FileDbToMaterial_Characteristic_A_fkey" FOREIGN KEY ("A") REFERENCES "filedb"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_FileDbToMaterial_Characteristic" ADD CONSTRAINT "_FileDbToMaterial_Characteristic_B_fkey" FOREIGN KEY ("B") REFERENCES "material_characteristic"("id") ON DELETE CASCADE ON UPDATE CASCADE;
