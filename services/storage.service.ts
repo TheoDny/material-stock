@@ -16,13 +16,11 @@ export async function saveFile(file: File, filePath: string, option: OptionSaveF
     // Ensure storage directory exists
     const fullPath = path.join(STORAGE_PATH, filePath)
     await fs.ensureDir(path.normalize(fullPath))
-    console.log("\n\npath\n", path.normalize(fullPath))
-    console.log(file.name)
 
     // Generate a unique filename
-    const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+    const originalFileName = file.name.replace(/\s+/g, "-")
+    const fileName = `${Date.now()}-${originalFileName}`
     const fullFilePath = path.join(fullPath, fileName)
-    console.log("File saved to:", fullFilePath)
 
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer()
@@ -62,8 +60,8 @@ export async function saveFile(file: File, filePath: string, option: OptionSaveF
     const fileDb = await prisma.fileDb.create({
         data: {
             type: file.type,
-            name: fileName,
-            path: path.join(filePath, fileName),
+            name: originalFileName,
+            path: fullFilePath,
         },
     })
 
