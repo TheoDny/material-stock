@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
+import Image from "next/image"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic
@@ -573,7 +574,7 @@ export function CharacteristicValueForm({
                                                 key={`new-${index}`}
                                                 className="relative border rounded-md p-3 flex items-center gap-3 group hover:bg-accent/5 transition-colors"
                                             >
-                                                <div className="h-14 w-14 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                <div className="h-18 w-18 min-w-14  rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
                                                     {isImageFile(file.name) ? (
                                                         <img
                                                             src={filePreviewUrls.get(file.name + index) || ""}
@@ -625,11 +626,13 @@ export function CharacteristicValueForm({
                                                             : "hover:bg-accent/5",
                                                     )}
                                                 >
-                                                    <div className="h-14 w-14 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                    <div className="h-18 w-18 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
                                                         {isImageFile(file.name) ? (
-                                                            <img
+                                                            <Image
                                                                 src={fileUrl}
                                                                 alt={file.name}
+                                                                width={72}
+                                                                height={72}
                                                                 className="h-full w-full object-cover"
                                                                 onError={(e) => {
                                                                     // If image fails to load, show file icon instead
@@ -663,28 +666,33 @@ export function CharacteristicValueForm({
                                                                 : file.type || "File"}
                                                         </p>
                                                         {!isMarkedForDeletion && (
-                                                            <div className="flex gap-2 mt-1">
+                                                            <div className="flex gap-2">
                                                                 {canPreview && (
-                                                                    <button
+                                                                    <Button
                                                                         type="button"
-                                                                        className="inline-flex items-center text-xs text-primary hover:underline"
+                                                                        variant={"ghost"}
+                                                                        className="cursor-pointer inline-flex font-normal items-center text-xs text-primary hover:underline"
                                                                         onClick={(e) => {
                                                                             e.stopPropagation()
                                                                             handleOpenPreview(file)
                                                                         }}
                                                                     >
-                                                                        <Eye className="h-3 w-3 mr-1" />
+                                                                        <Eye className="h-3 w-3" />
                                                                         {tMat("view")}
-                                                                    </button>
+                                                                    </Button>
                                                                 )}
                                                                 <a
                                                                     href={fileUrl}
                                                                     download={file.name}
-                                                                    className="inline-flex items-center text-xs text-primary hover:underline"
                                                                     onClick={(e) => e.stopPropagation()}
                                                                 >
-                                                                    <Download className="h-3 w-3 mr-1" />
-                                                                    {tMat("download")}
+                                                                    <Button
+                                                                        variant={"ghost"}
+                                                                        className="cursor-pointer inline-flex items-center text-xs text-primary hover:underline"
+                                                                    >
+                                                                        <Download className="h-3 w-3 mr-1" />
+                                                                        {tMat("download")}
+                                                                    </Button>
                                                                 </a>
                                                             </div>
                                                         )}
