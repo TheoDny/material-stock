@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
     CalendarIcon,
     FileIcon,
@@ -22,6 +22,7 @@ import {
     FileSpreadsheet,
     FileArchive,
     FileVolume,
+    Undo,
 } from "lucide-react"
 import { format } from "date-fns"
 import { Characteristic, FileDb } from "@prisma/client"
@@ -620,10 +621,10 @@ export function CharacteristicValueForm({
                                                 <div
                                                     key={`existing-${file.id}`}
                                                     className={cn(
-                                                        "relative border rounded-md p-3 flex items-center gap-3 group transition-all",
+                                                        "relative border rounded-md p-3 flex items-center gap-2 group transition-all",
                                                         isMarkedForDeletion
-                                                            ? "opacity-50 bg-accent/5"
-                                                            : "hover:bg-accent/5",
+                                                            ? "opacity-50 bg-destructive/20"
+                                                            : "hover:bg-accent/20",
                                                     )}
                                                 >
                                                     <div className="h-18 w-18 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
@@ -666,10 +667,11 @@ export function CharacteristicValueForm({
                                                                 : file.type || "File"}
                                                         </p>
                                                         {!isMarkedForDeletion && (
-                                                            <div className="flex gap-2">
+                                                            <div className="flex gap-1">
                                                                 {canPreview && (
                                                                     <Button
                                                                         type="button"
+                                                                        size={"sm"}
                                                                         variant={"ghost"}
                                                                         className="cursor-pointer inline-flex font-normal items-center text-xs text-primary hover:underline"
                                                                         onClick={(e) => {
@@ -684,15 +686,19 @@ export function CharacteristicValueForm({
                                                                 <a
                                                                     href={fileUrl}
                                                                     download={file.name}
-                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    className={cn(
+                                                                        buttonVariants({
+                                                                            variant: "ghost",
+                                                                            size: "sm",
+                                                                        }),
+                                                                        "text-xs hover:underline",
+                                                                    )}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                    }}
                                                                 >
-                                                                    <Button
-                                                                        variant={"ghost"}
-                                                                        className="cursor-pointer inline-flex items-center text-xs text-primary hover:underline"
-                                                                    >
-                                                                        <Download className="h-3 w-3 mr-1" />
-                                                                        {tMat("download")}
-                                                                    </Button>
+                                                                    <Download className="h-3 w-3 mr-1" />
+                                                                    {tMat("download")}
                                                                 </a>
                                                             </div>
                                                         )}
@@ -708,9 +714,7 @@ export function CharacteristicValueForm({
                                                         }
                                                     >
                                                         {isMarkedForDeletion ? (
-                                                            <span className="text-xs font-medium text-primary">
-                                                                {tMat("undo")}
-                                                            </span>
+                                                            <Undo className="h-4 w-4" />
                                                         ) : (
                                                             <X className="h-4 w-4" />
                                                         )}
