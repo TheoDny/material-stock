@@ -134,7 +134,7 @@ export async function getFileById(fileId: string) {
     }
 
     // Read file from storage
-    const fullPath = path.join(STORAGE_PATH, file.path)
+    const fullPath = file.path
 
     try {
         const data = await fs.readFile(fullPath)
@@ -142,8 +142,6 @@ export async function getFileById(fileId: string) {
         return {
             ...file,
             data,
-            mimeType: file.type,
-            filename: file.name,
         }
     } catch (error) {
         console.error(`Failed to read file ${file.id} at ${fullPath}:`, error)

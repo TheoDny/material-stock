@@ -3,7 +3,7 @@ import { getFileById } from "@/services/storage.service"
 
 export async function GET(request: NextRequest, { params }: { params: { imageId: string } }) {
     try {
-        const imageId = params.imageId
+        const imageId = (await params).imageId
 
         if (!imageId) {
             return new NextResponse("Image ID is required", { status: 400 })
@@ -20,13 +20,13 @@ export async function GET(request: NextRequest, { params }: { params: { imageId:
         const buffer = Buffer.isBuffer(file.data) ? file.data : Buffer.from(file.data)
 
         // Determine the content type based on file information
-        const contentType = file.mimeType || determineContentType(file.filename || "")
+        const contentType = file.type || determineContentType(file.name || "")
 
         // Create the response with proper headers
         return new NextResponse(buffer, {
             headers: {
                 "Content-Type": contentType,
-                "Content-Disposition": `inline; filename="${file.filename || imageId}"`,
+                "Content-Disposition": `inline; filename="${file.name || imageId}"`,
                 "Cache-Control": "public, max-age=31536000, immutable",
             },
         })

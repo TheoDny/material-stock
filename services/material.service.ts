@@ -76,7 +76,13 @@ export async function getMaterialCharacteristics(materialId: string) {
             },
             include: {
                 Characteristic: true,
-                File: true,
+                File: {
+                    select: {
+                        id: true,
+                        name: true,
+                        type: true,
+                    },
+                },
             },
         })
 

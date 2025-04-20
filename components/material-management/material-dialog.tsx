@@ -561,7 +561,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                 getOrderedCharacteristicValues().map((cv, index) => (
                                                     <div
                                                         key={cv.characteristicId}
-                                                        className="border rounded-md p-4 space-y-2"
+                                                        className="border rounded-md p-3 space-y-1"
                                                         draggable
                                                         onDragStart={() => handleDragStart(index)}
                                                         onDragOver={(e) => handleDragOver(e, index)}
@@ -590,12 +590,14 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                         <CharacteristicValueForm
                                                             characteristic={cv.Characteristic}
                                                             value={cv.value}
-                                                            onChange={(value) =>
+                                                            onChange={(value) => {
+                                                                console.log(value)
+
                                                                 handleCharacteristicValueChange(
                                                                     cv.characteristicId,
                                                                     value,
                                                                 )
-                                                            }
+                                                            }}
                                                             isEditing={isEditing}
                                                         />
                                                     </div>

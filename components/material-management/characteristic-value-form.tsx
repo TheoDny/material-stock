@@ -160,6 +160,8 @@ export function CharacteristicValueForm({
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("File input changed", e)
+
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
 
@@ -167,58 +169,60 @@ export function CharacteristicValueForm({
             const oversizedFiles = newFiles.filter((file) => file.size > MAX_FILE_SIZE)
             if (oversizedFiles.length > 0) {
                 const fileNames = oversizedFiles.map((f) => f.name).join(", ")
+                const message = tMat.rich("fileSizeError", {
+                    size: formatFileSize(MAX_FILE_SIZE),
+                    files: fileNames,
+                })
+                console.error(message)
+
                 toast.error(
                     tMat.rich("fileSizeError", {
                         size: formatFileSize(MAX_FILE_SIZE),
                         files: fileNames,
                     }),
                 )
-                // Filter out oversized files
-                const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
-                if (validFiles.length === 0) return
+            }
 
-                // Continue with valid files only
-                const validNewFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+            // Filter out oversized files
+            const validFiles = newFiles.filter((file) => file.size <= MAX_FILE_SIZE)
+            if (validFiles.length === 0) return
+            // Create preview URLs for new files
+            validFiles.forEach((file) => {
+                const previewUrl = URL.createObjectURL(file)
+                setFilePreviewUrls((prev) => new Map(prev).set(file.name + Math.random(), previewUrl))
+            })
 
-                // Create preview URLs for new files
-                validNewFiles.forEach((file) => {
-                    const previewUrl = URL.createObjectURL(file)
-                    setFilePreviewUrls((prev) => new Map(prev).set(file.name + Math.random(), previewUrl))
+            // Calculate total size of files being uploaded in this operation
+            const totalNewFilesSize = validFiles.reduce((sum, file) => sum + file.size, 0)
+
+            // Check if the size of files in this upload operation exceeds the limit
+            if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
+                const message = tMat.rich("totalSizeError", {
+                    size: formatFileSize(totalNewFilesSize),
+                    maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
                 })
 
-                // Calculate total size of files being uploaded in this operation
-                const totalNewFilesSize = validNewFiles.reduce((sum, file) => sum + file.size, 0)
-
-                // Check if the size of files in this upload operation exceeds the limit
-                if (totalNewFilesSize > MAX_TOTAL_FILE_SIZE) {
-                    toast.error(
-                        tMat.rich("totalSizeError", {
-                            size: formatFileSize(totalNewFilesSize),
-                            maxSize: formatFileSize(MAX_TOTAL_FILE_SIZE),
-                        }),
-                    )
-                    return
-                }
-
-                if (isEditing) {
-                    // Update for edit mode (append to existing fileToAdd)
-                    const currentValue = value || {}
-                    const currentFilesToAdd = Array.isArray(currentValue.fileToAdd) ? currentValue.fileToAdd : []
-                    const currentFilesToDelete = Array.isArray(currentValue.fileToDelete)
-                        ? currentValue.fileToDelete
-                        : []
-
-                    onChange({
-                        fileToAdd: [...currentFilesToAdd, ...validNewFiles],
-                        fileToDelete: currentFilesToDelete,
-                    })
-                } else {
-                    // Update for create mode
-                    const currentFiles = value && typeof value === "object" && "file" in value ? value.file : []
-
-                    onChange({ file: [...currentFiles, ...validNewFiles] })
-                }
+                console.error(message)
+                toast.error(message)
+                return
             }
+
+            console.log("validFiles", validFiles)
+
+            // Update for edit mode (append to existing fileToAdd)
+            const currentValue = value || {}
+            const currentFilesToAdd = Array.isArray(currentValue.fileToAdd) ? currentValue.fileToAdd : []
+            const currentFilesToDelete = Array.isArray(currentValue.fileToDelete) ? currentValue.fileToDelete : []
+
+            onChange({
+                fileToAdd: [...currentFilesToAdd, ...validFiles],
+                fileToDelete: currentFilesToDelete,
+                file: currentValue.file,
+            })
+        }
+        // Reset input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
         }
     }
 
@@ -496,6 +500,8 @@ export function CharacteristicValueForm({
                 )
 
             case "file":
+                console.log("file input", value, isEditing)
+
                 // Handle file uploads
                 let files: File[] = []
                 let existingFiles: Array<{ id: string; name: string; type: string }> = []
@@ -543,20 +549,28 @@ export function CharacteristicValueForm({
                 }
 
                 return (
-                    <div className="space-y-3">
+                    <div>
                         {/* Upload button */}
                         <div>
                             <input
                                 type="file"
+                                ref={fileInputRef}
                                 multiple
                                 className="hidden"
-                                onChange={handleFileChange}
-                                ref={fileInputRef}
+                                onChange={(e) => {
+                                    console.log("File input changed", e)
+
+                                    handleFileChange(e)
+                                }}
                             />
                             <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() => fileInputRef.current?.click()}
+                                onClick={() => {
+                                    console.log("Upload button clicked", fileInputRef.current)
+
+                                    fileInputRef.current?.click()
+                                }}
                                 className="w-full"
                             >
                                 <Upload className="h-4 w-4 mr-2" />
@@ -564,23 +578,23 @@ export function CharacteristicValueForm({
                             </Button>
                         </div>
 
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-1">
                             {/* Display new files */}
                             {files && files.length > 0 && (
                                 <div>
                                     <h4 className="text-sm font-medium mb-2">{tMat("newFiles")}</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         {files.map((file, index) => (
                                             <div
                                                 key={`new-${index}`}
-                                                className="relative border rounded-md p-3 flex items-center gap-3 group hover:bg-accent/5 transition-colors"
+                                                className="relative border rounded-md p-2 flex items-center gap-1 group bg-green-600/20"
                                             >
                                                 <div className="h-18 w-18 min-w-14  rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
                                                     {isImageFile(file.name) ? (
                                                         <img
                                                             src={filePreviewUrls.get(file.name + index) || ""}
                                                             alt={file.name}
-                                                            className="h-full w-full object-cover"
+                                                            className="h-full w-full object-scale-down"
                                                         />
                                                     ) : (
                                                         getFileIcon(file.name)
@@ -607,11 +621,10 @@ export function CharacteristicValueForm({
                                 </div>
                             )}
 
-                            {/* Display existing files for edit mode */}
                             {isEditing && existingFiles && existingFiles.length > 0 && (
                                 <div>
                                     <h4 className="text-sm font-medium mb-2">{tMat("existingFiles")}</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         {existingFiles.map((file) => {
                                             const isMarkedForDeletion = isFileMarkedForDeletion(file.id)
                                             const fileUrl = `/api/image/${file.id}`
@@ -621,9 +634,9 @@ export function CharacteristicValueForm({
                                                 <div
                                                     key={`existing-${file.id}`}
                                                     className={cn(
-                                                        "relative border rounded-md p-3 flex items-center gap-2 group transition-all",
+                                                        "relative border rounded-md p-2 flex items-center gap-2 group transition-all",
                                                         isMarkedForDeletion
-                                                            ? "opacity-50 bg-destructive/20"
+                                                            ? "bg-destructive/20"
                                                             : "hover:bg-accent/20",
                                                     )}
                                                 >
@@ -691,7 +704,7 @@ export function CharacteristicValueForm({
                                                                             variant: "ghost",
                                                                             size: "sm",
                                                                         }),
-                                                                        "text-xs hover:underline",
+                                                                        "text-xs hover:underline font-normal",
                                                                     )}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation()
@@ -707,11 +720,13 @@ export function CharacteristicValueForm({
                                                         size="icon"
                                                         variant="ghost"
                                                         className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        onClick={() =>
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            e.preventDefault()
                                                             isMarkedForDeletion
                                                                 ? unmarkFileForDeletion(file.id)
                                                                 : markFileForDeletion(file.id)
-                                                        }
+                                                        }}
                                                     >
                                                         {isMarkedForDeletion ? (
                                                             <Undo className="h-4 w-4" />
