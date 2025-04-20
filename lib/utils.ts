@@ -29,6 +29,7 @@ export const getTypeColor = (type: CharacteristicType) => {
         dateRange: "bg-orange-300 text-orange-900",
         dateHourRange: "bg-orange-100 text-orange-800",
         link: "bg-cyan-100 text-cyan-800",
+        file: "bg-teal-100 text-teal-800",
     }
 
     return typeColors[type] || "bg-gray-100 text-gray-800"

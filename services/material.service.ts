@@ -203,6 +203,7 @@ export async function updateMaterial(
     id: string,
     entityId: string,
     data: {
+        name: string
         description: string
         tagIds: string[]
         orderCharacteristics: string[]
@@ -231,6 +232,7 @@ export async function updateMaterial(
         const material = await prisma.material.update({
             where: { id },
             data: {
+                name: data.name,
                 description: data.description || "",
                 updatedAt: new Date(),
                 Tags: {

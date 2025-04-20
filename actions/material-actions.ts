@@ -132,9 +132,10 @@ export const updateMaterialAction = actionClient.schema(updateMaterialSchema).ac
         // We need a custom permission code for materials, but for now we'll use tag_edit
         const session = await checkAuth({ requiredPermission: "tag_edit" })
 
-        const { id, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
+        const { id, name, description, tagIds, characteristicValues, orderCharacteristics } = parsedInput
 
         return await updateMaterial(id, session.user.entitySelectedId, {
+            name,
             description: description || "",
             tagIds,
             characteristicValues,

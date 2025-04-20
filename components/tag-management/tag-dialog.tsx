@@ -202,7 +202,7 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="space-y-4"
+                        className="space-y-1"
                     >
                         <FormField
                             control={form.control}
@@ -247,12 +247,11 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
                                         </div>
                                     </FormControl>
                                     {showTextColorPicker && (
-                                        <div className="mt-2">
-                                            <HexColorPicker
-                                                color={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </div>
+                                        <HexColorPicker
+                                            color={field.value}
+                                            onChange={field.onChange}
+                                            className="!w-full"
+                                        />
                                     )}
                                     <FormMessage />
                                 </FormItem>
@@ -280,12 +279,11 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
                                         </div>
                                     </FormControl>
                                     {showColorPicker && (
-                                        <div className="mt-2">
-                                            <HexColorPicker
-                                                color={field.value}
-                                                onChange={field.onChange}
-                                            />
-                                        </div>
+                                        <HexColorPicker
+                                            color={field.value}
+                                            onChange={field.onChange}
+                                            className="!w-full"
+                                        />
                                     )}
                                     <FormMessage />
                                 </FormItem>
@@ -323,7 +321,7 @@ export function TagDialog({ open, tag, onClose }: TagDialogProps) {
                                     )}
                                 </Tooltip>
                             )}
-                            <div className={isEditing ? "flex gap-2" : ""}>
+                            <div className={"flex gap-2"}>
                                 <Button
                                     type="button"
                                     variant="outline"

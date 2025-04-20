@@ -125,7 +125,6 @@
             "tags": "Tags",
             "createdBy": "Créé par",
             "updatedAt": "Mis à jour le",
-            "status": "Statut",
             "actions": "Actions"
         },
         "dialog": {
@@ -133,13 +132,20 @@
             "edit": "Modifier un Matériel",
             "name": "Nom du Matériel",
             "description": "Description",
+            "general": "Général",
             "tags": "Tags",
             "characteristics": "Caractéristiques",
             "addValue": "Ajouter une Valeur",
             "selectUnit": "Sélectionner une Unité",
             "selectTags": "Sélectionner des Tags",
             "history": "Historique",
-            "noValues": "Aucune valeur définie"
+            "noValues": "Aucune valeur définie",
+            "createDescription": "Remplissez les informations pour créer un nouveau matériel.",
+            "editDescription": "Mettez à jour les informations du matériel ci-dessous.",
+            "tagsUnavailable": "Aucun tag disponible",
+            "characteristicsUnavailable": "Aucune caractéristique disponible",
+            "noCharacteristics": "Aucune caractéristique associée",
+            "addCharacteristics": "Ajouter une Caractéristique"
         },
         "history": {
             "title": "Historique du Matériel",

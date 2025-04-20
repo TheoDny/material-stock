@@ -129,13 +129,20 @@
             "edit": "Edit Material",
             "name": "Material Name",
             "description": "Description",
+            "general": "General",
             "tags": "Tags",
             "characteristics": "Characteristics",
             "addValue": "Add Value",
             "selectUnit": "Select Unit",
             "selectTags": "Select Tags",
             "history": "History",
-            "noValues": "No values defined"
+            "noValues": "No values defined",
+            "createDescription": "Fill in the informations to create a new material.",
+            "editDescription": "Update the material informations below.",
+            "tagsUnavailable": "No Tags available",
+            "characteristicsUnavailable": "No Characteristics available",
+            "noCharacteristics": "No characteristics available",
+            "addCharacteristics": "Add Characteristics"
         },
         "history": {
             "title": "Material History",

@@ -117,7 +117,7 @@ export function MaterialManagement() {
     const columns: Column<MaterialWithTag>[] = [
         {
             key: "name",
-            header: "Name",
+            header: t("columns.name"),
             cell: (material) => (
                 <div>
                     <div className="font-medium">{material.name}</div>
@@ -129,7 +129,7 @@ export function MaterialManagement() {
         },
         {
             key: "tags",
-            header: "Tags",
+            header: t("columns.tags"),
             cell: (material) => (
                 <div className="flex flex-wrap gap-1">
                     {material.Tags.length > 0 ? (
@@ -145,19 +145,19 @@ export function MaterialManagement() {
                             </Badge>
                         ))
                     ) : (
-                        <span className="text-muted-foreground">No tags</span>
+                        <span className="text-muted-foreground">-</span>
                     )}
                 </div>
             ),
         },
         {
             key: "updatedAt",
-            header: "Last Updated",
+            header: t("columns.updatedAt"),
             cell: (material) => formatDate(material.updatedAt),
         },
         {
             key: "actions",
-            header: "Actions",
+            header: t("columns.actions"),
             cell: (material) => (
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

@@ -121,7 +121,6 @@ export function CharacteristicValueForm({
     onChange,
     isEditing = false,
 }: CharacteristicValueFormProps) {
-    const t = useTranslations()
     const tMat = useTranslations("Materials.files")
     const tCommon = useTranslations("Common")
     const [date, setDate] = useState<Date | undefined>(

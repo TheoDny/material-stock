@@ -40,6 +40,7 @@ import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicValueForm } from "./characteristic-value-form"
 import { Tag, Characteristic, FileDb } from "@prisma/client"
 import { CharacteristicValue, MaterialWithTag } from "@/types/material.type"
+import { useTranslations } from "next-intl"
 
 const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -67,6 +68,8 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const [characteristicValues, setCharacteristicValues] = useState<ExtendedCharacteristicValue[]>([])
     const [activeTab, setActiveTab] = useState("general")
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
+    const tCommon = useTranslations("Common")
+    const tMaterialDialog = useTranslations("Materials.dialog")
 
     const isEditing = !!material
 
@@ -395,9 +398,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                 <DialogHeader>
                     <DialogTitle>{isEditing ? "Edit Material" : "Create Material"}</DialogTitle>
                     <DialogDescription>
-                        {isEditing
-                            ? "Update the material details below."
-                            : "Fill in the details to create a new material."}
+                        {isEditing ? tMaterialDialog("editDescription") : tMaterialDialog("createDescription")}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -407,9 +408,9 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                     className="flex flex-col flex-1 overflow-hidden"
                 >
                     <TabsList className="grid grid-cols-3 w-full">
-                        <TabsTrigger value="general">General</TabsTrigger>
-                        <TabsTrigger value="tags">Tags</TabsTrigger>
-                        <TabsTrigger value="characteristics">Characteristics</TabsTrigger>
+                        <TabsTrigger value="general">{tMaterialDialog("general")}</TabsTrigger>
+                        <TabsTrigger value="tags">{tMaterialDialog("tags")}</TabsTrigger>
+                        <TabsTrigger value="characteristics">{tMaterialDialog("characteristics")}</TabsTrigger>
                     </TabsList>
 
                     <Form {...form}>
@@ -430,20 +431,14 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                         name="name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Name</FormLabel>
+                                                <FormLabel>{tMaterialDialog("name")}</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         placeholder="Material name"
                                                         {...field}
-                                                        disabled={isEditing}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
-                                                {isEditing && (
-                                                    <FormDescription>
-                                                        Name cannot be changed after creation
-                                                    </FormDescription>
-                                                )}
                                             </FormItem>
                                         )}
                                     />
@@ -453,7 +448,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                         name="description"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Description</FormLabel>
+                                                <FormLabel>{tMaterialDialog("description")}</FormLabel>
                                                 <FormControl>
                                                     <Textarea
                                                         placeholder="Material description"
@@ -476,7 +471,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                         name="tagIds"
                                         render={() => (
                                             <FormItem>
-                                                <FormLabel>Tags</FormLabel>
+                                                <FormLabel>{tMaterialDialog("tags")}</FormLabel>
                                                 <FormControl>
                                                     <div className="grid grid-cols-2 gap-2 mt-2">
                                                         {tags.map((tag) => (
@@ -506,7 +501,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                         ))}
                                                         {tags.length === 0 && (
                                                             <div className="col-span-2 text-center py-4 text-muted-foreground">
-                                                                No tags available. Create tags first.
+                                                                {tMaterialDialog("tagsUnavailable")}
                                                             </div>
                                                         )}
                                                     </div>
@@ -523,13 +518,15 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                 >
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center">
-                                            <FormLabel>Characteristics</FormLabel>
+                                            <FormLabel>{tMaterialDialog("characteristics")}</FormLabel>
                                             <Select
                                                 onValueChange={handleAddCharacteristic}
                                                 value=""
                                             >
                                                 <SelectTrigger className="w-[250px]">
-                                                    <SelectValue placeholder="Add characteristic" />
+                                                    <SelectValue
+                                                        placeholder={tMaterialDialog("addCharacteristics")}
+                                                    />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {getAvailableCharacteristics().map((characteristic) => (
@@ -545,7 +542,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                             value="none"
                                                             disabled
                                                         >
-                                                            No characteristics available
+                                                            {tMaterialDialog("characteristicsUnavailable")}
                                                         </SelectItem>
                                                     )}
                                                 </SelectContent>
@@ -555,7 +552,7 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                         <div className="space-y-4 mb-0.5">
                                             {characteristicValues.length === 0 ? (
                                                 <div className="text-center py-4 text-muted-foreground border rounded-md">
-                                                    No characteristics added yet
+                                                    {tMaterialDialog("noCharacteristics")}
                                                 </div>
                                             ) : (
                                                 getOrderedCharacteristicValues().map((cv, index) => (
@@ -614,13 +611,17 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                     variant="outline"
                                     onClick={() => handleClose()}
                                 >
-                                    Cancel
+                                    {tCommon("cancel")}
                                 </Button>
                                 <Button
                                     type="submit"
                                     disabled={isSubmitting}
                                 >
-                                    {isSubmitting ? "Saving..." : isEditing ? "Update" : "Create"}
+                                    {isSubmitting
+                                        ? tCommon("saving")
+                                        : isEditing
+                                          ? tCommon("update")
+                                          : tCommon("create")}
                                 </Button>
                             </DialogFooter>
                         </form>
