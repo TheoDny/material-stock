@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { MaterialHistoryView } from "@/components/material-management/material-history-view"
+import { MaterialHistoryView } from "@/components/material-management/material-history/material-history-view"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getTranslations } from "next-intl/server"
 import { getMaterialById } from "@/services/material.service"

@@ -4,6 +4,7 @@ import { z } from "zod"
 import { actionClient } from "@/lib/safe-action"
 import { getMaterialHistory } from "@/services/material-history.service"
 import { checkAuth } from "@/lib/auth-guard"
+import { MaterialHistoryCharacTyped } from "@/types/material-history.type"
 
 // Schéma pour la validation des entrées
 const getMaterialHistorySchema = z.object({
@@ -14,7 +15,7 @@ const getMaterialHistorySchema = z.object({
 
 export const getMaterialHistoryAction = actionClient
     .schema(getMaterialHistorySchema)
-    .action(async ({ parsedInput }) => {
+    .action(async ({ parsedInput }): Promise<MaterialHistoryCharacTyped[]> => {
         try {
             // Basic auth check
             await checkAuth()

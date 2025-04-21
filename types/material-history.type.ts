@@ -2,6 +2,13 @@ import { Prisma, Material_History } from "@prisma/client"
 
 export type MaterialHistoryCharacTyped = Prisma.Material_HistoryGetPayload<{}> & {
     Characteristics: CharacteristicHistory[]
+    Tags: TagHistory[]
+}
+
+export type TagHistory = {
+    name: string
+    color: string
+    fontColor: string
 }
 
 export type CharacteristicHistory =

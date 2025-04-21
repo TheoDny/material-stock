@@ -18,7 +18,9 @@ import { Button } from "@/components/ui/button"
 import { addMonths, startOfDay, endOfDay } from "date-fns"
 import { DateRange } from "react-day-picker"
 import { useTranslations } from "next-intl"
-import { Skeleton } from "../ui/skeleton"
+import { Skeleton } from "../../ui/skeleton"
+import { MaterialHistoryCharacTyped, CharacteristicHistory } from "@/types/material-history.type"
+import { CharacteristicDisplay } from "./characteristic-display"
 
 // Define types for parsed JSON fields
 type Tag = {
@@ -27,16 +29,6 @@ type Tag = {
     color: string
     fontColor?: string
 }
-
-type Characteristic = {
-    id: string
-    name: string
-    value: ValueCharacteristic
-    type: string
-    units?: string
-}
-
-type ValueCharacteristic = any
 
 interface MaterialHistoryViewProps {
     materialId: string
@@ -63,7 +55,7 @@ const parseTags = (tagsJson: JsonValue): Tag[] => {
 }
 
 // Helper function to parse Characteristics JSON
-const parseCharacteristics = (characteristicsJson: JsonValue): Characteristic[] => {
+const parseCharacteristics = (characteristicsJson: JsonValue): CharacteristicHistory[] => {
     if (!characteristicsJson) return []
     try {
         const jsonString = safeJsonToString(characteristicsJson)
@@ -74,42 +66,12 @@ const parseCharacteristics = (characteristicsJson: JsonValue): Characteristic[] 
     }
 }
 
-// Format characteristic value based on type
-const formatCharacteristicValue = (characteristic: Characteristic) => {
-    if (characteristic.value === null || characteristic.value === undefined || isEmpty(characteristic.value))
-        return "N/A"
-
-    switch (characteristic.type) {
-        case "checkbox":
-            return characteristic.value ? (
-                <>
-                    <Check className="text-green-600" />
-                    Yes
-                </>
-            ) : (
-                <>
-                    <X className="text-red-700" />
-                    No
-                </>
-            )
-        case "number":
-        case "float":
-            return characteristic.value.toString()
-        case "date":
-            return new Date(characteristic.value).toLocaleDateString()
-        case "multiSelect":
-            return Array.isArray(characteristic.value) ? characteristic.value.join(", ") : characteristic.value
-        default:
-            return characteristic.value.toString()
-    }
-}
-
 export function MaterialHistoryView({ materialId, materialName }: MaterialHistoryViewProps) {
     const historyT = useTranslations("MaterialHistory")
     const common = useTranslations("Common")
     const materialsT = useTranslations("Materials")
 
-    const [history, setHistory] = useState<Material_History[]>([])
+    const [history, setHistory] = useState<MaterialHistoryCharacTyped[]>([])
     const [loading, setLoading] = useState(true)
     const [dateRange, setDateRange] = useState<DateRange>({
         from: addMonths(new Date(), -1),
@@ -281,7 +243,7 @@ export function MaterialHistoryView({ materialId, materialName }: MaterialHistor
 }
 
 // Component that just displays the history without fetching it
-export default function MaterialHistoryDisplay({ history }: { history: Material_History[] }) {
+export default function MaterialHistoryDisplay({ history }: { history: MaterialHistoryCharacTyped[] }) {
     const historyT = useTranslations("MaterialHistory")
     const materialsT = useTranslations("Materials")
 
@@ -311,7 +273,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                 </AccordionTrigger>
                                 <AccordionContent className="px-4">
                                     {/* Tabs for mobile and medium screens */}
-                                    <div className="lg:hidden">
+                                    <div className="2xl:hidden">
                                         <Tabs defaultValue="details">
                                             <TabsList className="w-full grid grid-cols-2 gap-2 mt-2">
                                                 <TabsTrigger value="details">
@@ -370,21 +332,20 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
 
                                             <TabsContent value="characteristics">
                                                 {parseCharacteristics(record.Characteristics).length > 0 ? (
-                                                    <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    <div className="space-y-3 mt-2">
                                                         {parseCharacteristics(record.Characteristics).map(
                                                             (char, idx) => (
-                                                                <React.Fragment key={idx}>
-                                                                    {idx > 0 && (
-                                                                        <Separator className="w-2/3 col-span-2 my-2" />
-                                                                    )}
-                                                                    <div className="text-sm font-medium">
-                                                                        {char.name}:
-                                                                    </div>
-                                                                    <div className="text-sm">
-                                                                        {formatCharacteristicValue(char)}
-                                                                        {char.units ? ` ${char.units}` : ""}
-                                                                    </div>
-                                                                </React.Fragment>
+                                                                <div key={idx}>
+                                                                    <CharacteristicDisplay
+                                                                        characteristic={char}
+                                                                        showLabel={true}
+                                                                    />
+                                                                    {idx <
+                                                                        parseCharacteristics(
+                                                                            record.Characteristics,
+                                                                        ).length -
+                                                                            1 && <Separator className="my-3" />}
+                                                                </div>
                                                             ),
                                                         )}
                                                     </div>
@@ -398,7 +359,7 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                     </div>
 
                                     {/* Side by side for large screens */}
-                                    <div className="hidden lg:grid lg:grid-cols-2 lg:gap-6 lg:mt-2">
+                                    <div className="hidden 2xl:grid 2xl:grid-cols-2 2xl:gap-6 2xl:mt-2">
                                         {/* Left column: Details and Tags */}
                                         <div>
                                             <h3 className="text-sm font-medium mb-3">
@@ -451,21 +412,19 @@ export default function MaterialHistoryDisplay({ history }: { history: Material_
                                                 {historyT("characteristics")}
                                             </h3>
                                             {parseCharacteristics(record.Characteristics).length > 0 ? (
-                                                <div className="grid grid-cols-2 gap-2">
+                                                <div className="space-y-3">
                                                     {parseCharacteristics(record.Characteristics).map(
                                                         (char, idx) => (
-                                                            <React.Fragment key={idx}>
-                                                                {idx > 0 && (
-                                                                    <Separator className="!w-29/30 justify-self-center col-span-2 my-2" />
-                                                                )}
-                                                                <div className="text-sm font-medium">
-                                                                    {char.name}:
-                                                                </div>
-                                                                <div className="text-sm">
-                                                                    {formatCharacteristicValue(char)}
-                                                                    {char.units ? ` ${char.units}` : ""}
-                                                                </div>
-                                                            </React.Fragment>
+                                                            <div key={idx}>
+                                                                <CharacteristicDisplay
+                                                                    characteristic={char}
+                                                                    showLabel={true}
+                                                                />
+                                                                {idx <
+                                                                    parseCharacteristics(record.Characteristics)
+                                                                        .length -
+                                                                        1 && <Separator className="my-3" />}
+                                                            </div>
                                                         ),
                                                     )}
                                                 </div>

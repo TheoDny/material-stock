@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma"
-import { CharacteristicHistory, ValueFieldCharacteristicHistory } from "@/types/material-history.type"
+import {
+    CharacteristicHistory,
+    MaterialHistoryCharacTyped,
+    ValueFieldCharacteristicHistory,
+} from "@/types/material-history.type"
 import { MaterialCharacteristicWithFile } from "@/types/material.type"
 import { Characteristic, Tag } from "@prisma/client"
 
@@ -111,7 +115,11 @@ const buildCharacteristicsJson = async (
 }
 
 // Get material history
-export async function getMaterialHistory(materialId: string, dateFrom: Date, dateTo: Date) {
+export async function getMaterialHistory(
+    materialId: string,
+    dateFrom: Date,
+    dateTo: Date,
+): Promise<MaterialHistoryCharacTyped[]> {
     try {
         const history = await prisma.material_History.findMany({
             where: {
@@ -126,7 +134,7 @@ export async function getMaterialHistory(materialId: string, dateFrom: Date, dat
             },
         })
 
-        return history
+        return history as MaterialHistoryCharacTyped[]
     } catch (error) {
         console.error("Failed to fetch material history:", error)
         throw new Error("Failed to fetch material history")

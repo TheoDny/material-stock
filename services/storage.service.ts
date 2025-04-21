@@ -148,3 +148,14 @@ export async function getFileById(fileId: string) {
         return null
     }
 }
+
+export async function getFileByPath(filePath: string) {
+    try {
+        const data = await fs.readFile(filePath)
+
+        return data
+    } catch (error) {
+        console.error(`Failed to read file at ${filePath}:`, error)
+        return null
+    }
+}
