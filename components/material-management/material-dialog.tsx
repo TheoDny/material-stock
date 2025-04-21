@@ -38,23 +38,15 @@ import {
 import { getTagsAction } from "@/actions/tag-actions"
 import { getCharacteristicsAction } from "@/actions/characteritic-actions"
 import { CharacteristicValueForm } from "./characteristic-value-form"
-import { Tag, Characteristic, FileDb } from "@prisma/client"
-import { CharacteristicValue, MaterialWithTag } from "@/types/material.type"
+import { Tag, Characteristic } from "@prisma/client"
+import { MaterialWithTag } from "@/types/material.type"
 import { useTranslations } from "next-intl"
+import { CharacteristicMultiText, MaterialCharacteristicClient } from "@/types/characteristic.type"
 import {
-    CharacteristicBoolean,
-    CharacteristicDate,
-    CharacteristicDateRange,
-    CharacteristicFile,
-    CharacteristicMulti,
-    CharacteristicMultiText,
-    CharacteristicString,
-    CharacteristicValueFile,
-    CharacteristicValueMultiText,
-    MaterialCharacteristic,
-    MaterialCharacteristicClient,
-} from "@/types/characteristic.type"
-import { isCharacteristicValueFile, isCharacteristicValueFileClient } from "@/lib/utils"
+    buildCharacteristicDefaultValue,
+    isCharacteristicValueFile,
+    isCharacteristicValueFileClient,
+} from "@/lib/utils"
 
 const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -319,99 +311,9 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         const characteristic = characteristics.find((c) => c.id === characteristicId)
 
         if (characteristic) {
-            switch (characteristic.type) {
-                case "text":
-                case "textarea":
-                case "link":
-                case "email":
-                case "number":
-                case "float":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicString,
-                            characteristicId,
-                            value: "",
-                        },
-                    ])
-                    break
-                case "multiSelect":
-                case "select":
-                case "checkbox":
-                case "radio":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicMulti,
-                            characteristicId,
-                            value: ["", ""],
-                        },
-                    ])
-                    break
-                case "boolean":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicBoolean,
-                            characteristicId,
-                            value: false,
-                        },
-                    ])
-                    break
-                case "date":
-                case "dateHour":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicDate,
-                            characteristicId,
-                            value: { date: new Date() },
-                        },
-                    ])
-                    break
-                case "dateRange":
-                case "dateHourRange":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicDateRange,
-                            characteristicId,
-                            value: { from: new Date(), to: new Date() },
-                        },
-                    ])
-                    break
-                case "file":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicFile,
-                            characteristicId,
-                            value: {
-                                fileToAdd: [],
-                                fileToDelete: [],
-                                file: [],
-                            },
-                        },
-                    ])
-                    break
-                case "multiText":
-                case "multiTextArea":
-                    setCharacteristicValues([
-                        ...characteristicValues,
-                        {
-                            Characteristic: characteristic as CharacteristicMultiText,
-                            characteristicId,
-                            value: {
-                                multiText: [
-                                    { title: "", text: "" },
-                                    { title: "", text: "" },
-                                ],
-                            },
-                        },
-                    ])
-                    break
-            }
+            const newValueCharacteristic = buildCharacteristicDefaultValue(characteristic)
 
+            setCharacteristicValues([...characteristicValues, newValueCharacteristic])
             // Add to the order list
             const currentOrder = form.getValues("orderCharacteristics")
             form.setValue("orderCharacteristics", [...currentOrder, characteristicId])
