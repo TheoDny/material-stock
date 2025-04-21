@@ -171,11 +171,11 @@ export function MaterialManagement() {
                     <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditMaterial(material)}>
                             <Pencil className="h-4 w-4 mr-2" />
-                            Edit Material
+                            {t("dialog.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleViewHistory(material.id)}>
                             <History className="h-4 w-4 mr-2" />
-                            View History
+                            {t("history.title")}
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

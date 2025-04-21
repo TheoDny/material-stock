@@ -259,21 +259,24 @@
                 "deleteSuccess": "Caractéristique supprimée avec succès"
             },
             "types": {
-                "text": "Texte",
-                "number": "Nombre",
                 "boolean": "Booléen",
-                "date": "Date",
+                "number": "Nombre",
+                "float": "Décimal",
+                "text": "Texte",
+                "textarea": "Zone de texte",
+                "multiText": "Texte multiple",
+                "multiTextArea": "Zone de texte multiple",
                 "select": "Sélection",
                 "checkbox": "Case à cocher",
                 "radio": "Bouton radio",
                 "multiSelect": "Sélection multiple",
-                "textarea": "Zone de texte",
-                "float": "Décimal",
-                "email": "Email",
+                "date": "Date",
                 "dateHour": "Date avec heure",
                 "dateRange": "Plage de dates",
                 "dateHourRange": "Plage de dates avec heure",
-                "link": "Lien"
+                "email": "Email",
+                "link": "Lien",
+                "file": "Fichier"
             }
         }
     },

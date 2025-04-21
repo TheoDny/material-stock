@@ -256,21 +256,24 @@
                 "deleteSuccess": "Characteristic deleted successfully"
             },
             "types": {
-                "text": "Text",
-                "number": "Number",
                 "boolean": "Boolean",
-                "date": "Date",
+                "number": "Number",
+                "float": "Float",
+                "text": "Text",
+                "textarea": "Text Area",
+                "multiText": "Multi Text",
+                "multiTextArea": "Multi Text Area",
                 "select": "Select",
                 "checkbox": "Checkbox",
                 "radio": "Radio",
                 "multiSelect": "Multiple Select",
-                "textarea": "Text Area",
-                "float": "Float",
-                "email": "Email",
+                "date": "Date",
                 "dateHour": "Date with Time",
                 "dateRange": "Date Range",
                 "dateHourRange": "Date with Time Range",
-                "link": "Link"
+                "email": "Email",
+                "link": "Link",
+                "file": "File"
             }
         }
     },

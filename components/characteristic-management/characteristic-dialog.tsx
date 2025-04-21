@@ -41,19 +41,22 @@ import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const characteristicTypes: CharacteristicType[] = [
+    "boolean",
+    "number",
+    "float",
+    "text",
+    "textarea",
+    "multiText",
+    "multiTextArea",
     "checkbox",
     "select",
     "radio",
     "multiSelect",
-    "text",
-    "textarea",
-    "number",
-    "float",
-    "email",
     "date",
     "dateHour",
     "dateRange",
     "dateHourRange",
+    "email",
     "link",
     "file",
 ] as const
@@ -335,10 +338,7 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                                     <div className="flex items-center space-x-2">
                                         <div className="font-medium">{t("type")}:</div>
                                         <Badge className={getTypeColor(characteristic.type)}>
-                                            {String(
-                                                tTypes[characteristic.type as keyof typeof tTypes] ||
-                                                    characteristic.type,
-                                            )}
+                                            {tTypes(characteristic.type)}
                                         </Badge>
                                     </div>
 
@@ -467,7 +467,7 @@ export function CharacteristicDialog({ open, characteristic, onClose }: Characte
                                                         key={type}
                                                         value={type}
                                                     >
-                                                        {String(tTypes[type as keyof typeof tTypes] || type)}
+                                                        {tTypes(type)}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
