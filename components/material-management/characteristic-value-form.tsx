@@ -45,21 +45,21 @@ const getFileIcon = (fileName: string) => {
 
     switch (extension) {
         case "pdf":
-            return <FileText className="h-6 w-6 text-red-700" />
+            return <FileText className="h-10 w-10 text-red-700" />
         case "doc":
         case "docx":
-            return <FileText className="h-6 w-6 text-blue-600" />
+            return <FileText className="h-10 w-10 text-blue-600" />
         case "xls":
         case "xlsx":
-            return <FileSpreadsheet className="h-6 w-6 text-green-600" />
+            return <FileSpreadsheet className="h-10 w-10 text-green-600" />
         case "txt":
         case "csv":
-            return <FileText className="h-6 w-6 text-gray-500" />
+            return <FileText className="h-10 w-10 text-gray-500" />
         case "zip":
         case "rar":
         case "7z":
         case "tar":
-            return <FileArchive className="h-6 w-6 text-orange-700" />
+            return <FileArchive className="h-10 w-10 text-orange-700" />
         case "mp3":
         case "wav":
         case "ogg":
@@ -67,9 +67,9 @@ const getFileIcon = (fileName: string) => {
         case "mp4":
         case "avi":
         case "mkv":
-            return <FileVolume className="h-6 w-6 text-purple-600" />
+            return <FileVolume className="h-10 w-10 text-purple-600" />
         default:
-            return <File className="h-6 w-6 text-gray-500" />
+            return <File className="h-10 w-10 text-gray-500" />
     }
 }
 
@@ -159,8 +159,6 @@ export function CharacteristicValueForm({
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log("File input changed", e)
-
         if (e.target.files && e.target.files.length > 0) {
             const newFiles = Array.from(e.target.files)
 
@@ -205,8 +203,6 @@ export function CharacteristicValueForm({
                 toast.error(message)
                 return
             }
-
-            console.log("validFiles", validFiles)
 
             // Update for edit mode (append to existing fileToAdd)
             const currentValue = value || {}
@@ -499,9 +495,6 @@ export function CharacteristicValueForm({
                 )
 
             case "file":
-                console.log("file input", value, isEditing)
-
-                // Handle file uploads
                 let files: File[] = []
                 let existingFiles: Array<{ id: string; name: string; type: string }> = []
                 let filesToDelete: string[] = []
@@ -556,18 +549,12 @@ export function CharacteristicValueForm({
                                 ref={fileInputRef}
                                 multiple
                                 className="hidden"
-                                onChange={(e) => {
-                                    console.log("File input changed", e)
-
-                                    handleFileChange(e)
-                                }}
+                                onChange={handleFileChange}
                             />
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => {
-                                    console.log("Upload button clicked", fileInputRef.current)
-
                                     fileInputRef.current?.click()
                                 }}
                                 className="w-full"
@@ -600,7 +587,12 @@ export function CharacteristicValueForm({
                                                     )}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium truncate">{file.name}</p>
+                                                    <p
+                                                        className="text-sm font-medium truncate"
+                                                        title={file.name}
+                                                    >
+                                                        {file.name}
+                                                    </p>
                                                     <p className="text-xs text-muted-foreground">
                                                         {Math.round(file.size / 1024)} KB
                                                     </p>
@@ -646,7 +638,7 @@ export function CharacteristicValueForm({
                                                                 alt={file.name}
                                                                 width={72}
                                                                 height={72}
-                                                                className="h-full w-full object-cover"
+                                                                className="h-full w-full object-scale-down"
                                                                 onError={(e) => {
                                                                     // If image fails to load, show file icon instead
                                                                     const target = e.target as HTMLImageElement
@@ -672,7 +664,12 @@ export function CharacteristicValueForm({
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium truncate">{file.name}</p>
+                                                        <p
+                                                            className="text-sm font-medium truncate"
+                                                            title={file.name}
+                                                        >
+                                                            {file.name}
+                                                        </p>
                                                         <p className="text-xs text-muted-foreground">
                                                             {isMarkedForDeletion
                                                                 ? tMat("markedForDeletion")

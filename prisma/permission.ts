@@ -21,4 +21,7 @@ export const permissions = [
     { code: "charac_create" },
     { code: "charac_read" },
     { code: "charac_edit" },
+    { code: "material_create" },
+    { code: "material_read" },
+    { code: "material_edit" },
 ]

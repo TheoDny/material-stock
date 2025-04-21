@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
-import { MaterialCharacteristicWithFile, ValueFieldCharacteristic } from "@/types/material.type"
-import { $Enums, Characteristic, Material_Characteristic, Prisma, Tag, FileDb } from "@prisma/client"
-import { JsonValue } from "@prisma/client/runtime/library"
+import { CharacteristicHistory, ValueFieldCharacteristicHistory } from "@/types/material-history.type"
+import { MaterialCharacteristicWithFile } from "@/types/material.type"
+import { Characteristic, Tag } from "@prisma/client"
 
 export const createMaterialHistory = async (materialId: string) => {
     const materialFullInfo = await prisma.material.findUnique({
@@ -55,32 +55,12 @@ const buildTagsJson = (tags: Tag[]) => {
     })
 }
 
-export type ValueFieldCharacteristicHistory =
-    | null
-    | string[]
-    | string
-    | boolean
-    | { date: Date }
-    | { from: Date; to: Date }
-    | {
-          file: {
-              type: string
-              name: string
-              path: string
-          }[]
-      }
-
 const buildCharacteristicsJson = async (
     order: string[],
     characteristics: Characteristic[],
     characteristics_value: MaterialCharacteristicWithFile[],
 ) => {
-    const characteristicsJson: {
-        name: string
-        type: $Enums.CharacteristicType
-        units: string | null
-        value: ValueFieldCharacteristicHistory
-    }[] = []
+    const characteristicsJson: CharacteristicHistory[] = []
 
     // Use Promise.all with map instead of forEach to properly handle async operations
     await Promise.all(
@@ -92,7 +72,12 @@ const buildCharacteristicsJson = async (
             }
 
             const characteristicValue = characteristics_value.find((char) => char.characteristicId === orderItem)
-            let valueToSave: ValueFieldCharacteristicHistory = null
+            let valueToSave: ValueFieldCharacteristicHistory
+
+            if (!characteristicValue) {
+                console.error(`Characteristic value with id ${orderItem} not found, it should not be possible`)
+                return
+            }
 
             if (
                 characteristic.type === "file" &&
@@ -108,11 +93,11 @@ const buildCharacteristicsJson = async (
                         }
                     }),
                 }
-            } else if (characteristicValue?.value) {
+            } else {
                 // For non-file types, use the value field directly
                 valueToSave = characteristicValue.value as ValueFieldCharacteristicHistory
             }
-
+            // @ts-ignore valueToSave
             characteristicsJson.push({
                 name: characteristic.name,
                 type: characteristic.type,

@@ -41,6 +41,20 @@ import { CharacteristicValueForm } from "./characteristic-value-form"
 import { Tag, Characteristic, FileDb } from "@prisma/client"
 import { CharacteristicValue, MaterialWithTag } from "@/types/material.type"
 import { useTranslations } from "next-intl"
+import {
+    CharacteristicBoolean,
+    CharacteristicDate,
+    CharacteristicDateRange,
+    CharacteristicFile,
+    CharacteristicMulti,
+    CharacteristicMultiText,
+    CharacteristicString,
+    CharacteristicValueFile,
+    CharacteristicValueMultiText,
+    MaterialCharacteristic,
+    MaterialCharacteristicClient,
+} from "@/types/characteristic.type"
+import { isCharacteristicValueFile, isCharacteristicValueFileClient } from "@/lib/utils"
 
 const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -57,15 +71,11 @@ interface MaterialDialogProps {
     onClose: (refreshData: boolean) => void
 }
 
-type ExtendedCharacteristicValue = CharacteristicValue & {
-    File?: FileDb[]
-}
-
 export function MaterialDialog({ open, material, onClose }: MaterialDialogProps) {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [tags, setTags] = useState<Tag[]>([])
     const [characteristics, setCharacteristics] = useState<Characteristic[]>([])
-    const [characteristicValues, setCharacteristicValues] = useState<ExtendedCharacteristicValue[]>([])
+    const [characteristicValues, setCharacteristicValues] = useState<MaterialCharacteristicClient[]>([])
     const [activeTab, setActiveTab] = useState("general")
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null)
     const tCommon = useTranslations("Common")
@@ -148,22 +158,25 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
             const values = await getMaterialCharacteristicsAction(materialId)
 
             // Process file relationships into the proper format for the form
-            const processedValues = values.map((cv) => {
-                const result = { ...cv }
-
-                // For file type characteristics, prepare file data for the UI
-                if (cv.Characteristic.type === "file" && cv.File && cv.File.length > 0) {
-                    // If using direct relationships, prepare file data for the form
-                    result.value = {
-                        file: cv.File.map((file) => ({
-                            id: file.id,
-                            name: file.name,
-                            type: file.type,
-                        })),
+            const processedValues: MaterialCharacteristicClient[] = values.map((cv) => {
+                if (isCharacteristicValueFile(cv)) {
+                    return {
+                        ...cv,
+                        value: {
+                            fileToAdd: [],
+                            fileToDelete: [],
+                            file: cv.File
+                                ? cv.File.map((file) => ({
+                                      id: file.id,
+                                      name: file.name,
+                                      type: file.type,
+                                  }))
+                                : [],
+                        },
                     }
                 }
 
-                return result
+                return cv
             })
 
             setCharacteristicValues(processedValues)
@@ -182,11 +195,10 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
     const onSubmit = async (values: MaterialFormValues) => {
         setIsSubmitting(true)
         try {
-            // Process characteristic values for saving
-            const processedCharacteristicValues = characteristicValues.map((cv) => {
-                // If it's a file characteristic, ensure it's in the proper format for saving
-                if (cv.Characteristic.type === "file") {
-                    if (isEditing) {
+            if (isEditing && material) {
+                const processedCharacteristicValues = characteristicValues.map((cv) => {
+                    // If it's a file characteristic, ensure it's in the proper format for saving
+                    if (isCharacteristicValueFileClient(cv)) {
                         // For editing, need fileToAdd and fileToDelete format
                         const value = cv.value || {}
                         return {
@@ -196,23 +208,14 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                 fileToDelete: Array.isArray(value.fileToDelete) ? value.fileToDelete : [],
                             },
                         }
-                    } else {
-                        // For creating, use simple file array format
-                        return {
-                            characteristicId: cv.characteristicId,
-                            value: cv.value,
-                        }
                     }
-                }
 
-                // For non-file types, just pass the value as is
-                return {
-                    characteristicId: cv.characteristicId,
-                    value: cv.value,
-                }
-            })
-
-            if (isEditing && material) {
+                    // For non-file types, just pass the value as is
+                    return {
+                        characteristicId: cv.characteristicId,
+                        value: cv.value,
+                    }
+                })
                 // Update existing material
                 const result = await updateMaterialAction({
                     id: material.id,
@@ -239,6 +242,26 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
 
                 toast.success("Material updated successfully")
             } else {
+                const processedCharacteristicValues = characteristicValues.map((cv) => {
+                    // If it's a file characteristic, ensure it's in the proper format for saving
+                    if (isCharacteristicValueFileClient(cv)) {
+                        // For editing, need fileToAdd and fileToDelete format
+                        const value = cv.value || {}
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: {
+                                fileToAdd: Array.isArray(value.file) ? value.fileToAdd : [],
+                            },
+                        }
+                    }
+
+                    // For non-file types, just pass the value as is
+                    return {
+                        characteristicId: cv.characteristicId,
+                        value: cv.value,
+                    }
+                })
+
                 // Create new material
                 const result = await createMaterialAction({
                     name: values.name,
@@ -296,15 +319,98 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
         const characteristic = characteristics.find((c) => c.id === characteristicId)
 
         if (characteristic) {
-            setCharacteristicValues([
-                ...characteristicValues,
-                {
-                    Characteristic: characteristic,
-                    characteristicId,
-                    value: null,
-                    File: [],
-                },
-            ])
+            switch (characteristic.type) {
+                case "text":
+                case "textarea":
+                case "link":
+                case "email":
+                case "number":
+                case "float":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicString,
+                            characteristicId,
+                            value: "",
+                        },
+                    ])
+                    break
+                case "multiSelect":
+                case "select":
+                case "checkbox":
+                case "radio":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicMulti,
+                            characteristicId,
+                            value: ["", ""],
+                        },
+                    ])
+                    break
+                case "boolean":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicBoolean,
+                            characteristicId,
+                            value: false,
+                        },
+                    ])
+                    break
+                case "date":
+                case "dateHour":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicDate,
+                            characteristicId,
+                            value: { date: new Date() },
+                        },
+                    ])
+                    break
+                case "dateRange":
+                case "dateHourRange":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicDateRange,
+                            characteristicId,
+                            value: { from: new Date(), to: new Date() },
+                        },
+                    ])
+                    break
+                case "file":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicFile,
+                            characteristicId,
+                            value: {
+                                fileToAdd: [],
+                                fileToDelete: [],
+                                file: [],
+                            },
+                        },
+                    ])
+                    break
+                case "multiText":
+                case "multiTextArea":
+                    setCharacteristicValues([
+                        ...characteristicValues,
+                        {
+                            Characteristic: characteristic as CharacteristicMultiText,
+                            characteristicId,
+                            value: {
+                                multiText: [
+                                    { title: "", text: "" },
+                                    { title: "", text: "" },
+                                ],
+                            },
+                        },
+                    ])
+                    break
+            }
 
             // Add to the order list
             const currentOrder = form.getValues("orderCharacteristics")
@@ -588,8 +694,6 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                                                             characteristic={cv.Characteristic}
                                                             value={cv.value}
                                                             onChange={(value) => {
-                                                                console.log(value)
-
                                                                 handleCharacteristicValueChange(
                                                                     cv.characteristicId,
                                                                     value,

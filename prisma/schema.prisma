@@ -184,9 +184,11 @@ enum CharacteristicType {
     radio
     select
     multiSelect
+    boolean
     text
     multiText
     textarea
+    multiTextArea
     number
     float
     email

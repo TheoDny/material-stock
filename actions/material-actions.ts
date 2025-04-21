@@ -14,7 +14,7 @@ import {
 // Schema for creating a material with file upload
 const createMaterialSchema = z.object({
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
+    description: z.string().trim().max(255, "Description must be at most 255 characters").default(""),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
@@ -29,7 +29,17 @@ const createMaterialSchema = z.object({
                         z.boolean(),
                         z.object({ date: z.date() }),
                         z.object({ from: z.date(), to: z.date() }),
-                        z.object({ file: z.array(z.instanceof(File)) }),
+                        z.object({
+                            fileToAdd: z.array(z.instanceof(File)).default([]),
+                        }),
+                        z.object({
+                            multiText: z.array(
+                                z.object({
+                                    title: z.string(),
+                                    text: z.string(),
+                                }),
+                            ),
+                        }),
                     ])
                     .optional(),
             }),
@@ -41,7 +51,7 @@ const createMaterialSchema = z.object({
 const updateMaterialSchema = z.object({
     id: z.string(),
     name: z.string().trim().min(2, "Name must be at least 2 characters"),
-    description: z.string().trim().max(255, "Description must be at most 255 characters").optional(),
+    description: z.string().trim().max(255, "Description must be at most 255 characters").default(""),
     tagIds: z.array(z.string()).default([]),
     orderCharacteristics: z.array(z.string()).default([]),
     characteristicValues: z
@@ -59,6 +69,14 @@ const updateMaterialSchema = z.object({
                         z.object({
                             fileToDelete: z.array(z.string()).default([]),
                             fileToAdd: z.array(z.instanceof(File)).default([]),
+                        }),
+                        z.object({
+                            multiText: z.array(
+                                z.object({
+                                    title: z.string(),
+                                    text: z.string(),
+                                }),
+                            ),
                         }),
                     ])
                     .optional(),
@@ -113,12 +131,14 @@ export async function getMaterialCharacteristicsAction(materialId: string) {
 export const createMaterialAction = actionClient.schema(createMaterialSchema).action(async ({ parsedInput }) => {
     try {
         // We need a custom permission code for materials, but for now we'll use tag_create
-        const session = await checkAuth({ requiredPermission: "tag_create" })
+        const session = await checkAuth({ requiredPermission: "material_create" })
 
-        return await createMaterial({
-            ...parsedInput,
+        return await createMaterial(session.user.entitySelectedId, {
+            name: parsedInput.name,
             description: parsedInput.description || "",
-            entityId: session.user.entitySelectedId,
+            tagIds: parsedInput.tagIds,
+            characteristicValues: parsedInput.characteristicValues,
+            orderCharacteristics: parsedInput.orderCharacteristics,
         })
     } catch (error) {
         console.error("Failed to create material:", error)

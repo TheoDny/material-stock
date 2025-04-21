@@ -3,12 +3,21 @@ import { revalidatePath } from "next/cache"
 import { createMaterialHistory } from "@/services/material-history.service"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
 import { saveFile, deleteFiles } from "@/services/storage.service"
-import { ValueFieldCharacteristic } from "@/types/material.type"
 import { Material, Material_Characteristic, FileDb } from "@prisma/client"
+import { MaterialCharacteristic, MaterialCharacteristicClient } from "@/types/characteristic.type"
+import { isCharacteristicValueFileClient } from "@/lib/utils"
 
 type CreateCharacteristicValueInput = {
     characteristicId: string
-    value?: null | string[] | string | boolean | { date: Date } | { from: Date; to: Date } | { file: File[] }
+    value?:
+        | null
+        | string[]
+        | string
+        | boolean
+        | { date: Date }
+        | { from: Date; to: Date }
+        | { fileToAdd: File[] }
+        | { multiText: { title: string; text: string }[] }
 }
 
 type UpdateCharacteristicValueInput = {
@@ -21,6 +30,7 @@ type UpdateCharacteristicValueInput = {
         | { date: Date }
         | { from: Date; to: Date }
         | { fileToDelete: string[]; fileToAdd: File[] }
+        | { multiText: { title: string; text: string }[] }
 }
 
 type MaterialWithMaterialCharacteristics = Material & {
@@ -68,7 +78,7 @@ export async function getMaterialById(id: string) {
 }
 
 // Get material characteristics
-export async function getMaterialCharacteristics(materialId: string) {
+export async function getMaterialCharacteristics(materialId: string): Promise<MaterialCharacteristic[]> {
     try {
         const characteristicValues = await prisma.material_Characteristic.findMany({
             where: {
@@ -86,7 +96,7 @@ export async function getMaterialCharacteristics(materialId: string) {
             },
         })
 
-        return characteristicValues
+        return characteristicValues as MaterialCharacteristic[]
     } catch (error) {
         console.error("Failed to fetch material characteristics:", error)
         throw new Error("Failed to fetch material characteristics")
@@ -94,14 +104,16 @@ export async function getMaterialCharacteristics(materialId: string) {
 }
 
 // Create a new material
-export async function createMaterial(data: {
-    name: string
-    description: string
-    tagIds: string[]
-    orderCharacteristics: string[]
-    characteristicValues: CreateCharacteristicValueInput[]
-    entityId: string
-}) {
+export async function createMaterial(
+    entityId: string,
+    data: {
+        name: string
+        description: string
+        tagIds: string[]
+        orderCharacteristics: string[]
+        characteristicValues: CreateCharacteristicValueInput[]
+    },
+) {
     try {
         // Create the material
         const material = await prisma.material.create({
@@ -115,7 +127,7 @@ export async function createMaterial(data: {
                     connect: data.orderCharacteristics.map((characteristicId) => ({ id: characteristicId })),
                 },
                 order_Material_Characteristic: data.orderCharacteristics,
-                entityId: data.entityId,
+                entityId: entityId,
             },
         })
 
@@ -123,20 +135,19 @@ export async function createMaterial(data: {
         if (data.characteristicValues.length > 0) {
             for (const cv of data.characteristicValues) {
                 let isFile = false
-                let processedValue: any = null
                 let fileDbIds: string[] = []
 
                 // Check if value is a file upload object
                 if (
                     cv.value &&
                     typeof cv.value === "object" &&
-                    "file" in cv.value &&
-                    Array.isArray(cv.value.file)
+                    "fileToAdd" in cv.value &&
+                    Array.isArray(cv.value.fileToAdd)
                 ) {
                     isFile = true
 
                     // Process each file in the array
-                    for (const file of cv.value.file) {
+                    for (const file of cv.value.fileToAdd) {
                         if (file instanceof File) {
                             // Save file using storage service
                             const savedFile = await saveFile(
@@ -150,18 +161,8 @@ export async function createMaterial(data: {
                     }
                 }
 
-                if (!isFile) {
-                    processedValue = cv.value as
-                        | null
-                        | string[]
-                        | string
-                        | boolean
-                        | { date: Date }
-                        | { from: Date; to: Date }
-                }
-
                 // Create the characteristic value
-                if (isFile && fileDbIds.length > 0) {
+                if (isFile) {
                     await prisma.material_Characteristic.create({
                         data: {
                             materialId: material.id,
@@ -177,7 +178,13 @@ export async function createMaterial(data: {
                         data: {
                             materialId: material.id,
                             characteristicId: cv.characteristicId,
-                            value: processedValue,
+                            value: cv.value as
+                                | string[]
+                                | string
+                                | boolean
+                                | { date: Date }
+                                | { from: Date; to: Date }
+                                | { multiText: { title: string; text: string }[] },
                         },
                     })
                 }
@@ -188,7 +195,7 @@ export async function createMaterial(data: {
         createMaterialHistory(material.id)
 
         // Add log
-        addMaterialCreateLog({ id: material.id, name: material.name }, data.entityId)
+        addMaterialCreateLog({ id: material.id, name: material.name }, entityId)
 
         revalidatePath("/materials")
         return material

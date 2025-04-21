@@ -1,3 +1,9 @@
+import {
+    CharacteristicValueFile,
+    CharacteristicValueFileClient,
+    MaterialCharacteristic,
+    MaterialCharacteristicClient,
+} from "@/types/characteristic.type"
 import { CharacteristicType } from "@prisma/client"
 import { clsx, type ClassValue } from "clsx"
 import { format } from "date-fns"
@@ -21,6 +27,7 @@ export const getTypeColor = (type: CharacteristicType) => {
         text: "bg-gray-100 text-gray-800",
         textarea: "bg-stone-100 text-gray-800",
         multiText: "bg-zinc-100 text-gray-800",
+        multiTextArea: "bg-slate-100 text-gray-800",
         number: "bg-amber-100 text-amber-800",
         float: "bg-amber-100 text-amber-800",
         email: "bg-pink-100 text-pink-800",
@@ -58,4 +65,14 @@ export function generateRandomToken(): string {
 
 export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+export function isCharacteristicValueFile(cv: MaterialCharacteristic): cv is CharacteristicValueFile {
+    return cv.Characteristic.type === "file"
+}
+
+export function isCharacteristicValueFileClient(
+    cv: MaterialCharacteristicClient,
+): cv is CharacteristicValueFileClient {
+    return cv.Characteristic.type === "file"
 }
