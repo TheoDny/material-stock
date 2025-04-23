@@ -202,6 +202,41 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                         }
                     }
 
+                    // Handle date types
+                    if (cv.Characteristic.type === "date" || cv.Characteristic.type === "dateHour") {
+                        // Ensure date is in the correct format
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value:
+                                cv.value && typeof cv.value === "object" && "date" in cv.value
+                                    ? { date: new Date(cv.value.date).toISOString() }
+                                    : null,
+                        }
+                    }
+
+                    // Handle date range types
+                    if (cv.Characteristic.type === "dateRange" || cv.Characteristic.type === "dateHourRange") {
+                        // Ensure dateRange is in the correct format
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value:
+                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value
+                                    ? {
+                                          from: new Date(cv.value.from).toISOString(),
+                                          to: new Date(cv.value.to).toISOString(),
+                                      }
+                                    : null,
+                        }
+                    }
+
+                    // Handle boolean values
+                    if (cv.Characteristic.type === "boolean") {
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: cv.value === true || cv.value === "true",
+                        }
+                    }
+
                     // For non-file types, just pass the value as is
                     return {
                         characteristicId: cv.characteristicId,
@@ -237,13 +272,48 @@ export function MaterialDialog({ open, material, onClose }: MaterialDialogProps)
                 const processedCharacteristicValues = characteristicValues.map((cv) => {
                     // If it's a file characteristic, ensure it's in the proper format for saving
                     if (isCharacteristicValueFileClient(cv)) {
-                        // For editing, need fileToAdd and fileToDelete format
+                        // For creating, we only need fileToAdd
                         const value = cv.value || {}
                         return {
                             characteristicId: cv.characteristicId,
                             value: {
-                                fileToAdd: Array.isArray(value.file) ? value.fileToAdd : [],
+                                fileToAdd: Array.isArray(value.fileToAdd) ? value.fileToAdd : [],
                             },
+                        }
+                    }
+
+                    // Handle date types
+                    if (cv.Characteristic.type === "date" || cv.Characteristic.type === "dateHour") {
+                        // Ensure date is in the correct format
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value:
+                                cv.value && typeof cv.value === "object" && "date" in cv.value
+                                    ? { date: new Date(cv.value.date).toISOString() }
+                                    : null,
+                        }
+                    }
+
+                    // Handle date range types
+                    if (cv.Characteristic.type === "dateRange" || cv.Characteristic.type === "dateHourRange") {
+                        // Ensure dateRange is in the correct format
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value:
+                                cv.value && typeof cv.value === "object" && "from" in cv.value && "to" in cv.value
+                                    ? {
+                                          from: new Date(cv.value.from).toISOString(),
+                                          to: new Date(cv.value.to).toISOString(),
+                                      }
+                                    : null,
+                        }
+                    }
+
+                    // Handle boolean values
+                    if (cv.Characteristic.type === "boolean") {
+                        return {
+                            characteristicId: cv.characteristicId,
+                            value: cv.value === true || cv.value === "true",
                         }
                     }
 

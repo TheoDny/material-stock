@@ -23,14 +23,19 @@ import {
     FileArchive,
     FileVolume,
     Undo,
+    Plus,
+    Minus,
+    Clock,
 } from "lucide-react"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { Characteristic, FileDb } from "@prisma/client"
-import { cn } from "@/lib/utils"
+import { cn, formatDate } from "@/lib/utils"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
 import Image from "next/image"
+import { TimePicker } from "@/components/ui/time-picker"
+import { DateTimeInput } from "@/components/ui/date-time-input"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic
@@ -123,9 +128,11 @@ export function CharacteristicValueForm({
 }: CharacteristicValueFormProps) {
     const tMat = useTranslations("Materials.files")
     const tCommon = useTranslations("Common")
-    const [date, setDate] = useState<Date | undefined>(
-        value && typeof value === "string" ? new Date(value) : undefined,
-    )
+    const [dates, setDates] = useState<{
+        date?: Date
+        from?: Date
+        to?: Date
+    }>({})
     const fileInputRef = useRef<HTMLInputElement>(null)
     const [filePreviewUrls, setFilePreviewUrls] = useState<Map<string, string>>(new Map())
 
@@ -136,6 +143,40 @@ export function CharacteristicValueForm({
         name: string
         type?: string
     } | null>(null)
+
+    // State for multi-text items
+    const [multiTextItems, setMultiTextItems] = useState<{ title: string; text: string }[]>([])
+
+    // Initialize values based on characteristic type and existing value
+    useEffect(() => {
+        if (characteristic.type === "date" || characteristic.type === "dateHour") {
+            // Handle date type initialization
+            if (value && typeof value === "object" && "date" in value) {
+                setDates({ date: new Date(value.date) })
+            } else if (value && typeof value === "string") {
+                try {
+                    setDates({ date: parseISO(value) })
+                } catch (e) {
+                    setDates({})
+                }
+            }
+        } else if (characteristic.type === "dateRange" || characteristic.type === "dateHourRange") {
+            // Handle date range type initialization
+            if (value && typeof value === "object" && "from" in value && "to" in value) {
+                setDates({
+                    from: new Date(value.from),
+                    to: new Date(value.to),
+                })
+            }
+        } else if (characteristic.type === "multiText" || characteristic.type === "multiTextArea") {
+            // Handle multi-text initialization
+            if (value && typeof value === "object" && "multiText" in value && Array.isArray(value.multiText)) {
+                setMultiTextItems(value.multiText)
+            } else {
+                setMultiTextItems([{ title: "", text: "" }])
+            }
+        }
+    }, [characteristic.type, value])
 
     // Create preview URLs for uploaded files
     useEffect(() => {
@@ -150,12 +191,40 @@ export function CharacteristicValueForm({
     }, [filePreviewUrls])
 
     const handleDateChange = (date: Date | undefined) => {
-        setDate(date)
+        setDates({ ...dates, date })
         if (date) {
-            onChange(date.toISOString())
+            onChange({ date })
         } else {
-            onChange("")
+            onChange(null)
         }
+    }
+
+    const handleDateRangeChange = (field: "from" | "to") => (date: Date | undefined) => {
+        const newDates = { ...dates, [field]: date }
+        setDates(newDates)
+
+        if (newDates.from && newDates.to) {
+            onChange({ from: newDates.from, to: newDates.to })
+        }
+    }
+
+    const handleMultiTextChange = (index: number, field: "title" | "text", newValue: string) => {
+        const updatedItems = [...multiTextItems]
+        updatedItems[index] = { ...updatedItems[index], [field]: newValue }
+        setMultiTextItems(updatedItems)
+        onChange({ multiText: updatedItems })
+    }
+
+    const addMultiTextItem = () => {
+        setMultiTextItems([...multiTextItems, { title: "", text: "" }])
+        onChange({ multiText: [...multiTextItems, { title: "", text: "" }] })
+    }
+
+    const removeMultiTextItem = (index: number) => {
+        if (multiTextItems.length <= 1) return
+        const updatedItems = multiTextItems.filter((_, i) => i !== index)
+        setMultiTextItems(updatedItems)
+        onChange({ multiText: updatedItems })
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -319,13 +388,13 @@ export function CharacteristicValueForm({
 
     const renderFormControl = () => {
         const { type, options, units } = characteristic
-        const optionsArray = options as string[]
+        const optionsArray = options ? (typeof options === "string" ? JSON.parse(options) : options) : []
 
         switch (type) {
             case "text":
                 return (
                     <Input
-                        value={value}
+                        value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter text value"
                     />
@@ -334,7 +403,7 @@ export function CharacteristicValueForm({
             case "textarea":
                 return (
                     <Textarea
-                        value={value}
+                        value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter detailed text"
                         className="resize-none"
@@ -346,7 +415,7 @@ export function CharacteristicValueForm({
                     <div className="flex items-center space-x-2">
                         <Input
                             type="number"
-                            value={value}
+                            value={value || ""}
                             onChange={(e) => onChange(e.target.value)}
                             placeholder="Enter number"
                         />
@@ -360,18 +429,31 @@ export function CharacteristicValueForm({
                         <Input
                             type="number"
                             step="0.01"
-                            value={value}
+                            value={value || ""}
                             onChange={(e) => onChange(e.target.value)}
                             placeholder="Enter decimal number"
                         />
                         {units && <span className="text-sm text-muted-foreground">{units}</span>}
                     </div>
                 )
+
+            case "boolean":
+                return (
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            checked={value === true || value === "true"}
+                            onCheckedChange={(checked) => onChange(checked ? true : false)}
+                            id={`checkbox-${characteristic.id}`}
+                        />
+                        <Label htmlFor={`checkbox-${characteristic.id}`}>Yes</Label>
+                    </div>
+                )
+
             case "checkbox":
                 return (
                     <div className="flex items-center space-x-2">
                         <Checkbox
-                            checked={value === "true"}
+                            checked={value === true || value === "true"}
                             onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
                             id={`checkbox-${characteristic.id}`}
                         />
@@ -382,14 +464,14 @@ export function CharacteristicValueForm({
             case "select":
                 return (
                     <Select
-                        value={value}
+                        value={value || ""}
                         onValueChange={onChange}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Select an option" />
                         </SelectTrigger>
                         <SelectContent>
-                            {optionsArray?.map((option) => (
+                            {optionsArray?.map((option: string) => (
                                 <SelectItem
                                     key={option}
                                     value={option}
@@ -404,11 +486,11 @@ export function CharacteristicValueForm({
             case "radio":
                 return (
                     <RadioGroup
-                        value={value}
+                        value={value || ""}
                         onValueChange={onChange}
                         className="flex flex-col space-y-1"
                     >
-                        {optionsArray?.map((option) => (
+                        {optionsArray?.map((option: string) => (
                             <div
                                 key={option}
                                 className="flex items-center space-x-2"
@@ -424,10 +506,10 @@ export function CharacteristicValueForm({
                 )
 
             case "multiSelect":
-                const selectedValues = value ? value.split(",") : []
+                const selectedValues = value && Array.isArray(value) ? value : value ? value.split(",") : []
                 return (
                     <div className="space-y-2">
-                        {optionsArray?.map((option) => (
+                        {optionsArray?.map((option: string) => (
                             <div
                                 key={option}
                                 className="flex items-center space-x-2"
@@ -441,7 +523,7 @@ export function CharacteristicValueForm({
                                         } else {
                                             newValues = selectedValues.filter((v: string) => v !== option)
                                         }
-                                        onChange(newValues.join(","))
+                                        onChange(newValues)
                                     }}
                                     id={`multiselect-${characteristic.id}-${option}`}
                                 />
@@ -451,22 +533,86 @@ export function CharacteristicValueForm({
                     </div>
                 )
 
+            case "multiText":
+            case "multiTextArea":
+                return (
+                    <div className="space-y-4">
+                        {multiTextItems.map((item, index) => (
+                            <div
+                                key={`multitext-${index}`}
+                                className="space-y-2 p-3 border rounded-md relative"
+                            >
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2 h-6 w-6"
+                                    onClick={() => removeMultiTextItem(index)}
+                                    disabled={multiTextItems.length <= 1}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+
+                                <div>
+                                    <Label htmlFor={`multitext-title-${index}`}>Title</Label>
+                                    <Input
+                                        id={`multitext-title-${index}`}
+                                        value={item.title}
+                                        onChange={(e) => handleMultiTextChange(index, "title", e.target.value)}
+                                        placeholder="Enter title"
+                                    />
+                                </div>
+
+                                <div>
+                                    <Label htmlFor={`multitext-content-${index}`}>Content</Label>
+                                    {type === "multiTextArea" ? (
+                                        <Textarea
+                                            id={`multitext-content-${index}`}
+                                            value={item.text}
+                                            onChange={(e) => handleMultiTextChange(index, "text", e.target.value)}
+                                            placeholder="Enter content"
+                                            className="resize-none"
+                                        />
+                                    ) : (
+                                        <Input
+                                            id={`multitext-content-${index}`}
+                                            value={item.text}
+                                            onChange={(e) => handleMultiTextChange(index, "text", e.target.value)}
+                                            placeholder="Enter content"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addMultiTextItem}
+                            className="w-full"
+                        >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Item
+                        </Button>
+                    </div>
+                )
+
             case "date":
                 return (
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
-                                className={`w-full justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
+                                className={`w-full justify-start text-left font-normal ${!dates.date && "text-muted-foreground"}`}
                             >
                                 <CalendarIcon className="mr-2 h-4 w-4" />
-                                {date ? format(date, "PPP") : "Select a date"}
+                                {dates.date ? formatDate(dates.date) : "Select a date"}
                             </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0">
                             <Calendar
                                 mode="single"
-                                selected={date}
+                                selected={dates.date}
                                 onSelect={handleDateChange}
                                 initialFocus
                             />
@@ -474,11 +620,94 @@ export function CharacteristicValueForm({
                     </Popover>
                 )
 
+            case "dateHour":
+                return (
+                    <DateTimeInput
+                        date={dates.date}
+                        onDateChange={handleDateChange}
+                        showTime
+                    />
+                )
+
+            case "dateRange":
+                return (
+                    <div className="space-y-2">
+                        <div>
+                            <Label>From</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={`w-full justify-start text-left font-normal ${!dates.from && "text-muted-foreground"}`}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dates.from ? formatDate(dates.from) : "Select start date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={dates.from}
+                                        onSelect={handleDateRangeChange("from")}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
+                        <div>
+                            <Label>To</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={`w-full justify-start text-left font-normal ${!dates.to && "text-muted-foreground"}`}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dates.to ? formatDate(dates.to) : "Select end date"}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                    <Calendar
+                                        mode="single"
+                                        selected={dates.to}
+                                        onSelect={handleDateRangeChange("to")}
+                                        initialFocus
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    </div>
+                )
+
+            case "dateHourRange":
+                return (
+                    <div className="space-y-4">
+                        <div>
+                            <Label>From</Label>
+                            <DateTimeInput
+                                date={dates.from}
+                                onDateChange={handleDateRangeChange("from")}
+                                showTime
+                            />
+                        </div>
+
+                        <div>
+                            <Label>To</Label>
+                            <DateTimeInput
+                                date={dates.to}
+                                onDateChange={handleDateRangeChange("to")}
+                                showTime
+                            />
+                        </div>
+                    </div>
+                )
+
             case "email":
                 return (
                     <Input
                         type="email"
-                        value={value}
+                        value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter email address"
                     />
@@ -488,7 +717,7 @@ export function CharacteristicValueForm({
                 return (
                     <Input
                         type="url"
-                        value={value}
+                        value={value || ""}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder="Enter URL"
                     />
@@ -575,7 +804,7 @@ export function CharacteristicValueForm({
                                                 key={`new-${index}`}
                                                 className="relative border rounded-md p-2 flex items-center gap-1 group bg-green-600/20"
                                             >
-                                                <div className="h-18 w-18 min-w-14  rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                <div className="h-18 w-18 min-w-14  rounded-md overflow-hidden bg-accent flex items-center justify-center">
                                                     {isImageFile(file.name) ? (
                                                         <img
                                                             src={filePreviewUrls.get(file.name + index) || ""}
@@ -631,7 +860,7 @@ export function CharacteristicValueForm({
                                                             : "hover:bg-accent/20",
                                                     )}
                                                 >
-                                                    <div className="h-18 w-18 min-w-14 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                                    <div className="h-18 w-18 min-w-14 rounded-md overflow-hidden bg-accent flex items-center justify-center">
                                                         {isImageFile(file.name) ? (
                                                             <Image
                                                                 src={fileUrl}
@@ -752,7 +981,7 @@ export function CharacteristicValueForm({
                 )
 
             default:
-                throw new Error(`Unsupported characteristic type: ${type}`)
+                return <div className="text-red-500">Unsupported characteristic type: {type}</div>
         }
     }
 

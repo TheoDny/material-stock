@@ -354,7 +354,7 @@ export function CharacteristicDisplay({ characteristic, showLabel = true }: Char
                                 key={index}
                                 className="border rounded-md p-2 flex items-center gap-2 hover:bg-accent/20 transition-colors"
                             >
-                                <div className="h-18 w-18 min-w-16 rounded-md overflow-hidden bg-accent/10 flex items-center justify-center">
+                                <div className="h-18 w-18 min-w-16 rounded-md overflow-hidden bg-accent flex items-center justify-center">
                                     {isImageFile(file.name) ? (
                                         <Image
                                             src={fileUrl}

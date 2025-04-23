@@ -6,23 +6,29 @@ import {
     CharacteristicMulti,
     CharacteristicMultiText,
     CharacteristicString,
+    CharacteristicValueBoolean,
+    CharacteristicValueDate,
+    CharacteristicValueDateRange,
     CharacteristicValueFile,
     CharacteristicValueFileClient,
+    CharacteristicValueMulti,
+    CharacteristicValueMultiText,
+    CharacteristicValueString,
     MaterialCharacteristic,
     MaterialCharacteristicClient,
 } from "@/types/characteristic.type"
 import { Characteristic, CharacteristicType } from "@prisma/client"
 import { clsx, type ClassValue } from "clsx"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
-export function formatDate(date: Date | string): string {
-    const dateObj = typeof date === "string" ? new Date(date) : date
-    return format(dateObj, "MMM d, yyyy")
+export function formatDate(date: Date | string, formatString: string = "PPP"): string {
+    const dateObj = typeof date === "string" ? parseISO(date) : date
+    return format(dateObj, formatString)
 }
 
 export const getTypeColor = (type: CharacteristicType) => {
@@ -75,83 +81,138 @@ export async function sleep(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-export function isCharacteristicValueFile(cv: MaterialCharacteristic): cv is CharacteristicValueFile {
-    return cv.Characteristic.type === "file"
+export function isCharacteristicValueFile(value: MaterialCharacteristic): value is CharacteristicValueFile {
+    return value.Characteristic.type === "file"
 }
 
 export function isCharacteristicValueFileClient(
-    cv: MaterialCharacteristicClient,
-): cv is CharacteristicValueFileClient {
-    return cv.Characteristic.type === "file"
+    value: MaterialCharacteristicClient,
+): value is CharacteristicValueFileClient {
+    return value.Characteristic.type === "file"
+}
+
+export function isCharacteristicValueString(value: MaterialCharacteristic): value is CharacteristicValueString {
+    const type = value.Characteristic.type
+    return (
+        type === "text" ||
+        type === "textarea" ||
+        type === "link" ||
+        type === "email" ||
+        type === "number" ||
+        type === "float"
+    )
+}
+
+export function isCharacteristicValueMultiText(
+    value: MaterialCharacteristic,
+): value is CharacteristicValueMultiText {
+    const type = value.Characteristic.type
+    return type === "multiText" || type === "multiTextArea"
+}
+
+export function isCharacteristicValueMulti(value: MaterialCharacteristic): value is CharacteristicValueMulti {
+    const type = value.Characteristic.type
+    return type === "multiSelect" || type === "select" || type === "checkbox" || type === "radio"
+}
+
+export function isCharacteristicValueBoolean(value: MaterialCharacteristic): value is CharacteristicValueBoolean {
+    return value.Characteristic.type === "boolean"
+}
+
+export function isCharacteristicValueDate(value: MaterialCharacteristic): value is CharacteristicValueDate {
+    const type = value.Characteristic.type
+    return type === "date" || type === "dateHour"
+}
+
+export function isCharacteristicValueDateRange(
+    value: MaterialCharacteristic,
+): value is CharacteristicValueDateRange {
+    const type = value.Characteristic.type
+    return type === "dateRange" || type === "dateHourRange"
 }
 
 export function buildCharacteristicDefaultValue(characteristic: Characteristic): MaterialCharacteristicClient {
-    switch (characteristic.type) {
-        case "text":
-        case "textarea":
-        case "link":
-        case "email":
-        case "number":
-        case "float":
-            return {
-                Characteristic: characteristic as CharacteristicString,
-                characteristicId: characteristic.id,
-                value: "",
-            }
-        case "multiSelect":
-        case "select":
-        case "checkbox":
-        case "radio":
-            return {
-                Characteristic: characteristic as CharacteristicMulti,
-                characteristicId: characteristic.id,
-                value: [],
-            }
+    const type = characteristic.type
 
-        case "boolean":
-            return {
-                Characteristic: characteristic as CharacteristicBoolean,
-                characteristicId: characteristic.id,
-                value: false,
-            }
+    // Create base structure with characteristic data
+    const base = {
+        characteristicId: characteristic.id,
+        Characteristic: characteristic as any,
+    }
 
-        case "date":
-        case "dateHour":
-            return {
-                Characteristic: characteristic as CharacteristicDate,
-                characteristicId: characteristic.id,
-                value: { date: new Date() },
-            }
+    if (
+        type === "text" ||
+        type === "textarea" ||
+        type === "link" ||
+        type === "email" ||
+        type === "number" ||
+        type === "float"
+    ) {
+        return {
+            ...base,
+            value: "",
+            Characteristic: characteristic as CharacteristicString,
+        }
+    }
 
-        case "dateRange":
-        case "dateHourRange":
-            return {
-                Characteristic: characteristic as CharacteristicDateRange,
-                characteristicId: characteristic.id,
-                value: { from: new Date(), to: new Date() },
-            }
+    if (type === "multiText" || type === "multiTextArea") {
+        return {
+            ...base,
+            value: {
+                multiText: [{ title: "", text: "" }],
+            },
+            Characteristic: characteristic as CharacteristicMultiText,
+        }
+    }
 
-        case "file":
-            return {
-                Characteristic: characteristic as CharacteristicFile,
-                characteristicId: characteristic.id,
-                value: {
-                    fileToAdd: [],
-                    fileToDelete: [],
-                    file: [],
-                },
-            }
-        case "multiText":
-        case "multiTextArea":
-            return {
-                Characteristic: characteristic as CharacteristicMultiText,
-                characteristicId: characteristic.id,
-                value: {
-                    multiText: [
-                        { title: "", text: "" },
-                        { title: "", text: "" },
-                    ],
-                },
-            }
+    if (type === "multiSelect" || type === "select" || type === "checkbox" || type === "radio") {
+        return {
+            ...base,
+            value: [],
+            Characteristic: characteristic as CharacteristicMulti,
+        }
+    }
+
+    if (type === "boolean") {
+        return {
+            ...base,
+            value: false,
+            Characteristic: characteristic as CharacteristicBoolean,
+        }
+    }
+
+    if (type === "date" || type === "dateHour") {
+        return {
+            ...base,
+            value: { date: new Date() },
+            Characteristic: characteristic as CharacteristicDate,
+        }
+    }
+
+    if (type === "dateRange" || type === "dateHourRange") {
+        return {
+            ...base,
+            value: { from: new Date(), to: new Date() },
+            Characteristic: characteristic as CharacteristicDateRange,
+        }
+    }
+
+    if (type === "file") {
+        return {
+            ...base,
+            value: {
+                file: [],
+                fileToAdd: [],
+                fileToDelete: [],
+            },
+            Characteristic: characteristic as CharacteristicFile,
+        }
+    }
+
+    // Default case
+    return {
+        ...base,
+        value: "",
+        Characteristic: characteristic as CharacteristicString,
     }
 }

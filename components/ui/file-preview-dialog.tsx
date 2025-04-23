@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useTranslations } from "next-intl"
-import { Loader2, Download, X } from "lucide-react"
+import { Loader2, Download, X, FileText, File } from "lucide-react"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
 
 interface FilePreviewDialogProps {
     open: boolean
@@ -27,22 +27,22 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
     // Determine file content type
     const isImage = ["jpg", "jpeg", "png", "gif", "webp", "bmp", "svg"].includes(fileExtension)
     const isPdf = fileExtension === "pdf"
-    const isText = ["txt", "csv", "json", "md", "xml", "html", "css", "js"].includes(fileExtension)
+    const isTextFile = ["txt", "csv", "json", "md", "xml", "html", "css", "js"].includes(fileExtension)
 
     useEffect(() => {
         if (!open) return
 
-        // Reset states on open
+        // Reset state when dialog opens
         setLoading(true)
         setError(null)
         setTextContent(null)
 
-        // For text files, fetch and display the content
-        if (isText && open) {
+        // Load text content for text files
+        if (isTextFile) {
             fetch(fileUrl)
                 .then((response) => {
                     if (!response.ok) {
-                        throw new Error(`Failed to load file: ${response.statusText}`)
+                        throw new Error(`Failed to load file: ${response.status} ${response.statusText}`)
                     }
                     return response.text()
                 })
@@ -52,41 +52,43 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
                 })
                 .catch((err) => {
                     console.error("Error loading text file:", err)
-                    setError(t("errorLoadingFile"))
+                    setError(err.message)
                     setLoading(false)
                 })
         } else {
-            // For images and PDFs, the loading is handled by the browser
+            // For non-text files, just set loading to false
             setLoading(false)
         }
-    }, [fileUrl, open, isText, t])
+    }, [open, fileUrl, isTextFile])
 
-    const renderFilePreview = () => {
+    const renderPreview = () => {
         if (loading) {
             return (
-                <div className="flex flex-col items-center justify-center h-[50vh]">
+                <div className="flex items-center justify-center p-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="mt-4 text-muted-foreground">{t("loading")}</p>
                 </div>
             )
         }
 
         if (error) {
             return (
-                <div className="flex flex-col items-center justify-center h-[50vh]">
-                    <p className="text-destructive">{error}</p>
+                <div className="flex items-center justify-center p-8 text-destructive">
+                    <p>{error}</p>
                 </div>
             )
         }
 
         if (isImage) {
             return (
-                <div className="flex items-center justify-center p-4 max-h-[70vh] overflow-auto">
-                    <img
+                <div className="flex justify-center p-2">
+                    <Image
                         src={fileUrl}
                         alt={fileName}
-                        className="max-w-full max-h-full object-contain"
-                        onError={() => setError(t("errorLoadingFile"))}
+                        width={800}
+                        height={600}
+                        className="max-h-[70vh] object-scale-down"
+                        style={{ width: "auto", height: "auto" }}
+                        onError={() => setError("Failed to load image")}
                     />
                 </div>
             )
@@ -94,73 +96,31 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
 
         if (isPdf) {
             return (
-                <div className="w-full h-[70vh]">
-                    <iframe
-                        src={`${fileUrl}#toolbar=0`}
-                        title={fileName}
-                        className="w-full h-full border-0"
-                        onError={() => setError(t("errorLoadingFile"))}
-                    />
-                </div>
+                <iframe
+                    src={`${fileUrl}#toolbar=0&view=FitH`}
+                    className="w-full h-[70vh]"
+                    title={fileName}
+                />
             )
         }
 
-        if (isText && textContent) {
-            const isCSV = fileExtension === "csv"
-
-            if (isCSV) {
-                // Simple CSV display with table
-                const rows = textContent.split("\n").map((row) => row.split(","))
-
-                return (
-                    <div className="p-4 max-h-[70vh] overflow-auto">
-                        <div className="border rounded-md overflow-x-auto">
-                            <table className="w-full text-sm">
-                                <tbody>
-                                    {rows.map((row, rowIndex) => (
-                                        <tr
-                                            key={rowIndex}
-                                            className={rowIndex % 2 === 0 ? "bg-muted/50" : ""}
-                                        >
-                                            {row.map((cell, cellIndex) => (
-                                                <td
-                                                    key={cellIndex}
-                                                    className="px-4 py-2 border-r border-b last:border-r-0"
-                                                >
-                                                    {cell}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                )
-            }
-
-            return (
-                <div className="p-4 max-h-[70vh] overflow-auto">
-                    <pre className="text-sm p-4 bg-muted rounded-md whitespace-pre-wrap">{textContent}</pre>
-                </div>
-            )
+        if (isTextFile && textContent) {
+            return <pre className="p-4 bg-muted rounded-md overflow-auto max-h-[70vh] text-sm">{textContent}</pre>
         }
 
+        // Default view for unsupported file types
         return (
-            <div className="flex flex-col items-center justify-center h-[50vh]">
-                <p className="text-muted-foreground">{t("previewNotAvailable")}</p>
-                <Button
-                    className="mt-4"
-                    asChild
+            <div className="flex flex-col items-center justify-center p-8 space-y-4">
+                <File className="h-16 w-16 text-muted-foreground" />
+                <p className="text-center text-muted-foreground">{t("previewNotAvailable")}</p>
+                <a
+                    href={fileUrl}
+                    download={fileName}
+                    className="inline-flex items-center space-x-2 text-primary hover:underline"
                 >
-                    <a
-                        href={fileUrl}
-                        download={fileName}
-                    >
-                        <Download className="h-4 w-4 mr-2" />
-                        {t("download")}
-                    </a>
-                </Button>
+                    <Download className="h-4 w-4" />
+                    <span>{t("download")}</span>
+                </a>
             </div>
         )
     }
@@ -170,26 +130,33 @@ export function FilePreviewDialog({ open, onOpenChange, fileUrl, fileName, fileT
             open={open}
             onOpenChange={onOpenChange}
         >
-            <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
                 <DialogHeader>
-                    <div className="flex items-center justify-between">
-                        <DialogTitle className="truncate h-5">{fileName}</DialogTitle>
-                    </div>
-                    {fileType && <DialogDescription>{fileType}</DialogDescription>}
+                    <DialogTitle className="flex items-center space-x-2">
+                        <span>{fileName}</span>
+                    </DialogTitle>
+                    <DialogDescription>{fileType || ""}</DialogDescription>
                 </DialogHeader>
-                <div className="flex-1 overflow-hidden">{renderFilePreview()}</div>
+
+                <div className="flex-1 overflow-hidden">{renderPreview()}</div>
+
                 <div className="flex justify-end mt-4">
-                    <Button
-                        variant="outline"
-                        asChild
+                    <a
+                        href={fileUrl}
+                        download={fileName}
+                        className="inline-flex items-center space-x-2 mr-4"
                     >
-                        <a
-                            href={fileUrl}
-                            download={fileName}
-                        >
+                        <Button variant="outline">
                             <Download className="h-4 w-4 mr-2" />
                             {t("download")}
-                        </a>
+                        </Button>
+                    </a>
+                    <Button
+                        variant="secondary"
+                        onClick={() => onOpenChange(false)}
+                    >
+                        <X className="h-4 w-4 mr-2" />
+                        {t("close")}
                     </Button>
                 </div>
             </DialogContent>
