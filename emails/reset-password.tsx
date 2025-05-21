@@ -34,7 +34,7 @@ export const ResetPassword = ({ resetLink, appUrl }: ResetPasswordProps) => (
                         href={appUrl}
                         style={styles.link}
                     >
-                        Material Stock
+                        Stockaly
                     </Link>
                 </Text>
             </Container>

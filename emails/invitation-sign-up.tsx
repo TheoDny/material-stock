@@ -9,11 +9,11 @@ interface InvitationSignUpProps {
 export const InvitationSignUp = ({ inviteLink, appUrl }: InvitationSignUpProps) => (
     <Html>
         <Head />
-        <Preview>Invitation à rejoindre Material Stock</Preview>
+        <Preview>Invitation à rejoindre Stockaly</Preview>
         <Body style={styles.body}>
             <Container style={styles.container}>
-                <Heading style={styles.heading}>Bienvenue sur Material Stock</Heading>
-                <Text style={styles.text}>Vous avez été invité à créer un compte sur Material Stock.</Text>
+                <Heading style={styles.heading}>Bienvenue sur Stockaly</Heading>
+                <Text style={styles.text}>Vous avez été invité à créer un compte sur Stockaly.</Text>
                 <Text style={styles.text}>Cliquez sur le lien ci-dessous pour finaliser votre inscription :</Text>
                 <Link
                     href={inviteLink}
@@ -29,7 +29,7 @@ export const InvitationSignUp = ({ inviteLink, appUrl }: InvitationSignUpProps) 
                         href={appUrl}
                         style={styles.link}
                     >
-                        Material Stock
+                        Stockaly
                     </Link>{" "}
                     !
                 </Text>

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { Users, Boxes, IdCard, ListTree, Logs, Tags, SquareChartGantt } from "lucide-react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-import "./globals.css"
+import "../globals.css"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
 import { NavigationType, NavigationGroupType } from "@/types/navigation.type"
@@ -12,6 +12,7 @@ import { getLocale, getTranslations } from "next-intl/server"
 import { NextIntlClientProvider } from "next-intl"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { unauthorized } from "next/navigation"
 
 interface RootLayoutProps {
     children: ReactNode
@@ -26,21 +27,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
     const tSidebar = await getTranslations("Sidebar")
 
     if (!session) {
-        return (
-            <html
-                lang={locale}
-                suppressHydrationWarning
-            >
-                <head>
-                    <title>Material Stock</title>
-                </head>
-                <body>
-                    <NextIntlClientProvider>
-                        <main>{children}</main>
-                    </NextIntlClientProvider>
-                </body>
-            </html>
-        )
+        unauthorized()
     }
 
     const buildNavigation = async (session: any): Promise<NavigationType> => {
@@ -52,7 +39,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 EntitySelected: session.user.EntitySelected as { id: string; name: string },
             },
             header: {
-                name: "Material Stock",
+                name: "Stockaly",
                 logo: <Boxes />,
             },
             groups: [],
@@ -136,7 +123,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             suppressHydrationWarning
         >
             <head>
-                <title>Material Stock</title>
+                <title>Stockaly</title>
                 <link rel="icon" href="/favicon.ico" />
             </head>
             <body>
