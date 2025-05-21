@@ -28,7 +28,8 @@
         "forgotPassword": "Forgot password?",
         "rememberMe": "Remember me",
         "noAccount": "Don't have an account?",
-        "signUp": "Sign up"
+        "signUp": "Sign up",
+        "cookieConsent": "By signing in, you accept our use of cookies for authentication and enhanced user experience."
     },
     "SignUp": {
         "title": "Sign Up",

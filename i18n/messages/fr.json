@@ -36,7 +36,8 @@
         "forgotPassword": "Mot de passe oublié?",
         "rememberMe": "Se souvenir de moi",
         "noAccount": "Vous n'avez pas de compte?",
-        "signUp": "S'inscrire"
+        "signUp": "S'inscrire",
+        "cookieConsent": "En vous connectant, vous acceptez notre utilisation des cookies pour l'authentification et une expérience utilisateur améliorée."
     },
     "SignUp": {
         "title": "Inscription",

@@ -98,20 +98,20 @@ export function SignIn() {
                             tSignIn("login")
                         )}
                     </Button>
-                    <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
                         {error && (
+                    <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
                             <>
                                 <CircleAlert className="text-destructive" />
                                 <p className="text-destructive text-xs">{error}</p>
                             </>
-                        )}
                     </div>
+                        )}
                 </div>
             </CardContent>
             <CardFooter>
-                <div className="flex justify-center w-full border-t py-4">
-                    <p className="text-center text-xs text-neutral-500">
-                        Powered by <span className="underline dark:text-orange-200/90">better-auth.</span>
+                <div className="flex flex-col justify-center w-full border-t py-3">
+                    <p className="text-xs text-muted-foreground text-center">
+                        {tSignIn("cookieConsent")}
                     </p>
                 </div>
             </CardFooter>
