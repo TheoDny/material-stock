@@ -137,6 +137,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         >
             <head>
                 <title>Material Stock</title>
+                <link rel="icon" href="/favicon.ico" />
             </head>
             <body>
                 <NextThemesProvider

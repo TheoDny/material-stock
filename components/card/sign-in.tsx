@@ -9,20 +9,36 @@ import { Loader2, CircleAlert } from "lucide-react"
 import { signIn } from "@/lib/auth-client"
 import Link from "next/link"
 import { useTranslations } from "next-intl"
+import { useForm } from "react-hook-form"
+import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+
+const signInSchema = z.object({
+    email: z.string().email("Please enter a valid email"),
+    password: z.string().min(1, "Password is required"),
+})
+
+type SignInFormValues = z.infer<typeof signInSchema>
 
 export function SignIn() {
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const tSignIn = useTranslations("SignIn")
+    
+    const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>({
+        resolver: zodResolver(signInSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+        },
+    })
 
-    const handleSignIn = async () => {
+    const onSubmit = async (data: SignInFormValues) => {
         setLoading(true)
         setError("")
         await signIn.email({
-            email,
-            password,
+            email: data.email,
+            password: data.password,
             fetchOptions: {
                 onResponse: () => {
                     setLoading(false)
@@ -47,19 +63,18 @@ export function SignIn() {
                 <CardDescription className="text-xs md:text-sm">{tSignIn("description")}</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="grid gap-4">
+                <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
                     <div className="grid gap-2">
                         <Label htmlFor="email">{tSignIn("email")}</Label>
                         <Input
                             id="email"
                             type="email"
                             placeholder="m@example.com"
-                            required
-                            onChange={(e) => {
-                                setEmail(e.target.value)
-                            }}
-                            value={email}
+                            {...register("email")}
                         />
+                        {errors.email && (
+                            <p className="text-destructive text-xs mt-1">{errors.email.message}</p>
+                        )}
                     </div>
 
                     <div className="grid gap-2">
@@ -78,16 +93,17 @@ export function SignIn() {
                             type="password"
                             placeholder="password"
                             autoComplete="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            {...register("password")}
                         />
+                        {errors.password && (
+                            <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
+                        )}
                     </div>
 
                     <Button
                         type="submit"
                         className="w-full"
                         disabled={loading}
-                        onClick={handleSignIn}
                     >
                         {loading ? (
                             <Loader2
@@ -98,15 +114,13 @@ export function SignIn() {
                             tSignIn("login")
                         )}
                     </Button>
-                        {error && (
-                    <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
-                            <>
-                                <CircleAlert className="text-destructive" />
-                                <p className="text-destructive text-xs">{error}</p>
-                            </>
-                    </div>
-                        )}
-                </div>
+                    {error && (
+                        <div className="p-2 items-center w-full rounded-md flex flex-row gap-2">
+                            <CircleAlert className="text-destructive" />
+                            <p className="text-destructive text-xs">{error}</p>
+                        </div>
+                    )}
+                </form>
             </CardContent>
             <CardFooter>
                 <div className="flex flex-col justify-center w-full border-t py-3">
