@@ -1,9 +1,9 @@
 
+import { AuthLayout } from "@/components/auth/AuthLayout"
 import { NextIntlClientProvider } from "next-intl"
 import { getLocale } from "next-intl/server"
 import type { ReactNode } from "react"
 import "../globals.css"
-import { AuthLayout } from "@/components/auth/AuthLayout"
 
 interface RootLayoutProps {
     children: ReactNode

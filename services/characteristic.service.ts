@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
-import { Characteristic, CharacteristicType } from "@prisma/client"
+import { Characteristic, CharacteristicType } from "@/prisma/generated"
 import {
     addCharacteristicCreateLog,
     addCharacteristicUpdateLog,

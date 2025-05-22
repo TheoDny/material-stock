@@ -1,21 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Pencil, Check, X } from "lucide-react"
-import { toast } from "sonner"
+import { Check, Pencil, Plus, X } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
+import { getPermissionsAction } from "@/actions/permission-actions"
+import { assignPermissionsToRoleAction, getRolesAction } from "@/actions/role-actions"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { RoleDialog } from "./role-dialog"
-import { getRolesAction } from "@/actions/role-actions"
-import { getPermissionsAction } from "@/actions/permission-actions"
-import { assignPermissionsToRoleAction } from "@/actions/role-actions"
 import { RolePermissions } from "@/types/role.type"
-import { Role, Permission } from "@prisma/client"
+import { Permission, Role } from "@prisma/client"
+import { RoleDialog } from "./role-dialog"
 
 export function RoleManagement() {
     const [roles, setRoles] = useState<RolePermissions[]>([])

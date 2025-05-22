@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { TokenCreateUser } from "@prisma/client"
+import { TokenCreateUser } from "@/prisma/generated"
 import { addDays, isPast } from "date-fns"
 
 export const getUserRolesPermissionsAndEntities = async (userId: string) => {

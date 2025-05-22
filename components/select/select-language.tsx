@@ -7,10 +7,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Globe } from "lucide-react"
-import * as React from "react"
 import type { VariantProps } from "class-variance-authority"
+import { Globe } from "lucide-react"
 import { useLocale } from "next-intl"
+import * as React from "react"
 
 interface LanguageSelectorProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,

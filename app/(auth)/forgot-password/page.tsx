@@ -1,14 +1,14 @@
 "use client"
 
-import { Label } from "@radix-ui/react-label"
-import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
+import { Label } from "@radix-ui/react-label"
+import { Loader2 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useTranslations } from "next-intl"
 
 type ForgotPasswordProps = {
     token: string

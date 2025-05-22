@@ -1,14 +1,14 @@
-import { Suspense } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getTranslations } from "next-intl/server"
-import { Skeleton } from "@/components/ui/skeleton"
 import { LogTable } from "@/components/log-management/log-table"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
-import { unauthorized } from "next/navigation"
 import { getLogs } from "@/services/log.service"
 import { LogEntry } from "@/types/log.type"
 import { subDays } from "date-fns"
+import { getTranslations } from "next-intl/server"
+import { headers } from "next/headers"
+import { unauthorized } from "next/navigation"
+import { Suspense } from "react"
 
 export default async function LogPage() {
     const sevenDaysAgo = subDays(new Date(), 7)

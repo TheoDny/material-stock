@@ -1,17 +1,16 @@
 "use server"
 
-import { z } from "zod"
-import { actionClient } from "@/lib/safe-action"
 import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { actionClient } from "@/lib/safe-action"
 import { getLogs } from "@/services/log.service"
 import { subDays } from "date-fns"
-import { LogEntry } from "@/types/log.type"
+import { headers } from "next/headers"
+import { z } from "zod"
 
 // Schéma pour la validation des entrées
 const getLogsSchema = z.object({
     startDate: z.string().optional(),
-    endDate: z.string().optional(),
+    endDate: z.string().optional(), 
 })
 
 export const getLogsAction = actionClient.schema(getLogsSchema).action(async ({ parsedInput }) => {

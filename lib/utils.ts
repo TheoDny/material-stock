@@ -1,3 +1,4 @@
+import { Characteristic, CharacteristicType } from "@/prisma/generated"
 import {
     CharacteristicBoolean,
     CharacteristicDate,
@@ -17,7 +18,6 @@ import {
     MaterialCharacteristic,
     MaterialCharacteristicClient,
 } from "@/types/characteristic.type"
-import { Characteristic, CharacteristicType } from "@prisma/client"
 import { clsx, type ClassValue } from "clsx"
 import { format, parseISO } from "date-fns"
 import { twMerge } from "tailwind-merge"

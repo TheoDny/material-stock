@@ -1,15 +1,15 @@
 "use server"
 
-import { z } from "zod"
-import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
+import { actionClient } from "@/lib/safe-action"
 import {
-    getMaterials,
-    getMaterialCharacteristics,
     createMaterial,
-    updateMaterial,
     getMaterialById,
+    getMaterialCharacteristics,
+    getMaterials,
+    updateMaterial,
 } from "@/services/material.service"
+import { z } from "zod"
 
 // Schema for creating a material with file upload
 const createMaterialSchema = z.object({

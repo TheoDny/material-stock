@@ -1,14 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { updateProfileAction } from "@/actions/user-actions"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Pencil, LoaderCircle, Upload } from "lucide-react"
-import { useTranslations } from "next-intl"
 import {
     Dialog,
     DialogContent,
@@ -17,9 +11,15 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import { updateProfileAction } from "@/actions/user-actions"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { LoaderCircle, Pencil, Upload } from "lucide-react"
+import { useTranslations } from "next-intl"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { z } from "zod"
 
 // Define the profile schema with validation
 const profileSchema = z.object({

@@ -1,11 +1,11 @@
-import { Session } from "@/lib/auth"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { useTranslations } from "next-intl"
-import { LanguageSelector } from "@/components/select/select-language"
 import { EditProfile } from "@/components/account/edit-profile"
+import { LanguageSelector } from "@/components/select/select-language"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Session } from "@/lib/auth"
+import { useTranslations } from "next-intl"
 
 // Define the expected structure based on the custom session plugin
 interface SessionUser {

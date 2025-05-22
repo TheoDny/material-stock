@@ -1,7 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { useId } from "react";
 
 interface CheckboxFieldProps {
     value: { [key: string]: boolean }[];

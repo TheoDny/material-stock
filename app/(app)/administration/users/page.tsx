@@ -1,9 +1,9 @@
-import { Suspense } from "react"
-import { UserManagement } from "@/components/user-management/user-management"
 import { Skeleton } from "@/components/ui/skeleton"
-import { getTranslations } from "next-intl/server"
+import { UserManagement } from "@/components/user-management/user-management"
 import { auth } from "@/lib/auth"
+import { getTranslations } from "next-intl/server"
 import { headers } from "next/headers"
+import { Suspense } from "react"
 
 export default async function UsersPage() {
     const t = await getTranslations("UserManagement")

@@ -1,18 +1,18 @@
-import type { ReactNode } from "react"
-import { Users, Boxes, IdCard, ListTree, Logs, Tags, SquareChartGantt } from "lucide-react"
-import { ThemeProvider as NextThemesProvider } from "next-themes"
-import "../globals.css"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/sidebar/app-sidebar"
-import { NavigationType, NavigationGroupType } from "@/types/navigation.type"
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
-import { Permission } from "@prisma/client"
-import { getLocale, getTranslations } from "next-intl/server"
-import { NextIntlClientProvider } from "next-intl"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { auth } from "@/lib/auth"
+import { NavigationGroupType, NavigationType } from "@/types/navigation.type"
+import { Permission } from "@prisma/client"
+import { Boxes, IdCard, ListTree, Logs, SquareChartGantt, Tags, Users } from "lucide-react"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getTranslations } from "next-intl/server"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { headers } from "next/headers"
 import { unauthorized } from "next/navigation"
+import type { ReactNode } from "react"
+import "../globals.css"
 
 interface RootLayoutProps {
     children: ReactNode
@@ -21,7 +21,7 @@ interface RootLayoutProps {
 export default async function RootLayout({ children }: RootLayoutProps) {
     const session = await auth.api.getSession({
         headers: await headers(),
-    })
+    }) 
 
     const locale = await getLocale()
     const tSidebar = await getTranslations("Sidebar")

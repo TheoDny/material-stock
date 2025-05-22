@@ -1,6 +1,6 @@
 import ResetPassword from "@/emails/reset-password";
 import { transporter } from "@/lib/mail";
-import { render } from "@react-email/render"
+import { render } from "@react-email/render";
 
 export interface EmailOptions {
     to: string[]

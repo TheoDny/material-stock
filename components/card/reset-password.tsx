@@ -1,12 +1,11 @@
 "use client"
 
-import { Label } from "@radix-ui/react-label"
-import { error } from "console"
-import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { authClient } from "@/lib/auth-client"
+import { Label } from "@radix-ui/react-label"
+import { Loader2 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -31,7 +30,7 @@ export default function ResetPassword({ token }: ResetPasswordProps) {
                         const password = formData.get("password")
                         const passwordConfirmation = formData.get("password_confirmation")
                         if (password && password !== passwordConfirmation) {
-                            return error("Passwords do not match")
+                            return console.error("Passwords do not match")
                         }
                         await authClient.resetPassword({
                             token,

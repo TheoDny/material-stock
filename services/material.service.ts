@@ -1,11 +1,10 @@
 import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
-import { createMaterialHistory } from "@/services/material-history.service"
+import { FileDb, Material, Material_Characteristic } from "@/prisma/generated"
 import { addMaterialCreateLog, addMaterialUpdateLog } from "@/services/log.service"
-import { saveFile, deleteFiles } from "@/services/storage.service"
-import { Material, Material_Characteristic, FileDb } from "@prisma/client"
-import { MaterialCharacteristic, MaterialCharacteristicClient } from "@/types/characteristic.type"
-import { isCharacteristicValueFileClient } from "@/lib/utils"
+import { createMaterialHistory } from "@/services/material-history.service"
+import { deleteFiles, saveFile } from "@/services/storage.service"
+import { MaterialCharacteristic } from "@/types/characteristic.type"
+import { revalidatePath } from "next/cache"
 
 type CreateCharacteristicValueInput = {
     characteristicId: string

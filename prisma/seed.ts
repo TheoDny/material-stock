@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "@/prisma/generated"
 import { permissions, PermissionSeed } from "./permission"
 
 const prisma = new PrismaClient()

@@ -1,9 +1,9 @@
 "use server"
 
-import { z } from "zod"
-import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
-import { getRoles, createRole, updateRole, assignPermissionsToRole } from "@/services/role.service"
+import { actionClient } from "@/lib/safe-action"
+import { assignPermissionsToRole, createRole, getRoles, updateRole } from "@/services/role.service"
+import { z } from "zod"
 
 // Schema for creating a role
 const createRoleSchema = z.object({

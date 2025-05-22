@@ -1,10 +1,10 @@
 "use server"
 
-import { z } from "zod"
+import { checkAuth } from "@/lib/auth-guard"
 import { actionClient } from "@/lib/safe-action"
 import { getMaterialHistory } from "@/services/material-history.service"
-import { checkAuth } from "@/lib/auth-guard"
 import { MaterialHistoryCharacTyped } from "@/types/material-history.type"
+import { z } from "zod"
 
 // Schéma pour la validation des entrées
 const getMaterialHistorySchema = z.object({

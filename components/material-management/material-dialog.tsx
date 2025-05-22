@@ -1,14 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Check, GripVertical, X } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { X, Check, GripVertical } from "lucide-react"
+import { z } from "zod"
 
-import { Button } from "@/components/ui/button"
+import { getCharacteristicsAction } from "@/actions/characteritic-actions"
+import {
+    createMaterialAction,
+    getMaterialCharacteristicsAction,
+    updateMaterialAction,
+} from "@/actions/material-actions"
+import { getTagsAction } from "@/actions/tag-actions"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
     Dialog,
     DialogContent,
@@ -23,30 +30,22 @@ import {
     FormField,
     FormItem,
     FormLabel,
-    FormMessage,
-    FormDescription,
+    FormMessage
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-    createMaterialAction,
-    updateMaterialAction,
-    getMaterialCharacteristicsAction,
-} from "@/actions/material-actions"
-import { getTagsAction } from "@/actions/tag-actions"
-import { getCharacteristicsAction } from "@/actions/characteritic-actions"
-import { CharacteristicValueForm } from "./characteristic-value-form"
-import { Tag, Characteristic } from "@prisma/client"
-import { MaterialWithTag } from "@/types/material.type"
-import { useTranslations } from "next-intl"
-import { CharacteristicMultiText, MaterialCharacteristicClient } from "@/types/characteristic.type"
+import { Textarea } from "@/components/ui/textarea"
 import {
     buildCharacteristicDefaultValue,
     isCharacteristicValueFile,
     isCharacteristicValueFileClient,
 } from "@/lib/utils"
+import { MaterialCharacteristicClient } from "@/types/characteristic.type"
+import { MaterialWithTag } from "@/types/material.type"
+import { Characteristic, Tag } from "@prisma/client"
+import { useTranslations } from "next-intl"
+import { CharacteristicValueForm } from "./characteristic-value-form"
 
 const materialSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),

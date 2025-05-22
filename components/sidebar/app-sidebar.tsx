@@ -5,6 +5,7 @@ import * as React from "react"
 import { NavMain } from "@/components/sidebar/nav-main"
 import { NavUser } from "@/components/sidebar/nav-user"
 
+import { Separator } from "@/components/ui/separator"
 import {
     Sidebar,
     SidebarContent,
@@ -17,7 +18,6 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import { Separator } from "@/components/ui/separator"
 
 export function AppSidebar({ data, ...props }: React.ComponentProps<typeof Sidebar> & { data: any }) {
     return (

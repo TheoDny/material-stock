@@ -1,4 +1,4 @@
-import { Prisma, Material_History } from "@prisma/client"
+import { Prisma } from "@/prisma/generated"
 
 export type MaterialHistoryCharacTyped = Prisma.Material_HistoryGetPayload<{}> & {
     Characteristics: CharacteristicHistory[]

@@ -1,4 +1,4 @@
-import { Characteristic, Prisma } from "@prisma/client"
+import { Characteristic, Prisma } from "@/prisma/generated"
 
 export type CharacteristicAndCountMaterial = Prisma.CharacteristicGetPayload<{
     include: {

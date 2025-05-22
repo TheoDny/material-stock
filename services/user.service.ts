@@ -1,15 +1,13 @@
 import { prisma } from "@/lib/prisma"
-import { TokenCreateUser } from "@prisma/client"
-import { isPast, addDays } from "date-fns"
-import { revalidatePath } from "next/cache"
 import {
     addUserCreateLog,
-    addUserUpdateLog,
-    addUserSetRoleLog,
-    addUserSetEntityLog,
     addUserDisableLog,
     addUserEmailVerifiedLog,
+    addUserSetEntityLog,
+    addUserSetRoleLog,
+    addUserUpdateLog,
 } from "@/services/log.service"
+import { revalidatePath } from "next/cache"
 
 // Get all users with their roles and entities
 export async function getUsers() {

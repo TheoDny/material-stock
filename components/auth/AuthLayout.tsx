@@ -1,9 +1,9 @@
 "use client"
 
 import { useIsMobile } from "@/hooks/use-mobile"
+import logoNoBg from "@/public/logo-no-bg.png"
 import Image from "next/image"
 import { ReactNode } from "react"
-import logoNoBg from "@/public/logo-no-bg.png"
 
 export function AuthLayout({ children }: { children: ReactNode }) {
     const isMobile = useIsMobile()

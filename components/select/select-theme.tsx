@@ -7,11 +7,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
-import { Moon, Sun } from "lucide-react"
-import * as React from "react"
 import type { VariantProps } from "class-variance-authority"
+import { Moon, Sun } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useTheme } from "next-themes"
+import * as React from "react"
 
 interface ModeToggleButtonProps
     extends React.ButtonHTMLAttributes<HTMLButtonElement>,

@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { Characteristic, Tag } from "@/prisma/generated"
 import {
     CharacteristicHistory,
     MaterialHistoryCharacTyped,
     ValueFieldCharacteristicHistory,
 } from "@/types/material-history.type"
 import { MaterialCharacteristicWithFile } from "@/types/material.type"
-import { Characteristic, Tag } from "@prisma/client"
 
 export const createMaterialHistory = async (materialId: string) => {
     const materialFullInfo = await prisma.material.findUnique({

@@ -1,9 +1,9 @@
 "use server"
 
-import { z } from "zod"
-import { actionClient } from "@/lib/safe-action"
 import { checkAuth } from "@/lib/auth-guard"
-import { getTags, createTag, updateTag, deleteTag } from "@/services/tag.service"
+import { actionClient } from "@/lib/safe-action"
+import { createTag, deleteTag, getTags, updateTag } from "@/services/tag.service"
+import { z } from "zod"
 
 // Schema for creating a tag
 const createTagSchema = z.object({

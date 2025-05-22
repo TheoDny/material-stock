@@ -2,7 +2,7 @@
 
 import { z } from "zod"
 import { actionClient } from "@/lib/safe-action"
-import { CharacteristicType } from "@prisma/client"
+import { CharacteristicType } from "@/prisma/generated"
 import { checkAuth } from "@/lib/auth-guard"
 import {
     getCharacteristics,

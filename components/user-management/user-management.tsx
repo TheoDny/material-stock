@@ -1,23 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Pencil, Check, X } from "lucide-react"
-import { toast } from "sonner"
+import { Check, Pencil, Plus, X } from "lucide-react"
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
+import { getRolesAction } from "@/actions/role-actions"
+import { assignRolesToUserAction, getUsersAction } from "@/actions/user-actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { UserDialog } from "./user-dialog"
-import { getUsersAction } from "@/actions/user-actions"
-import { getRolesAction } from "@/actions/role-actions"
-import { assignRolesToUserAction } from "@/actions/user-actions"
-import { Entity, Role, User } from "@prisma/client"
 import { UserRolesAndEntities } from "@/types/user.type"
-import { Badge } from "@/components/ui/badge"
-import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card"
+import { Entity, Role, User } from "@prisma/client"
+import { UserDialog } from "./user-dialog"
 
 export function UserManagement({ sessionUser }: { sessionUser: User & { Entities: Entity[] } }) {
     const t = useTranslations("UserManagement")

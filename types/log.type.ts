@@ -1,4 +1,3 @@
-import { LogType } from "@prisma/client"
 
 export type DataLogUserCreate = {
     type: "user_create"

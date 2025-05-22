@@ -1,11 +1,11 @@
 import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
 import {
     addRoleCreateLog,
-    addRoleUpdateLog,
     addRoleDeleteLog,
     addRoleSetPermissionLog,
+    addRoleUpdateLog,
 } from "@/services/log.service"
+import { revalidatePath } from "next/cache"
 
 // Get all roles with their permissions
 export async function getRoles() {

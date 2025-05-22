@@ -1,4 +1,4 @@
-import { Characteristic, Prisma, FileDb } from "@prisma/client"
+import { Prisma } from "@/prisma/generated"
 
 export type MaterialWithTag = Prisma.MaterialGetPayload<{
     include: {

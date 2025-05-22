@@ -1,12 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
+import { createUserAction, updateUserAction } from "@/actions/user-actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -19,11 +21,9 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { Badge } from "@/components/ui/badge"
-import { createUserAction, updateUserAction } from "@/actions/user-actions"
 import { UserRolesAndEntities } from "@/types/user.type"
 import { Entity } from "@prisma/client"
-import { X, CirclePlus } from "lucide-react"
+import { CirclePlus, X } from "lucide-react"
 
 const userSchema = z.object({
     name: z.string().min(2, "First name must be at least 2 characters"),

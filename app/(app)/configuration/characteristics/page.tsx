@@ -1,7 +1,7 @@
-import { Suspense } from "react"
 import { CharacteristicManagement } from "@/components/characteristic-management/characteristic-management"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getTranslations } from "next-intl/server"
+import { Suspense } from "react"
 
 export default async function CharacteristicsPage() {
     const t = await getTranslations("Configuration.characteristics")

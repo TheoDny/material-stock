@@ -1,7 +1,7 @@
-import { headers } from "next/headers"
-import { auth } from "@/lib/auth"
 import { Account } from "@/components/account/account"
+import { auth } from "@/lib/auth"
 import { getTranslations } from "next-intl/server"
+import { headers } from "next/headers"
 
 export default async function AccountPage() {
     const session = await auth.api.getSession({

@@ -1,16 +1,16 @@
 "use client"
 
+import { signUpAction } from "@/actions/user-actions"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { CircleAlert, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { signUpAction } from "@/actions/user-actions"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
 
 type SignUpProps = {
     token: string

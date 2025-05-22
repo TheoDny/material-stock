@@ -1,9 +1,8 @@
 import { prisma } from "@/lib/prisma"
-import { FileDb } from "@prisma/client"
-import sharp from "sharp"
+import { FileDb } from "@/prisma/generated"
 import fs from "fs-extra"
 import path from "path"
-import { tr } from "date-fns/locale"
+import sharp from "sharp"
 
 const STORAGE_PATH = process.env.STORAGE_PATH || "./storage"
 

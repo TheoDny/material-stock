@@ -1,49 +1,41 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Checkbox } from "@/components/ui/checkbox"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { DateTimeInput } from "@/components/ui/date-time-input"
+import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Textarea } from "@/components/ui/textarea"
+import { cn, formatDate } from "@/lib/utils"
+import { Characteristic } from "@/prisma/generated"
+import { parseISO } from "date-fns"
 import {
     CalendarIcon,
-    FileIcon,
-    X,
-    Upload,
     Download,
     Eye,
     File,
-    FileText,
-    FileSpreadsheet,
     FileArchive,
+    FileSpreadsheet,
+    FileText,
     FileVolume,
     Undo,
-    Plus,
-    Minus,
-    Clock,
+    Upload,
+    X
 } from "lucide-react"
-import { format, parseISO } from "date-fns"
-import { Characteristic, FileDb } from "@prisma/client"
-import { cn, formatDate } from "@/lib/utils"
-import { toast } from "sonner"
 import { useTranslations } from "next-intl"
-import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
 import Image from "next/image"
-import { TimePicker } from "@/components/ui/time-picker"
-import { DateTimeInput } from "@/components/ui/date-time-input"
-import { NumberField } from "./field/number-field"
-import { FloatField } from "./field/float-field"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "sonner"
 import { BooleanField } from "./field/boolean-field"
 import { CheckboxField } from "./field/checkbox-field"
-import { SelectField } from "./field/select-field"
-import { RadioField } from "./field/radio-field"
+import { FloatField } from "./field/float-field"
 import { MultiSelectField } from "./field/multi-select-field"
 import { MultiTextField } from "./field/multi-text-field"
+import { NumberField } from "./field/number-field"
+import { RadioField } from "./field/radio-field"
+import { SelectField } from "./field/select-field"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic

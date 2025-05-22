@@ -1,4 +1,4 @@
-import { getRequestConfig, getLocale } from "next-intl/server"
+import { getRequestConfig } from "next-intl/server"
 import { cookies, headers } from "next/headers"
 
 export const IMPLEMENTED_LOCALE = ["en", "fr"]

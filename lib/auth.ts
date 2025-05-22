@@ -1,10 +1,10 @@
+import { PrismaClient } from "@/prisma/generated"
+import { getUserRolesPermissionsAndEntities } from "@/services/auth.service"
+import { sendResetPassword } from "@/services/mail.service"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
-import { PrismaClient } from "@prisma/client"
-import { sendResetPassword } from "@/services/mail.service"
 import { nextCookies } from "better-auth/next-js"
 import { customSession } from "better-auth/plugins"
-import { getUserRolesPermissionsAndEntities } from "@/services/auth.service"
 
 const prisma = new PrismaClient()
 export const auth = betterAuth({

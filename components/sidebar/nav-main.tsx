@@ -1,8 +1,8 @@
 "use client"
 
+import { Separator } from "@/components/ui/separator"
 import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton } from "@/components/ui/sidebar"
 import Link from "next/link"
-import { Separator } from "@/components/ui/separator"
 import { ReactNode } from "react"
 
 export function NavMain({

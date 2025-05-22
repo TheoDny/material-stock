@@ -1,13 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
+import { PlusCircle, Trash2, X } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { PlusCircle, X, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
+import {
+    createCharacteristicAction,
+    deleteCharacteristicAction,
+    updateCharacteristicAction,
+} from "@/actions/characteritic-actions"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -20,25 +26,19 @@ import {
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-    FormDescription,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import {
-    createCharacteristicAction,
-    updateCharacteristicAction,
-    deleteCharacteristicAction,
-} from "@/actions/characteritic-actions"
+import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { getTypeColor } from "@/lib/utils"
 import { CharacteristicAndCountMaterial } from "@/types/characteristic.type"
 import { CharacteristicType } from "@prisma/client"
-import { getTypeColor } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 const characteristicTypes: CharacteristicType[] = [
     "boolean",

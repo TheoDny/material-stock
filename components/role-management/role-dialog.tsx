@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { z } from "zod"
-import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { useTranslations } from "next-intl"
+import { useEffect, useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import { z } from "zod"
 
+import { createRoleAction, updateRoleAction } from "@/actions/role-actions"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -19,9 +20,8 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { createRoleAction, updateRoleAction } from "@/actions/role-actions"
-import { Role } from "@prisma/client"
 import { RolePermissions } from "@/types/role.type"
+import { Role } from "@prisma/client"
 
 const roleSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),

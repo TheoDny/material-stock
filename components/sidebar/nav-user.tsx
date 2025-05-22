@@ -1,8 +1,10 @@
 "use client"
 
-import { ChevronsUpDown, LogOut, SquareUserRound, Building } from "lucide-react"
-import { useTranslations } from "next-intl"
+import { changeEntitySelectedAction } from "@/actions/user-actions"
+import { ModeToggle } from "@/components/select/select-theme"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,15 +15,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
-import { ModeToggle } from "@/components/select/select-theme"
-import * as React from "react"
-import Link from "next/link"
 import { signOut } from "@/lib/auth-client"
-import { Button } from "@/components/ui/button"
-import { changeEntitySelectedAction } from "@/actions/user-actions"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
 import { Entity } from "@prisma/client"
+import { Building, ChevronsUpDown, LogOut, SquareUserRound } from "lucide-react"
+import { useTranslations } from "next-intl"
+import Link from "next/link"
+import { toast } from "sonner"
 import { Separator } from "../ui/separator"
 
 export function NavUser({

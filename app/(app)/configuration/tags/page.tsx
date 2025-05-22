@@ -1,7 +1,7 @@
-import { Suspense } from "react"
 import { TagManagement } from "@/components/tag-management/tag-management"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getTranslations } from "next-intl/server"
+import { Suspense } from "react"
 
 export default async function TagsPage() {
     const t = await getTranslations("Configuration.tags")

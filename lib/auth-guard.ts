@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 
 type AuthGuardOptions = {
-    requiredPermission?: string
+    requiredPermission?: string 
 }
 
 export async function checkAuth(options: AuthGuardOptions = {}) {
