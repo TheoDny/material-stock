@@ -44,6 +44,7 @@ export function LanguageSelector({
         // Reload the page to apply the new language
         window.location.href = window.location.pathname
     }
+    alert(showText)
 
     return (
         <DropdownMenu>
@@ -54,7 +55,7 @@ export function LanguageSelector({
                     {...props}
                 >
                     <Globe className="h-4 w-4" />
-                    {showText && <span className="hidden sm:inline">{currentLanguage}</span>}
+                    {showText && <span className="">{currentLanguage}</span>}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
