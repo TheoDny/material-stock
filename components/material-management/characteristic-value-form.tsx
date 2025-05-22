@@ -36,6 +36,14 @@ import { FilePreviewDialog } from "@/components/ui/file-preview-dialog"
 import Image from "next/image"
 import { TimePicker } from "@/components/ui/time-picker"
 import { DateTimeInput } from "@/components/ui/date-time-input"
+import { NumberField } from "./field/number-field"
+import { FloatField } from "./field/float-field"
+import { BooleanField } from "./field/boolean-field"
+import { CheckboxField } from "./field/checkbox-field"
+import { SelectField } from "./field/select-field"
+import { RadioField } from "./field/radio-field"
+import { MultiSelectField } from "./field/multi-select-field"
+import { MultiTextField } from "./field/multi-text-field"
 
 interface CharacteristicValueFormProps {
     characteristic: Characteristic
@@ -144,9 +152,6 @@ export function CharacteristicValueForm({
         type?: string
     } | null>(null)
 
-    // State for multi-text items
-    const [multiTextItems, setMultiTextItems] = useState<{ title: string; text: string }[]>([])
-
     // Initialize values based on characteristic type and existing value
     useEffect(() => {
         if (characteristic.type === "date" || characteristic.type === "dateHour") {
@@ -167,13 +172,6 @@ export function CharacteristicValueForm({
                     from: new Date(value.from),
                     to: new Date(value.to),
                 })
-            }
-        } else if (characteristic.type === "multiText" || characteristic.type === "multiTextArea") {
-            // Handle multi-text initialization
-            if (value && typeof value === "object" && "multiText" in value && Array.isArray(value.multiText)) {
-                setMultiTextItems(value.multiText)
-            } else {
-                setMultiTextItems([{ title: "", text: "" }])
             }
         }
     }, [characteristic.type, value])
@@ -206,25 +204,6 @@ export function CharacteristicValueForm({
         if (newDates.from && newDates.to) {
             onChange({ from: newDates.from, to: newDates.to })
         }
-    }
-
-    const handleMultiTextChange = (index: number, field: "title" | "text", newValue: string) => {
-        const updatedItems = [...multiTextItems]
-        updatedItems[index] = { ...updatedItems[index], [field]: newValue }
-        setMultiTextItems(updatedItems)
-        onChange({ multiText: updatedItems })
-    }
-
-    const addMultiTextItem = () => {
-        setMultiTextItems([...multiTextItems, { title: "", text: "" }])
-        onChange({ multiText: [...multiTextItems, { title: "", text: "" }] })
-    }
-
-    const removeMultiTextItem = (index: number) => {
-        if (multiTextItems.length <= 1) return
-        const updatedItems = multiTextItems.filter((_, i) => i !== index)
-        setMultiTextItems(updatedItems)
-        onChange({ multiText: updatedItems })
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -388,7 +367,7 @@ export function CharacteristicValueForm({
 
     const renderFormControl = () => {
         const { type, options, units } = characteristic
-        const optionsArray = options ? (typeof options === "string" ? JSON.parse(options) : options) : []
+        const optionsArray: any[] = options ? (typeof options === "string" ? JSON.parse(options) : options) : []
 
         switch (type) {
             case "text":
@@ -412,189 +391,74 @@ export function CharacteristicValueForm({
 
             case "number":
                 return (
-                    <div className="flex items-center space-x-2">
-                        <Input
-                            type="number"
-                            value={value || ""}
-                            onChange={(e) => onChange(e.target.value)}
-                            placeholder="Enter number"
-                        />
-                        {units && <span className="text-sm text-muted-foreground">{units}</span>}
-                    </div>
+                    <NumberField
+                        value={value || 0}
+                        onChange={onChange}
+                        units={units}
+                    />
                 )
 
             case "float":
                 return (
-                    <div className="flex items-center space-x-2">
-                        <Input
-                            type="number"
-                            step="0.01"
-                            value={value || ""}
-                            onChange={(e) => onChange(e.target.value)}
-                            placeholder="Enter decimal number"
-                        />
-                        {units && <span className="text-sm text-muted-foreground">{units}</span>}
-                    </div>
+                    <FloatField
+                        value={value || ""}
+                        onChange={onChange}
+                        units={units}
+                    />
                 )
 
             case "boolean":
                 return (
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            checked={value === true || value === "true"}
-                            onCheckedChange={(checked) => onChange(checked ? true : false)}
-                            id={`checkbox-${characteristic.id}`}
-                        />
-                        <Label htmlFor={`checkbox-${characteristic.id}`}>Yes</Label>
-                    </div>
+                    <BooleanField
+                        value={value || false}
+                        onChange={onChange}
+                    />
                 )
 
             case "checkbox":
                 return (
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            checked={value === true || value === "true"}
-                            onCheckedChange={(checked) => onChange(checked ? "true" : "false")}
-                            id={`checkbox-${characteristic.id}`}
-                        />
-                        <Label htmlFor={`checkbox-${characteristic.id}`}>{optionsArray?.[0] || "Yes"}</Label>
-                    </div>
+                    <CheckboxField
+                        value={value || []}
+                        onChange={onChange}
+                        options={optionsArray}
+                    />
                 )
 
             case "select":
                 return (
-                    <Select
+                    <SelectField
                         value={value || ""}
-                        onValueChange={onChange}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select an option" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {optionsArray?.map((option: string) => (
-                                <SelectItem
-                                    key={option}
-                                    value={option}
-                                >
-                                    {option}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                        onChange={onChange}
+                        options={optionsArray}
+                    />
                 )
 
             case "radio":
                 return (
-                    <RadioGroup
+                    <RadioField
                         value={value || ""}
-                        onValueChange={onChange}
-                        className="flex flex-col space-y-1"
-                    >
-                        {optionsArray?.map((option: string) => (
-                            <div
-                                key={option}
-                                className="flex items-center space-x-2"
-                            >
-                                <RadioGroupItem
-                                    value={option}
-                                    id={`radio-${characteristic.id}-${option}`}
-                                />
-                                <Label htmlFor={`radio-${characteristic.id}-${option}`}>{option}</Label>
-                            </div>
-                        ))}
-                    </RadioGroup>
+                        onChange={onChange}
+                        options={optionsArray}
+                    />
                 )
 
             case "multiSelect":
-                const selectedValues = value && Array.isArray(value) ? value : value ? value.split(",") : []
                 return (
-                    <div className="space-y-2">
-                        {optionsArray?.map((option: string) => (
-                            <div
-                                key={option}
-                                className="flex items-center space-x-2"
-                            >
-                                <Checkbox
-                                    checked={selectedValues.includes(option)}
-                                    onCheckedChange={(checked) => {
-                                        let newValues
-                                        if (checked) {
-                                            newValues = [...selectedValues, option]
-                                        } else {
-                                            newValues = selectedValues.filter((v: string) => v !== option)
-                                        }
-                                        onChange(newValues)
-                                    }}
-                                    id={`multiselect-${characteristic.id}-${option}`}
-                                />
-                                <Label htmlFor={`multiselect-${characteristic.id}-${option}`}>{option}</Label>
-                            </div>
-                        ))}
-                    </div>
+                    <MultiSelectField
+                        value={value || []}
+                        onChange={onChange}
+                        options={optionsArray}
+                    />
                 )
 
             case "multiText":
             case "multiTextArea":
                 return (
-                    <div className="space-y-4">
-                        {multiTextItems.map((item, index) => (
-                            <div
-                                key={`multitext-${index}`}
-                                className="space-y-2 p-3 border rounded-md relative"
-                            >
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="absolute top-2 right-2 h-6 w-6"
-                                    onClick={() => removeMultiTextItem(index)}
-                                    disabled={multiTextItems.length <= 1}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
-
-                                <div>
-                                    <Label htmlFor={`multitext-title-${index}`}>Title</Label>
-                                    <Input
-                                        id={`multitext-title-${index}`}
-                                        value={item.title}
-                                        onChange={(e) => handleMultiTextChange(index, "title", e.target.value)}
-                                        placeholder="Enter title"
-                                    />
-                                </div>
-
-                                <div>
-                                    <Label htmlFor={`multitext-content-${index}`}>Content</Label>
-                                    {type === "multiTextArea" ? (
-                                        <Textarea
-                                            id={`multitext-content-${index}`}
-                                            value={item.text}
-                                            onChange={(e) => handleMultiTextChange(index, "text", e.target.value)}
-                                            placeholder="Enter content"
-                                            className="resize-none"
-                                        />
-                                    ) : (
-                                        <Input
-                                            id={`multitext-content-${index}`}
-                                            value={item.text}
-                                            onChange={(e) => handleMultiTextChange(index, "text", e.target.value)}
-                                            placeholder="Enter content"
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={addMultiTextItem}
-                            className="w-full"
-                        >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Item
-                        </Button>
-                    </div>
+                    <MultiTextField
+                        value={value}
+                        onChange={onChange}
+                        useTextArea={type === "multiTextArea"}
+                    />
                 )
 
             case "date":
