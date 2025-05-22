@@ -44,7 +44,6 @@ export function LanguageSelector({
         // Reload the page to apply the new language
         window.location.href = window.location.pathname
     }
-    alert(showText)
 
     return (
         <DropdownMenu>
