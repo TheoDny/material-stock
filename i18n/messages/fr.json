@@ -478,5 +478,15 @@
         "noTags": "Aucun tag",
         "noCharacteristics": "Aucune caractéristique",
         "na": "N/A"
+    },
+    "Unauthorized": {
+        "title": "Non autorisé",
+        "description": "Vous n'êtes pas autorisé à accéder à cette page.",
+        "backToHome": "Retour à l'accueil"
+    },
+    "Forbidden": {
+        "title": "Interdit",
+        "description": "Vous n'avez pas les permissions nécessaires pour accéder à cette page.",
+        "backToHome": "Retour à l'accueil"
     }
 }

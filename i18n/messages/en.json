@@ -475,5 +475,15 @@
         "noTags": "No tags",
         "noCharacteristics": "No characteristics",
         "na": "N/A"
+    },
+    "Unauthorized": {
+        "title": "Unauthorized",
+        "description": "You are not authorized to access this page.",
+        "backToHome": "Back to Home"
+    },
+    "Forbidden": {
+        "title": "Forbidden",
+        "description": "You do not have the necessary permissions to access this page.",
+        "backToHome": "Back to Home"
     }
 }
